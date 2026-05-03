@@ -1,12 +1,20 @@
 import SwiftUI
 
+// MARK: - Mode
+
+enum SubscriptionFormMode {
+    case create(template: SubscriptionTemplate, date: Date)
+    case edit(Subscription)
+}
+
+// MARK: - Form View
+
 struct SubscriptionFormView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.dismiss) var dismiss
 
-    let service: SubscriptionTemplate
-    let date: Date
-    let onCreate: (Subscription) -> Void
+    let mode: SubscriptionFormMode
+    let onCommit: (Subscription) -> Void
 
     @State private var name: String
     @State private var price: Double
@@ -15,48 +23,76 @@ struct SubscriptionFormView: View {
     @State private var category: String
     @State private var paymentMethod: String
     @State private var notes: String
+    @State private var showDeleteAlert = false
 
-    init(
-        service: SubscriptionTemplate,
-        date: Date,
-        onCreate: @escaping (Subscription) -> Void
-    ) {
-        self.service = service
-        self.date = date
-        self.onCreate = onCreate
+    private let originalID: UUID?
+    private let themeColor: Color
 
-        _name = State(initialValue: "Spotify")
-        _price = State(initialValue: 0)
-        _schedule = State(initialValue: SubscriptionSchedule.monthly)
-        _startDate = State(initialValue: date)
-        _category = State(initialValue: "Entertainment")
-        _paymentMethod = State(initialValue: "None")
-        _notes = State(initialValue: "")
+    init(mode: SubscriptionFormMode, onCommit: @escaping (Subscription) -> Void) {
+        self.mode = mode
+        self.onCommit = onCommit
 
+        switch mode {
+        case .create(let template, let date):
+            originalID   = nil
+            themeColor   = template.color
+            _name        = State(initialValue: template.name)
+            _price       = State(initialValue: 10.00)
+            _schedule    = State(initialValue: .monthly)
+            _startDate   = State(initialValue: date)
+            _category    = State(initialValue: "Entertainment")
+            _paymentMethod = State(initialValue: "None")
+            _notes       = State(initialValue: "")
+
+        case .edit(let sub):
+            originalID   = sub.id
+            themeColor   = Color(hex: sub.colorHex)
+            _name        = State(initialValue: sub.name)
+            _price       = State(initialValue: sub.price)
+            _schedule    = State(initialValue: sub.schedule)
+            _startDate   = State(initialValue: sub.startDate)
+            _category    = State(initialValue: sub.category)
+            _paymentMethod = State(initialValue: sub.paymentMethod ?? "None")
+            _notes       = State(initialValue: sub.notes ?? "")
+        }
     }
+
+    private var isEditMode: Bool {
+        if case .edit = mode { return true }
+        return false
+    }
+
+    private var colorHex: String {
+        if case .create(let template, _) = mode {
+            return template.brandHex ?? template.fallbackColor.toHex()
+        }
+        if case .edit(let sub) = mode { return sub.colorHex }
+        return "#888888"
+    }
+
+    private var logoName: String? {
+        switch mode {
+        case .create(let template, _): return template.logo
+        case .edit: return SubscriptionTemplate.logoName(for: name)
+        }
+    }
+
+    // MARK: - Validation
 
     private func isValid() -> Bool {
-        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
-            return false
-        }
-
-        guard price > 0 else {
-            return false
-        }
-
-        return true
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && price > 0
     }
 
-    private func saveSubscription() {
-        guard isValid() else {
-            print("Validation failed")
-            return
-        }
+    // MARK: - Save
+
+    private func commit() {
+        guard isValid() else { return }
 
         let subscription = Subscription(
+            id: originalID ?? UUID(),
             name: name,
             price: price,
-            colorHex: service.color.toHex(),
+            colorHex: colorHex,
             schedule: schedule,
             startDate: startDate,
             paymentMethod: paymentMethod == "None" ? nil : paymentMethod,
@@ -65,26 +101,49 @@ struct SubscriptionFormView: View {
             list: "Default"
         )
 
-        store.subscriptions.append(subscription)
+        if !isEditMode {
+            store.add(subscription)
+        }
 
         dismiss()
-        onCreate(subscription)
+        onCommit(subscription)
     }
 
-    var body: some View {
-        ZStack(alignment: .bottom) {
+    // MARK: - Body
 
-            // 🔥 Background
+    var body: some View {
+        if isEditMode {
+            NavigationStack {
+                formContent
+                    .toolbar { editToolbar }
+            }
+        } else {
+            formContent
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var editToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button("Cancel", role: .cancel) { dismiss() }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                showDeleteAlert = true
+            } label: {
+                Image(systemName: "trash")
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
+    private var formContent: some View {
+        ZStack(alignment: .bottom) {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
-
-                // 🟢 Top blur gradient (sticky feel)
                 LinearGradient(
-                    colors: [
-                        service.color.opacity(0.6),
-                        Color.black.opacity(0.0),
-                    ],
+                    colors: [themeColor.opacity(0.6), Color.black.opacity(0.0)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -95,17 +154,16 @@ struct SubscriptionFormView: View {
                 Spacer()
             }
 
-            // 🧾 Content
             ScrollView {
                 VStack(spacing: 16) {
+                    SubscriptionLogoCircle(
+                        size: 72,
+                        color: themeColor,
+                        logoName: logoName,
+                        name: name
+                    )
+                    .padding(.top, 16)
 
-                    // 🟢 Header icon (no container)
-                    Circle()
-                        .fill(service.color)
-                        .frame(width: 72, height: 72)
-                        .padding(.top, 16)
-
-                    // 📦 Main section
                     GlassSection {
                         Row(label: "Name") {
                             TextField("", text: $name)
@@ -120,120 +178,134 @@ struct SubscriptionFormView: View {
                                 Text("Yearly").tag(SubscriptionSchedule.yearly)
                             }
                             .pickerStyle(.menu)
+                            .tint(Color.secondary)
                         }
 
                         Divider()
 
                         Row(label: "Start Date") {
-                            DatePicker(
-                                "",
-                                selection: $startDate,
-                                displayedComponents: .date,
-                            )
-                            .labelsHidden()
+                            DatePicker("", selection: $startDate, displayedComponents: .date)
+                                .labelsHidden()
+                                .tint(themeColor)
                         }
                     }
 
-                    // 💰 Amount
                     GlassSection {
                         Row(label: "Amount") {
-                            TextField(
-                                "",
-                                value: $price,
-                                format: .currency(code: "CAD")
-                            )
-                            .multilineTextAlignment(.trailing)
-                            .keyboardType(.decimalPad)
+                            TextField("", value: $price, format: .currency(code: "CAD"))
+                                .multilineTextAlignment(.trailing)
+                                .keyboardType(.decimalPad)
                         }
                     }
 
-                    // 📦 Extra
                     GlassSection {
-                        Row(label: "Category") {
+                        Row(label: "Category", icon: "tag.fill", iconColor: themeColor) {
                             Picker("", selection: $category) {
                                 Text("Entertainment").tag("Entertainment")
                                 Text("Productivity").tag("Productivity")
                             }
                             .pickerStyle(.menu)
+                            .tint(Color.secondary)
                         }
 
                         Divider()
 
-                        Row(label: "Pay with") {
+                        Row(label: "Pay with", icon: "wallet.bifold.fill", iconColor: themeColor) {
                             Picker("", selection: $paymentMethod) {
                                 Text("None").tag("None")
                                 Text("Credit").tag("Credit")
                                 Text("Debit").tag("Debit")
                             }
                             .pickerStyle(.menu)
+                            .tint(Color.secondary)
                         }
 
                         Divider()
 
-                        Row(label: "List") {
-                            Text("Personal")
-                                .foregroundStyle(.secondary)
+                        Row(label: "List", icon: "list.dash", iconColor: themeColor) {
+                            Text("Personal").foregroundStyle(.secondary)
                         }
                     }
 
-                    // 📝 Notes
                     GlassSection {
-                        VStack(alignment: .leading, spacing: 8) {  // Aligns children to the left
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Notes")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
+                                .typography(.titleSmall)
+                                .foregroundStyle(.secondary)
 
                             TextEditor(text: $notes)
                                 .frame(height: 100)
                                 .scrollContentBackground(.hidden)
                         }
-
                     }
 
                     Spacer(minLength: 100)
                 }
                 .padding()
             }
+            .scrollDismissesKeyboard(.interactively)
 
-            // 🔘 Sticky button
-            Button {
-                saveSubscription()
-            } label: {
-                Text("Add Subscription")
+            Button { commit() } label: {
+                Text(isEditMode ? "Save Changes" : "Add Subscription")
+                    .typography(.titleMedium)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .foregroundStyle(.white)
             }
-            .background(.ultraThinMaterial)
+            .background(themeColor.opacity(0.75))
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .padding()
         }
-        .navigationTitle("New Subscription")
+        .navigationTitle(isEditMode ? "Edit Subscription" : "New Subscription")
         .navigationBarTitleDisplayMode(.inline)
-        .onTapGesture {
-            UIApplication.shared.hideKeyboard()
+        .alert("Delete Subscription", isPresented: $showDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                if let id = originalID {
+                    store.subscriptions.removeAll { $0.id == id }
+                    StorageService.save(store.subscriptions)
+                }
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("\(name) will be permanently removed.")
         }
     }
+
 }
+
+// MARK: - Supporting Views (shared)
 
 struct Row<Content: View>: View {
     let label: String
+    var icon: String? = nil
+    var iconColor: Color = .secondary
     let content: Content
 
-    init(label: String, @ViewBuilder content: () -> Content) {
+    init(
+        label: String,
+        icon: String? = nil,
+        iconColor: Color = .secondary,
+        @ViewBuilder content: () -> Content
+    ) {
         self.label = label
+        self.icon = icon
+        self.iconColor = iconColor
         self.content = content()
     }
 
     var body: some View {
-        HStack {
+        HStack(spacing: 10) {
+            if let icon {
+                Image(systemName: icon)
+                    .iconStyle(size: 14, weight: .medium, color: iconColor)
+                    .frame(width: 20)
+            }
             Text(label)
+                .typography(.bodyMedium)
                 .foregroundStyle(.secondary)
-
             Spacer()
-
-            content
-                .foregroundStyle(.primary)
+            content.foregroundStyle(.primary)
         }
         .frame(height: 44)
     }
@@ -247,19 +319,35 @@ struct GlassSection<Content: View>: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            content
-        }
-        .padding()
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        VStack(spacing: 0) { content }
+            .padding()
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 }
 
-#Preview {
-    SubscriptionFormView(
-        service: SubscriptionTemplate.init(name: "YouTube", color: .red),
-        date: Date(),
-        onCreate: { _ in }
-    ).environmentObject(AppStore())
+// MARK: - Preview
+
+#Preview("Create") {
+    NavigationStack {
+        SubscriptionFormView(
+            mode: .create(
+                template: .init(name: "YouTube", brandHex: "#FF0000", fallbackColor: .red, logo: "youtube-logo"),
+                date: Date()
+            ),
+            onCommit: { _ in }
+        )
+    }
+    .environmentObject(AppStore())
+}
+
+#Preview("Edit") {
+    let sub = Subscription(
+        name: "Spotify", price: 9.99, colorHex: "#1DB954",
+        schedule: .monthly, startDate: Date()
+    )
+    return NavigationStack {
+        SubscriptionFormView(mode: .edit(sub), onCommit: { _ in })
+    }
+    .environmentObject(AppStore())
 }

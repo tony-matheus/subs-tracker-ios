@@ -24,7 +24,22 @@ struct HomeView: View {
             )
         ) {
             if let day = store.selectedDay {
-                SubscriptionListSheet(date: day)
+                let daySubs = SubscriptionService.subscriptions(for: day, subs: store.subscriptions)
+                if daySubs.isEmpty {
+                    SubscriptionListSheet(date: day)
+                } else {
+                    SubscriptionInDay(date: day)
+                }
+            }
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { store.selectedSubscription != nil },
+                set: { if !$0 { store.selectedSubscription = nil } }
+            )
+        ) {
+            if let sub = store.selectedSubscription {
+                SubscriptionSummarySheet(subscription: sub)
             }
         }
     }

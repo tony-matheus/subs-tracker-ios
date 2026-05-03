@@ -22,6 +22,18 @@ struct AppButtonStyle: ButtonStyle {
     }
 }
 
+struct LiquidGlassButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(.secondary)
+            .glassEffect(.regular.interactive())
+    }
+}
+
+extension ButtonStyle where Self == LiquidGlassButtonStyle {
+    static var liquidGlass: LiquidGlassButtonStyle { LiquidGlassButtonStyle() }
+}
+
 struct AppTextModifier: ViewModifier {
     let style: AppTypography.Style
 
@@ -32,9 +44,29 @@ struct AppTextModifier: ViewModifier {
     }
 }
 
+struct IconModifier: ViewModifier {
+    let size: CGFloat
+    let weight: Font.Weight
+    let color: Color
+
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: size, weight: weight))
+            .foregroundStyle(color)
+    }
+}
+
 extension View {
     func typography(_ style: AppTypography.Style) -> some View {
         self.modifier(AppTextModifier(style: style))
+    }
+
+    func iconStyle(
+        size: CGFloat = 17,
+        weight: Font.Weight = .regular,
+        color: Color = .secondary
+    ) -> some View {
+        modifier(IconModifier(size: size, weight: weight, color: color))
     }
 }
 

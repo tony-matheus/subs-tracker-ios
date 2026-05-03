@@ -29,41 +29,45 @@ struct SubscriptionListSheet: View {
         dismiss()
     }
 
+    func onCommit(sub: Subscription) {
+        dismiss()
+    }
+
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                ScrollView {
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible()), GridItem(.flexible()),
-                        ],
-                        spacing: 8
-                    ) {
-                        ForEach(filteredServices) { service in
-                            Button {
-                                selectedService = service
-                            } label: {
-                                VStack(spacing: 8) {
-                                    Circle()
-                                        .fill(service.color)
-                                        .frame(width: 48, height: 48)
+            ScrollView {
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible()), GridItem(.flexible()),
+                    ],
+                    spacing: 8
+                ) {
+                    ForEach(filteredServices) { service in
+                        Button {
+                            selectedService = service
+                        } label: {
+                            VStack(spacing: 8) {
+                                SubscriptionLogoCircle(
+                                    size: 48,
+                                    color: service.color,
+                                    logoName: service.logo,
+                                    name: service.name
+                                )
 
-                                    Text(service.name)
-                                        .font(.subheadline)
-                                        .foregroundColor(.white)
-                                }
-                                .frame(maxWidth: .infinity, minHeight: 120)
-                                .background(Color.gray.opacity(0.15))
-                                .cornerRadius(20)
+                                Text(service.name)
+                                    .typography(.bodyMedium)
+                                    .foregroundStyle(.primary)
                             }
+                            .frame(maxWidth: .infinity, minHeight: 120)
+                            .background(Color.gray.opacity(0.15))
+                            .cornerRadius(20)
                         }
                     }
-                    .padding()
-
-                    Spacer(minLength: 100)
                 }
+                .padding()
+            }
+            .safeAreaInset(edge: .bottom) {
                 SearchBar(text: $searchText)
-                    .padding(.horizontal)
                     .padding(.bottom, 8)
             }
             .navigationTitle("Add Subscription")
@@ -83,9 +87,8 @@ struct SubscriptionListSheet: View {
             }
             .navigationDestination(item: $selectedService) { service in
                 SubscriptionFormView(
-                    service: service,
-                    date: date,
-                    onCreate: onCreate
+                    mode: .create(template: service, date: date),
+                    onCommit: onCommit
                 )
             }
         }

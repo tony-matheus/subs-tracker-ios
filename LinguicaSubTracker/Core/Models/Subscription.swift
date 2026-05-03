@@ -5,7 +5,7 @@ enum SubscriptionSchedule: String, Codable {
     case yearly
 }
 
-struct Subscription: Identifiable, Codable {
+struct Subscription: Identifiable, Codable, Equatable {
     let id: UUID
     var name: String
     var price: Double

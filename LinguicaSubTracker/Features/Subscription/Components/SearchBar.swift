@@ -8,8 +8,8 @@ struct SearchBar: View {
     var body: some View {
         // 1. Wrap the HStack in a GlassEffectContainer to enable blending
         GlassEffectContainer(spacing: 20) {
-            HStack(spacing: 8) {
-                
+            HStack(spacing: 16) {
+
                 // MARK: - Search Field
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
@@ -21,27 +21,21 @@ struct SearchBar: View {
                 }
                 .padding(.horizontal, 16)
                 .frame(height: 54)
-                // Use .interactive() for the "swelling" effect on touch
                 .glassEffect(.regular.interactive(), in: Capsule())
-                // Assign a unique ID within the namespace to enable morphing
                 .glassEffectID("searchField", in: glassNamespace)
 
-                // MARK: - Clear Button
                 if isFocused || !text.isEmpty {
                     Button {
                         text = ""
                         isFocused = false
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 44, height: 44)
+                            .iconStyle(size: 14, weight: .bold)
+                            .frame(width: 54, height: 54)
                     }
-                    .buttonStyle(.glass)
-                    .glassEffect(.regular.interactive(), in: Circle())
-                    // Matches this button to the search field for smooth morphing
+                    .buttonStyle(.liquidGlass)
                     .glassEffectID("clearButton", in: glassNamespace)
-                    .glassEffectTransition(.matchedGeometry) // System default for morphing
+                    .glassEffectTransition(.matchedGeometry)
                     .transition(.opacity)
                 }
             }

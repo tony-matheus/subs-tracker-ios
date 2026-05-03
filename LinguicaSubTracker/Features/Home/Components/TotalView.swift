@@ -20,7 +20,8 @@ struct TotalView: View {
     var body: some View {
         VStack(spacing: 8) {
             Text(store.currentMonth.formatted(.dateTime.month().year()))
-                .foregroundColor(.gray)
+                .typography(.labelMedium)
+                .foregroundStyle(.secondary)
 
             TextAnimatedView(text: "$ \(total.asPeriodCurrency)", onTapGesture: handleTapGesture)
             
