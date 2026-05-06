@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TextAnimatedView: View {
     let text: String
+    var size: CGFloat = 62
     var onTapGesture: () -> Void = {}
 
     @State private var displayedValue: String = ""
@@ -16,7 +17,7 @@ struct TextAnimatedView: View {
 
     var body: some View {
         Text(displayedValue)
-            .typography(.displayMedium.size(62))
+            .typography(.displayMedium.size(size))
             .monospacedDigit()
             .contentTransition(.numericText())
             .scaleEffect(scale)

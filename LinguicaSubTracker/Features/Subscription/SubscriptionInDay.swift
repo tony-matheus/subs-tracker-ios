@@ -29,7 +29,6 @@ struct SubscriptionInDay: View {
                 .padding(.bottom, 24)
             }
         }
-        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 24))
         .presentationDetents([.height(compactHeight)])
         .presentationDragIndicator(.hidden)
         .sheet(isPresented: $showAddSheet) {

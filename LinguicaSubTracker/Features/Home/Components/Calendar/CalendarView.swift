@@ -25,9 +25,14 @@ struct CalendarView: View {
         .onAppear {
             refreshMonths()
             syncToCurrentMonth()
+            syncDisplayedMonthToStore()
         }
-        .onChange(of: store.subscriptions) {
+        .onChange(of: store.subscriptions) { _, _ in
             refreshMonths()
+            syncDisplayedMonthToStore()
+        }
+        .onChange(of: store.currentMonthIndex) { _, _ in
+            syncDisplayedMonthToStore()
         }
     }
 
@@ -42,6 +47,17 @@ struct CalendarView: View {
             calendar.isDate($0.date, equalTo: now, toGranularity: .month)
         }) {
             store.currentMonthIndex = index
+        }
+    }
+
+    /// Keeps `store.currentMonth` aligned with the calendar page so `TotalView` totals match the visible month.
+    private func syncDisplayedMonthToStore() {
+        guard !months.isEmpty else { return }
+        let idx = min(max(0, store.currentMonthIndex), months.count - 1)
+        let monthStart = months[idx].date
+        let calendar = Calendar.current
+        if !calendar.isDate(store.currentMonth, equalTo: monthStart, toGranularity: .month) {
+            store.currentMonth = monthStart
         }
     }
 }

@@ -20,9 +20,7 @@ struct DayCell: View {
     private var primaryColor: Color? { primarySub.map { Color(hex: $0.colorHex) } }  // used by cellBackground gradient
     private let logoSize: CGFloat = 26
     private let cornerRadius: CGFloat = 20
-    /// Matches Tailwind `p-1` on the subscription strip; keeps logos inside the clip rect.
     private let subscriptionInset: CGFloat = 4
-    /// Matches `top-2 left-2` for the day label.
     private let dayLabelInset: CGFloat = 8
 
     var body: some View {

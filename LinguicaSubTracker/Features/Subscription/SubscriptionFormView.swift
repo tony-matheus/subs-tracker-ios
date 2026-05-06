@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Mode
 
@@ -23,37 +24,46 @@ struct SubscriptionFormView: View {
     @State private var category: String
     @State private var paymentMethod: String
     @State private var notes: String
+    @State private var list: String
     @State private var showDeleteAlert = false
+    @State private var showKeypad = false
+    @State private var currencyCode: String = "CAD"
+    @State private var isNativeKeyboardVisible = false
 
     private let originalID: UUID?
     private let themeColor: Color
 
-    init(mode: SubscriptionFormMode, onCommit: @escaping (Subscription) -> Void) {
+    init(mode: SubscriptionFormMode, onCommit: @escaping (Subscription) -> Void)
+    {
         self.mode = mode
         self.onCommit = onCommit
 
         switch mode {
         case .create(let template, let date):
-            originalID   = nil
-            themeColor   = template.color
-            _name        = State(initialValue: template.name)
-            _price       = State(initialValue: 10.00)
-            _schedule    = State(initialValue: .monthly)
-            _startDate   = State(initialValue: date)
-            _category    = State(initialValue: "Entertainment")
+            originalID = nil
+            themeColor = template.color
+            _name = State(initialValue: template.name)
+            _price = State(initialValue: 0.00)
+            _schedule = State(initialValue: .monthly)
+            _startDate = State(initialValue: date)
+            _category = State(initialValue: "Entertainment")
             _paymentMethod = State(initialValue: "None")
-            _notes       = State(initialValue: "")
+            _notes = State(initialValue: "")
+            _list = State(initialValue: "Personal")
 
         case .edit(let sub):
-            originalID   = sub.id
-            themeColor   = Color(hex: sub.colorHex)
-            _name        = State(initialValue: sub.name)
-            _price       = State(initialValue: sub.price)
-            _schedule    = State(initialValue: sub.schedule)
-            _startDate   = State(initialValue: sub.startDate)
-            _category    = State(initialValue: sub.category)
+            originalID = sub.id
+            themeColor = Color(hex: sub.colorHex)
+            _name = State(initialValue: sub.name)
+            _price = State(initialValue: sub.price)
+            _schedule = State(initialValue: sub.schedule)
+            _startDate = State(initialValue: sub.startDate)
+            _category = State(initialValue: sub.category)
             _paymentMethod = State(initialValue: sub.paymentMethod ?? "None")
-            _notes       = State(initialValue: sub.notes ?? "")
+            _notes = State(initialValue: sub.notes ?? "")
+            _list = State(
+                initialValue: sub.list == "Default" ? "Personal" : sub.list
+            )
         }
     }
 
@@ -85,6 +95,15 @@ struct SubscriptionFormView: View {
 
     // MARK: - Save
 
+    private func dismissNativeKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
+
     private func commit() {
         guard isValid() else { return }
 
@@ -98,7 +117,7 @@ struct SubscriptionFormView: View {
             paymentMethod: paymentMethod == "None" ? nil : paymentMethod,
             notes: notes.isEmpty ? nil : notes,
             category: category,
-            list: "Default"
+            list: list
         )
 
         if !isEditMode {
@@ -143,7 +162,9 @@ struct SubscriptionFormView: View {
 
             VStack(spacing: 0) {
                 LinearGradient(
-                    colors: [themeColor.opacity(0.6), Color.black.opacity(0.0)],
+                    colors: [
+                        themeColor.opacity(0.6), Color.black.opacity(0.0),
+                    ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -168,74 +189,113 @@ struct SubscriptionFormView: View {
                         Row(label: "Name") {
                             TextField("", text: $name)
                                 .multilineTextAlignment(.trailing)
+                                .typography(.bodyMedium)
                         }
 
                         Divider()
 
                         Row(label: "Payment Schedule") {
                             Picker("", selection: $schedule) {
-                                Text("Monthly").tag(SubscriptionSchedule.monthly)
+                                Text("Monthly").tag(
+                                    SubscriptionSchedule.monthly
+                                )
                                 Text("Yearly").tag(SubscriptionSchedule.yearly)
                             }
                             .pickerStyle(.menu)
+                            .typography(.bodyMedium)
                             .tint(Color.secondary)
                         }
 
                         Divider()
 
                         Row(label: "Start Date") {
-                            DatePicker("", selection: $startDate, displayedComponents: .date)
-                                .labelsHidden()
-                                .tint(themeColor)
+                            DatePicker(
+                                "",
+                                selection: $startDate,
+                                displayedComponents: .date
+                            )
+                            .labelsHidden()
+                            .typography(.bodyMedium)
+                            .tint(themeColor)
                         }
                     }
 
                     GlassSection {
-                        Row(label: "Amount") {
-                            TextField("", value: $price, format: .currency(code: "CAD"))
-                                .multilineTextAlignment(.trailing)
-                                .keyboardType(.decimalPad)
+                        Button {
+                            showKeypad = true
+                        } label: {
+                            Row(label: "Amount") {
+                                Text(
+                                    price,
+                                    format: .currency(code: currencyCode)
+                                )
+                                .typography(.headlineSmall.weight(.regular))
+                                .foregroundStyle(.primary)
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
 
                     GlassSection {
-                        Row(label: "Category", icon: "tag.fill", iconColor: themeColor) {
+                        Row(
+                            label: "Category",
+                            icon: "tag.fill",
+                            iconColor: themeColor
+                        ) {
                             Picker("", selection: $category) {
                                 Text("Entertainment").tag("Entertainment")
                                 Text("Productivity").tag("Productivity")
                             }
                             .pickerStyle(.menu)
+                            .typography(.bodyMedium)
                             .tint(Color.secondary)
                         }
 
                         Divider()
 
-                        Row(label: "Pay with", icon: "wallet.bifold.fill", iconColor: themeColor) {
+                        Row(
+                            label: "Pay with",
+                            icon: "wallet.bifold.fill",
+                            iconColor: themeColor
+                        ) {
                             Picker("", selection: $paymentMethod) {
                                 Text("None").tag("None")
                                 Text("Credit").tag("Credit")
                                 Text("Debit").tag("Debit")
                             }
                             .pickerStyle(.menu)
+                            .typography(.bodyMedium)
                             .tint(Color.secondary)
                         }
 
                         Divider()
 
-                        Row(label: "List", icon: "list.dash", iconColor: themeColor) {
-                            Text("Personal").foregroundStyle(.secondary)
+                        Row(
+                            label: "List",
+                            icon: "list.dash",
+                            iconColor: themeColor
+                        ) {
+                            Picker("", selection: $list) {
+                                Text("Personal").tag("Personal")
+                                Text("Work").tag("Work")
+                                Text("Family").tag("Family")
+                            }
+                            .pickerStyle(.menu)
+                            .typography(.bodyMedium)
+                            .tint(Color.secondary)
                         }
                     }
 
                     GlassSection {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Notes")
-                                .typography(.titleSmall)
+                                .typography(.titleMedium)
                                 .foregroundStyle(.secondary)
 
                             TextEditor(text: $notes)
                                 .frame(height: 100)
                                 .scrollContentBackground(.hidden)
+                                .typography(.bodyMedium)
                         }
                     }
 
@@ -245,16 +305,59 @@ struct SubscriptionFormView: View {
             }
             .scrollDismissesKeyboard(.interactively)
 
-            Button { commit() } label: {
-                Text(isEditMode ? "Save Changes" : "Add Subscription")
-                    .typography(.titleMedium)
-                    .frame(maxWidth: .infinity)
+            Group {
+                if isNativeKeyboardVisible {
+                    HStack {
+                        Spacer()
+                        Button {
+                            dismissNativeKeyboard()
+                        } label: {
+                            Text("Close")
+                                .typography(.bodyMedium.weight(.semibold))
+                                .foregroundStyle(.foreground)
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 10)
+                                .background(.ultraThinMaterial, in: Capsule())
+                        }
+                        .glassEffect(.regular.interactive())
+                        .padding()
+                    }
+                } else {
+                    Button {
+                        commit()
+                    } label: {
+                        Text(isEditMode ? "Save Changes" : "Add Subscription")
+                            .typography(.titleLarge.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .foregroundStyle(.black)
+                    }
+                    .frame(height: 54)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 16))
                     .padding()
-                    .foregroundStyle(.white)
+                }
             }
-            .background(themeColor.opacity(0.75))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .padding()
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: UIResponder.keyboardDidShowNotification
+            )
+        ) { _ in
+            isNativeKeyboardVisible = true
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: UIResponder.keyboardDidHideNotification
+            )
+        ) { _ in
+            isNativeKeyboardVisible = false
+        }
+        .sheet(isPresented: $showKeypad) {
+            AmountKeypadSheet(amount: $price, currencyCode: $currencyCode) {
+                showKeypad = false
+            }
+            .presentationDetents([.height(560)])
+            .presentationDragIndicator(.visible)
         }
         .navigationTitle(isEditMode ? "Edit Subscription" : "New Subscription")
         .navigationBarTitleDisplayMode(.inline)
@@ -298,11 +401,11 @@ struct Row<Content: View>: View {
         HStack(spacing: 10) {
             if let icon {
                 Image(systemName: icon)
-                    .iconStyle(size: 14, weight: .medium, color: iconColor)
+                    .iconStyle(size: 16, weight: .medium, color: iconColor)
                     .frame(width: 20)
             }
             Text(label)
-                .typography(.bodyMedium)
+                .typography(.bodyLarge)
                 .foregroundStyle(.secondary)
             Spacer()
             content.foregroundStyle(.primary)
@@ -332,7 +435,12 @@ struct GlassSection<Content: View>: View {
     NavigationStack {
         SubscriptionFormView(
             mode: .create(
-                template: .init(name: "YouTube", brandHex: "#FF0000", fallbackColor: .red, logo: "youtube-logo"),
+                template: .init(
+                    name: "YouTube",
+                    brandHex: "#FF0000",
+                    fallbackColor: .red,
+                    logo: "youtube-logo"
+                ),
                 date: Date()
             ),
             onCommit: { _ in }
@@ -343,8 +451,11 @@ struct GlassSection<Content: View>: View {
 
 #Preview("Edit") {
     let sub = Subscription(
-        name: "Spotify", price: 9.99, colorHex: "#1DB954",
-        schedule: .monthly, startDate: Date()
+        name: "Spotify",
+        price: 9.99,
+        colorHex: "#1DB954",
+        schedule: .monthly,
+        startDate: Date()
     )
     return NavigationStack {
         SubscriptionFormView(mode: .edit(sub), onCommit: { _ in })

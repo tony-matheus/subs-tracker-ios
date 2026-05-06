@@ -84,5 +84,13 @@ struct AppTypography {
                 letterSpacing: self.letterSpacing
             )
         }
+
+        func weight(_ newWeight: Theme.FontName) -> Style {
+            return Style(
+                size: self.size,
+                weight: newWeight,
+                letterSpacing: self.letterSpacing
+            )
+        }
     }
 }
