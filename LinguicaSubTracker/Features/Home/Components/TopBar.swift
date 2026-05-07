@@ -8,6 +8,11 @@
 import SwiftUI
 
 struct TopBar: View {
+    @EnvironmentObject var settingsStore: SettingsStore
+    @EnvironmentObject var store: AppStore
+
+    @State private var showSettings = false
+
     var body: some View {
         HStack {
             Menu {
@@ -41,7 +46,7 @@ struct TopBar: View {
                 }
 
                 Button {
-                    print("Settings tapped")
+                    showSettings = true
                 } label: {
                     Image(systemName: "gearshape")
                         .iconStyle()
@@ -49,5 +54,12 @@ struct TopBar: View {
             }
         }
         .padding()
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+                .environmentObject(settingsStore)
+                .environmentObject(store)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
     }
 }

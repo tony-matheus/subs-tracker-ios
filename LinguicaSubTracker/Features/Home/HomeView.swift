@@ -46,5 +46,7 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView().environmentObject(AppStore())
+    HomeView()
+        .environmentObject(AppStore())
+        .environmentObject(SettingsStore())
 }

@@ -10,6 +10,7 @@ import SwiftUI
 struct TextAnimatedView: View {
     let text: String
     var size: CGFloat = 62
+    var tint: Color = .primary
     var onTapGesture: () -> Void = {}
 
     @State private var displayedValue: String = ""
@@ -20,6 +21,8 @@ struct TextAnimatedView: View {
             .typography(.displayMedium.size(size))
             .monospacedDigit()
             .contentTransition(.numericText())
+            .foregroundStyle(tint)
+            .animation(.easeInOut(duration: 0.4), value: tint)
             .scaleEffect(scale)
             .onAppear(perform: animateEntry)
             .onChange(of: text) { oldValue, newValue in

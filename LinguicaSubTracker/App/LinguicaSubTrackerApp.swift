@@ -11,13 +11,14 @@ import SwiftUI
 @main
 struct LinguicaSubTrackerApp: App {
     @StateObject private var store = AppStore()
+    @StateObject private var settingsStore = SettingsStore()
 
     var body: some Scene {
         WindowGroup {
-            HomeView().environment(
-                \.font,
-                 Theme.font(size: 16, weight: .regular)
-            ).environmentObject(store)
+            HomeView()
+                .environment(\.font, Theme.font(size: 16, weight: .regular))
+                .environmentObject(store)
+                .environmentObject(settingsStore)
         }
     }
 }

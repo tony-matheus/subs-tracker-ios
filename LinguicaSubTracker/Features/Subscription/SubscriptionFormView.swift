@@ -12,6 +12,7 @@ enum SubscriptionFormMode {
 
 struct SubscriptionFormView: View {
     @EnvironmentObject var store: AppStore
+    @EnvironmentObject var settingsStore: SettingsStore
     @Environment(\.dismiss) var dismiss
 
     let mode: SubscriptionFormMode
@@ -27,7 +28,7 @@ struct SubscriptionFormView: View {
     @State private var list: String
     @State private var showDeleteAlert = false
     @State private var showKeypad = false
-    @State private var currencyCode: String = "CAD"
+    @State private var currencyCode: String = ""
     @State private var isNativeKeyboardVisible = false
 
     private let originalID: UUID?
@@ -243,8 +244,9 @@ struct SubscriptionFormView: View {
                             iconColor: themeColor
                         ) {
                             Picker("", selection: $category) {
-                                Text("Entertainment").tag("Entertainment")
-                                Text("Productivity").tag("Productivity")
+                                ForEach(settingsStore.settings.categories) { cat in
+                                    Text(cat.name).tag(cat.name)
+                                }
                             }
                             .pickerStyle(.menu)
                             .typography(.bodyMedium)
@@ -260,8 +262,9 @@ struct SubscriptionFormView: View {
                         ) {
                             Picker("", selection: $paymentMethod) {
                                 Text("None").tag("None")
-                                Text("Credit").tag("Credit")
-                                Text("Debit").tag("Debit")
+                                ForEach(settingsStore.settings.paymentMethods) { method in
+                                    Text(method.name).tag(method.name)
+                                }
                             }
                             .pickerStyle(.menu)
                             .typography(.bodyMedium)
@@ -276,9 +279,9 @@ struct SubscriptionFormView: View {
                             iconColor: themeColor
                         ) {
                             Picker("", selection: $list) {
-                                Text("Personal").tag("Personal")
-                                Text("Work").tag("Work")
-                                Text("Family").tag("Family")
+                                ForEach(settingsStore.settings.lists) { lst in
+                                    Text(lst.name).tag(lst.name)
+                                }
                             }
                             .pickerStyle(.menu)
                             .typography(.bodyMedium)
@@ -352,10 +355,16 @@ struct SubscriptionFormView: View {
         ) { _ in
             isNativeKeyboardVisible = false
         }
+        .onAppear {
+            if currencyCode.isEmpty {
+                currencyCode = settingsStore.settings.currencyCode
+            }
+        }
         .sheet(isPresented: $showKeypad) {
-            AmountKeypadSheet(amount: $price, currencyCode: $currencyCode) {
+            NumKeyPadSheet(amount: $price, currencyCode: $currencyCode) {
                 showKeypad = false
             }
+            .environmentObject(settingsStore)
             .presentationDetents([.height(560)])
             .presentationDragIndicator(.visible)
         }
@@ -447,6 +456,7 @@ struct GlassSection<Content: View>: View {
         )
     }
     .environmentObject(AppStore())
+    .environmentObject(SettingsStore())
 }
 
 #Preview("Edit") {
@@ -461,4 +471,5 @@ struct GlassSection<Content: View>: View {
         SubscriptionFormView(mode: .edit(sub), onCommit: { _ in })
     }
     .environmentObject(AppStore())
+    .environmentObject(SettingsStore())
 }

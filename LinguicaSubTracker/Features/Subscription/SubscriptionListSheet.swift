@@ -96,5 +96,7 @@ struct SubscriptionListSheet: View {
 }
 
 #Preview {
-    SubscriptionListSheet(date: Date()).environmentObject(AppStore())
+    SubscriptionListSheet(date: Date())
+        .environmentObject(AppStore())
+        .environmentObject(SettingsStore())
 }

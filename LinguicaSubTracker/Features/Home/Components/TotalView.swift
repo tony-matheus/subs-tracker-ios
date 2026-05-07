@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TotalView: View {
     @EnvironmentObject var store: AppStore
+    @EnvironmentObject var settingsStore: SettingsStore
 
     private var monthKey: String {
         let c = Calendar.current
@@ -24,17 +25,47 @@ struct TotalView: View {
         )
     }
 
-    var body: some View {
-        VStack(spacing: 8) {
-            Text(store.currentMonth.formatted(.dateTime.month().year()))
-                .typography(.titleLarge)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .id(monthKey)
-                .transition(.monthRipple)
-                .animation(.spring(response: 0.42, dampingFraction: 0.82), value: monthKey)
+    private var formattedTotal: String {
+        MoneyFormatter.format(total, settings: settingsStore.settings)
+    }
 
-            MoneyDisplay(text: "$ \(total.asPeriodCurrency)", onTapGesture: handleTapGesture)
+    private var budgetTint: Color {
+        BudgetColor.color(spent: total, budget: settingsStore.settings.monthlyBudget)
+    }
+
+    private var glowOpacity: Double {
+        BudgetColor.glowOpacity(spent: total, budget: settingsStore.settings.monthlyBudget)
+    }
+
+    var body: some View {
+        ZStack {
+            if settingsStore.settings.monthlyBudget != nil {
+                RadialGradient(
+                    colors: [budgetTint.opacity(glowOpacity), .clear],
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 160
+                )
+                .animation(.easeInOut(duration: 0.6), value: glowOpacity)
+                .animation(.easeInOut(duration: 0.4), value: budgetTint)
+                .allowsHitTesting(false)
+            }
+
+            VStack(spacing: 8) {
+                Text(store.currentMonth.formatted(.dateTime.month().year()))
+                    .typography(.titleLarge)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .id(monthKey)
+                    .transition(.monthRipple)
+                    .animation(.spring(response: 0.42, dampingFraction: 0.82), value: monthKey)
+
+                MoneyDisplay(
+                    text: formattedTotal,
+                    tint: budgetTint,
+                    onTapGesture: handleTapGesture
+                )
+            }
         }
     }
 
@@ -80,5 +111,7 @@ private extension AnyTransition {
 }
 
 #Preview {
-    TotalView().environmentObject(AppStore())
+    TotalView()
+        .environmentObject(AppStore())
+        .environmentObject(SettingsStore())
 }

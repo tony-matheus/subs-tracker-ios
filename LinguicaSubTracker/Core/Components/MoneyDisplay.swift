@@ -6,10 +6,11 @@ struct MoneyDisplay: View {
     /// Full pre-formatted string, e.g. `"$ 12.50"` or `"$0"`.
     let text: String
     var size: CGFloat = 62
+    var tint: Color = .primary
     var onTapGesture: () -> Void = {}
 
     var body: some View {
-        TextAnimatedView(text: text, size: size, onTapGesture: onTapGesture)
+        TextAnimatedView(text: text, size: size, tint: tint, onTapGesture: onTapGesture)
     }
 }
 

@@ -187,6 +187,8 @@ struct SubscriptionInDay: View {
     ]
     return Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {
-            SubscriptionInDay(date: Date()).environmentObject(store)
+            SubscriptionInDay(date: Date())
+                .environmentObject(store)
+                .environmentObject(SettingsStore())
         }
 }

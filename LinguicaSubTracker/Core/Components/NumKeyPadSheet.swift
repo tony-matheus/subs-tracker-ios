@@ -1,22 +1,32 @@
 import SwiftUI
 
-// MARK: - Amount Keypad Sheet
+// MARK: - Numeric Keypad Sheet
 
-struct AmountKeypadSheet: View {
+struct NumKeyPadSheet: View {
     @Binding var amount: Double
     @Binding var currencyCode: String
     var onDone: () -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var settingsStore: SettingsStore
 
     @State private var buffer: String = "0"
+    /// Tracks whether the user has interacted with the keypad since it was
+    /// presented. The buffer is pre-filled from the bound amount so the user
+    /// can see the current value, but the first digit/dot keypress should
+    /// replace it (calculator-style editing).
+    @State private var hasUserInput: Bool = false
 
     private let currencies: [(code: String, symbol: String)] = [
-        ("CAD", "$"), ("USD", "$"), ("EUR", "€"), ("BRL", "R$")
+        ("CAD", "$"), ("USD", "$"), ("EUR", "€"), ("BRL", "R$"), ("GBP", "£"), ("JPY", "¥"),
     ]
 
     private var currentSymbol: String {
-        currencies.first { $0.code == currencyCode }?.symbol ?? "$"
+        MoneyFormatter.symbol(for: currencyCode)
+    }
+
+    private var displayText: String {
+        "\(currentSymbol)\(buffer)"
     }
 
     private let keys: [[KeypadKey]] = [
@@ -49,11 +59,11 @@ struct AmountKeypadSheet: View {
                 .padding(.bottom, 16)
         }
         .onAppear {
-            if amount > 0 {
-                buffer = amount.asPeriodCurrency
-            } else {
-                buffer = "0"
+            if currencyCode.isEmpty {
+                currencyCode = settingsStore.settings.currencyCode
             }
+            buffer = formattedBuffer(for: amount)
+            hasUserInput = false
         }
     }
 
@@ -104,7 +114,7 @@ struct AmountKeypadSheet: View {
                 .typography(.bodyMedium)
                 .foregroundStyle(.secondary)
 
-            MoneyDisplay(text: "\(currentSymbol)\(buffer)", size: 48)
+            MoneyDisplay(text: displayText, size: 48)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
         }
@@ -146,6 +156,18 @@ struct AmountKeypadSheet: View {
     // MARK: - Input Logic
 
     private func handleKey(_ key: KeypadKey) {
+        // First interaction with a digit or dot resets the pre-filled buffer
+        // so the user can type a fresh value. Backspace edits in place.
+        if !hasUserInput {
+            switch key {
+            case .digit, .dot:
+                buffer = "0"
+            case .backspace:
+                break
+            }
+            hasUserInput = true
+        }
+
         switch key {
         case .digit(let d):
             if buffer == "0" {
@@ -170,6 +192,24 @@ struct AmountKeypadSheet: View {
                 buffer = "0"
             }
         }
+    }
+
+    /// Returns a plain, non-grouped buffer string for `amount`.
+    /// Trailing zero decimals are trimmed so the buffer remains editable
+    /// (e.g. `12.0` -> `"12"`, `12.5` -> `"12.5"`, `12.99` -> `"12.99"`).
+    private func formattedBuffer(for amount: Double) -> String {
+        guard amount > 0 else { return "0" }
+
+        let rounded = (amount * 100).rounded() / 100
+        if rounded == rounded.rounded() {
+            return String(Int(rounded))
+        }
+
+        let raw = String(format: "%.2f", rounded)
+        if raw.hasSuffix("0") {
+            return String(raw.dropLast())
+        }
+        return raw
     }
 }
 
@@ -239,7 +279,8 @@ struct KeypadButtonStyle: ButtonStyle {
 
     Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {
-            AmountKeypadSheet(amount: $amount, currencyCode: $currency) {}
+            NumKeyPadSheet(amount: $amount, currencyCode: $currency) {}
+                .environmentObject(SettingsStore())
                 .presentationDetents([.height(560)])
                 .presentationDragIndicator(.visible)
         }

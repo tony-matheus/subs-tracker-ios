@@ -237,6 +237,8 @@ struct SubscriptionSummarySheet: View {
     store.subscriptions = [sub]
     return Color.black.ignoresSafeArea()
         .sheet(isPresented: .constant(true)) {
-            SubscriptionSummarySheet(subscription: sub).environmentObject(store)
+            SubscriptionSummarySheet(subscription: sub)
+                .environmentObject(store)
+                .environmentObject(SettingsStore())
         }
 }
