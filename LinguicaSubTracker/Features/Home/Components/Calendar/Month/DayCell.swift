@@ -61,20 +61,30 @@ struct DayCell: View {
     }
 
     private func subscriptionFloatingLayer(sub: Subscription) -> some View {
-        Color.clear
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay(alignment: .bottomLeading) {
-                if let secondSub = secondarySub, subscriptions.count == 2 {
-                    logoCircle(sub: secondSub)
-                } else if subscriptions.count > 2 {
-                    overflowCircle(sub: sub)
-                }
+        HStack(spacing: -10) {
+            if subscriptions.count > 2 {
+                overflowBadge(remaining: subscriptions.count - 2)
             }
-            .overlay(alignment: .bottomTrailing) {
-                logoCircle(sub: sub)
+            if subscriptions.count >= 2 {
+                logoCircle(sub: subscriptions[1])
             }
-            .padding(subscriptionInset)
-            .allowsHitTesting(false)
+            logoCircle(sub: sub)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+        .padding(subscriptionInset)
+        .allowsHitTesting(false)
+    }
+
+    private func overflowBadge(remaining: Int) -> some View {
+        ZStack {
+            Circle()
+                .fill(Color.black.opacity(0.6))
+                .frame(width: logoSize, height: logoSize)
+                .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
+            Text("+\(remaining)")
+                .font(.system(size: 9, weight: .bold))
+                .foregroundColor(.white)
+        }
     }
 
     private func logoCircle(sub: Subscription) -> some View {
@@ -85,19 +95,6 @@ struct DayCell: View {
             name: sub.name,
             customization: store.customization(for: sub.id)
         )
-    }
-
-    private func overflowCircle(sub: Subscription) -> some View {
-        let color = Color(hex: sub.colorHex)
-        return ZStack {
-            Circle()
-                .fill(color.opacity(0.55))
-                .frame(width: logoSize, height: logoSize)
-
-            Text("+\(subscriptions.count - 1)")
-                .font(.system(size: 8, weight: .bold))
-                .foregroundColor(.white)
-        }
     }
 
     @ViewBuilder
@@ -235,5 +232,6 @@ struct DayClickStyle: ButtonStyle {
     }
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
+    .environmentObject(PreviewSupport.makeStore())
 }
 

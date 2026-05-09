@@ -112,6 +112,6 @@ private extension AnyTransition {
 
 #Preview {
     TotalView()
-        .environmentObject(AppStore())
-        .environmentObject(SettingsStore())
+        .environmentObject(PreviewSupport.makeStore())
+        .environmentObject(PreviewSupport.makeSettingsStore())
 }

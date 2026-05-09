@@ -115,5 +115,7 @@ struct CalendarView: View {
 }
 
 #Preview {
-    CalendarView().environmentObject(AppStore())
+    CalendarView()
+        .environmentObject(PreviewSupport.makeStore())
+        .environmentObject(PreviewSupport.makeSettingsStore())
 }

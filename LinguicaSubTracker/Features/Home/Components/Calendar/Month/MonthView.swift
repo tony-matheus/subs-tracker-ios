@@ -136,4 +136,5 @@ struct MonthView: View {
         onTap: { date in print("Tapped:", date) }
     )
     .padding()
+    .environmentObject(PreviewSupport.makeStore())
 }
