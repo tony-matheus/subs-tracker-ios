@@ -9,6 +9,13 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var store: AppStore
+    @EnvironmentObject var settingsStore: SettingsStore
+
+    @State private var showAddSheet = false
+
+    private var isOnCurrentMonth: Bool {
+        Calendar.current.isDate(store.currentMonth, equalTo: Date(), toGranularity: .month)
+    }
 
     var body: some View {
         VStack {
@@ -16,6 +23,17 @@ struct HomeView: View {
             TotalView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             CalendarView()
+            HomeActionButton(
+                isOnCurrentMonth: isOnCurrentMonth,
+                onAdd: { showAddSheet = true },
+                onBackToCurrent: jumpToCurrentMonth
+            )
+
+        }
+        .sheet(isPresented: $showAddSheet) {
+            SubscriptionListSheet(date: Date())
+                .environmentObject(store)
+                .environmentObject(settingsStore)
         }
         .sheet(
             isPresented: Binding(
@@ -43,24 +61,41 @@ struct HomeView: View {
             }
         }
     }
+
+    private func jumpToCurrentMonth() {
+        let months = CalendarService.generateMonths()
+        let cal = Calendar.current
+        let now = Date()
+        if let idx = months.firstIndex(where: { cal.isDate($0, equalTo: now, toGranularity: .month) }) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                store.currentMonthIndex = idx
+            }
+        }
+    }
+}
+
+private func makePreviewStore() -> AppStore {
+    let calendar = Calendar.current
+    let now = Date()
+    let monthStart = calendar.date(
+        from: calendar.dateComponents([.year, .month], from: now)
+    ) ?? now
+    func day(_ d: Int) -> Date {
+        calendar.date(byAdding: .day, value: d - 1, to: monthStart) ?? monthStart
+    }
+    let store = AppStore()
+    store.subscriptions = [
+        Subscription(name: "Netflix",  price: 15.99, colorHex: "#E50914", schedule: .monthly, startDate: day(4),  category: "Entertainment", list: "Personal"),
+        Subscription(name: "Notion",   price: 8.00,  colorHex: "#000000", schedule: .monthly, startDate: day(11), category: "Productivity",  list: "Work"),
+        Subscription(name: "iCloud",   price: 2.99,  colorHex: "#007AFF", schedule: .monthly, startDate: day(18), category: "Utilities",     list: "Personal"),
+        Subscription(name: "Spotify",  price: 10.99, colorHex: "#1DB954", schedule: .monthly, startDate: day(22), category: "Lifestyle",     list: "Family"),
+        Subscription(name: "1Password", price: 4.99, colorHex: "#3B66BC", schedule: .monthly, startDate: day(27), category: "Utilities",     list: "Personal"),
+    ]
+    return store
 }
 
 #Preview {
-    let calendar = Calendar.current
-    func date(_ day: Int) -> Date {
-        calendar.date(from: DateComponents(year: 2026, month: 5, day: day))!
-    }
-
-    let store = AppStore()
-    store.subscriptions = [
-        Subscription(name: "Netflix",  price: 15.99, colorHex: "#E50914", schedule: .monthly, startDate: date(4),  category: "Entertainment", list: "Personal"),
-        Subscription(name: "Notion",   price: 8.00,  colorHex: "#000000", schedule: .monthly, startDate: date(11), category: "Productivity",  list: "Work"),
-        Subscription(name: "iCloud",   price: 2.99,  colorHex: "#007AFF", schedule: .monthly, startDate: date(18), category: "Utilities",     list: "Personal"),
-        Subscription(name: "Spotify",  price: 10.99, colorHex: "#1DB954", schedule: .monthly, startDate: date(22), category: "Lifestyle",     list: "Family"),
-        Subscription(name: "1Password", price: 4.99, colorHex: "#3B66BC", schedule: .monthly, startDate: date(27), category: "Utilities",     list: "Personal"),
-    ]
-
-    return HomeView()
-        .environmentObject(store)
+    HomeView()
+        .environmentObject(makePreviewStore())
         .environmentObject(SettingsStore())
 }

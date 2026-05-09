@@ -13,6 +13,7 @@ struct TopBar: View {
 
     @State private var showSettings = false
     @State private var showStats = false
+    @State private var showSearch = false
 
     private var listBinding: Binding<String?> {
         Binding(get: { store.filter.list }, set: { store.filter.list = $0 })
@@ -89,7 +90,7 @@ struct TopBar: View {
 
             HStack(spacing: 16) {
                 Button {
-                    print("Search Tapped")
+                    showSearch = true
                 } label: {
                     Image(systemName: "magnifyingglass")
                         .iconStyle()
@@ -117,6 +118,11 @@ struct TopBar: View {
                 .environmentObject(store)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+        }
+        .fullScreenCover(isPresented: $showSearch) {
+            SearchFlow()
+                .environmentObject(store)
+                .environmentObject(settingsStore)
         }
         .sheet(isPresented: $showStats) {
             StatsSheet()

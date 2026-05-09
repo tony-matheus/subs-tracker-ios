@@ -24,7 +24,7 @@ enum CalendarService {
         let calendar = Calendar.current
         let now = Date()
 
-        return (-6...6).compactMap {
+        return (-1...12).compactMap {
             calendar.date(byAdding: .month, value: $0, to: now)
         }
     }

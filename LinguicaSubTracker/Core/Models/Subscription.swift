@@ -1,11 +1,11 @@
 import Foundation
 
-enum SubscriptionSchedule: String, Codable {
+enum SubscriptionSchedule: String, Codable, Hashable {
     case monthly
     case yearly
 }
 
-struct Subscription: Identifiable, Codable, Equatable {
+struct Subscription: Identifiable, Codable, Equatable, Hashable {
     let id: UUID
     var name: String
     var price: Double

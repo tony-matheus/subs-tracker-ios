@@ -6,41 +6,30 @@ struct SearchBar: View {
     @Namespace private var glassNamespace // Required for morphing transitions
 
     var body: some View {
-        // 1. Wrap the HStack in a GlassEffectContainer to enable blending
-        GlassEffectContainer(spacing: 20) {
-            HStack(spacing: 16) {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
 
-                // MARK: - Search Field
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
+            TextField("Search", text: $text)
+                .focused($isFocused)
+                .textFieldStyle(.plain)
+
+            if !text.isEmpty {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 17))
                         .foregroundStyle(.secondary)
-
-                    TextField("Search", text: $text)
-                        .focused($isFocused)
-                        .textFieldStyle(.plain)
                 }
-                .padding(.horizontal, 16)
-                .frame(height: 54)
-                .glassEffect(.regular.interactive(), in: Capsule())
-                .glassEffectID("searchField", in: glassNamespace)
-
-                if isFocused || !text.isEmpty {
-                    Button {
-                        text = ""
-                        isFocused = false
-                    } label: {
-                        Image(systemName: "xmark")
-                            .iconStyle(size: 14, weight: .bold)
-                            .frame(width: 54, height: 54)
-                    }
-                    .buttonStyle(.liquidGlass)
-                    .glassEffectID("clearButton", in: glassNamespace)
-                    .glassEffectTransition(.matchedGeometry)
-                    .transition(.opacity)
-                }
+                .buttonStyle(.plain)
+                .transition(.opacity.combined(with: .scale(scale: 0.7)))
             }
         }
-        .animation(.spring(duration: 0.35, bounce: 0.3), value: isFocused)
+        .padding(.horizontal, 16)
+        .frame(height: 54)
+        .glassEffect(.regular.interactive(), in: Capsule())
+        .animation(.spring(duration: 0.25, bounce: 0.2), value: text.isEmpty)
         .padding(.horizontal)
     }
 }
