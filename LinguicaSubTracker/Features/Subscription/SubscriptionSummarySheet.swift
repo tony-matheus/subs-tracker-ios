@@ -142,7 +142,8 @@ struct SubscriptionSummarySheet: View {
                 size: 72,
                 color: themeColor,
                 logoName: SubscriptionTemplate.logoName(for: subscription.name),
-                name: subscription.name
+                name: subscription.name,
+                customization: store.customization(for: subscription.id)
             )
             .padding(.top, 8)
 

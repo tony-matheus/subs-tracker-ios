@@ -5,6 +5,7 @@ import UIKit
 
 enum SubscriptionFormMode {
     case create(template: SubscriptionTemplate, date: Date)
+    case createBlank(name: String, date: Date)
     case edit(Subscription)
 }
 
@@ -30,6 +31,10 @@ struct SubscriptionFormView: View {
     @State private var showKeypad = false
     @State private var currencyCode: String = ""
     @State private var isNativeKeyboardVisible = false
+    @State private var customization: LogoCustomization?
+    @State private var pendingCustomizationID: UUID
+    @State private var showLogoSheet = false
+    @State private var isLogoExpanded = false
 
     private let originalID: UUID?
     private let themeColor: Color
@@ -41,6 +46,7 @@ struct SubscriptionFormView: View {
 
         switch mode {
         case .create(let template, let date):
+            let newID = UUID()
             originalID = nil
             themeColor = template.color
             _name = State(initialValue: template.name)
@@ -51,6 +57,23 @@ struct SubscriptionFormView: View {
             _paymentMethod = State(initialValue: "None")
             _notes = State(initialValue: "")
             _list = State(initialValue: "Personal")
+            _pendingCustomizationID = State(initialValue: newID)
+            _customization = State(initialValue: nil)
+
+        case .createBlank(let initialName, let date):
+            let newID = UUID()
+            originalID = nil
+            themeColor = Color(hex: LogoPalette.colors[0])
+            _name = State(initialValue: initialName)
+            _price = State(initialValue: 0.00)
+            _schedule = State(initialValue: .monthly)
+            _startDate = State(initialValue: date)
+            _category = State(initialValue: "Entertainment")
+            _paymentMethod = State(initialValue: "None")
+            _notes = State(initialValue: "")
+            _list = State(initialValue: "Personal")
+            _pendingCustomizationID = State(initialValue: newID)
+            _customization = State(initialValue: nil)
 
         case .edit(let sub):
             originalID = sub.id
@@ -65,7 +88,25 @@ struct SubscriptionFormView: View {
             _list = State(
                 initialValue: sub.list == "Default" ? "Personal" : sub.list
             )
+            _pendingCustomizationID = State(initialValue: sub.id)
+            _customization = State(initialValue: nil)
         }
+    }
+
+    private var defaultCustomization: LogoCustomization {
+        LogoCustomization(
+            id: pendingCustomizationID,
+            style: .symbol,
+            colorHex: themeColor.toHex(),
+            symbolName: "creditcard.fill"
+        )
+    }
+
+    private var customizationBinding: Binding<LogoCustomization> {
+        Binding(
+            get: { customization ?? defaultCustomization },
+            set: { customization = $0 }
+        )
     }
 
     private var isEditMode: Bool {
@@ -74,16 +115,13 @@ struct SubscriptionFormView: View {
     }
 
     private var colorHex: String {
-        if case .create(let template, _) = mode {
-            return template.brandHex ?? template.fallbackColor.toHex()
-        }
-        if case .edit(let sub) = mode { return sub.colorHex }
-        return "#888888"
+        customization?.colorHex ?? themeColor.toHex()
     }
 
     private var logoName: String? {
         switch mode {
         case .create(let template, _): return template.logo
+        case .createBlank: return nil
         case .edit: return SubscriptionTemplate.logoName(for: name)
         }
     }
@@ -108,8 +146,10 @@ struct SubscriptionFormView: View {
     private func commit() {
         guard isValid() else { return }
 
+        let resolvedID = originalID ?? pendingCustomizationID
+
         let subscription = Subscription(
-            id: originalID ?? UUID(),
+            id: resolvedID,
             name: name,
             price: price,
             colorHex: colorHex,
@@ -121,8 +161,15 @@ struct SubscriptionFormView: View {
             list: list
         )
 
-        if !isEditMode {
+        if isEditMode {
+            store.update(subscription)
+        } else {
             store.add(subscription)
+        }
+
+        if var savedCustomization = customization {
+            savedCustomization.id = resolvedID
+            store.setCustomization(savedCustomization)
         }
 
         dismiss()
@@ -178,14 +225,25 @@ struct SubscriptionFormView: View {
 
             ScrollView {
                 VStack(spacing: 16) {
-                    SubscriptionLogoCircle(
-                        size: 72,
-                        color: themeColor,
-                        logoName: logoName,
-                        name: name
-                    )
-                    .padding(.top, 16)
+                    Button {
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
+                            isLogoExpanded = true
+                        }
+                        showLogoSheet = true
+                    } label: {
+                        SubscriptionLogoCircle(
+                            size: isLogoExpanded ? 160 : 72,
+                            color: themeColor,
+                            logoName: logoName,
+                            name: name,
+                            customization: customization
+                        )
+                        .animation(.spring(response: 0.45, dampingFraction: 0.78), value: isLogoExpanded)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, isLogoExpanded ? 60 : 16)
 
+                    Group {
                     GlassSection {
                         Row(label: "Name") {
                             TextField("", text: $name)
@@ -303,13 +361,18 @@ struct SubscriptionFormView: View {
                     }
 
                     Spacer(minLength: 100)
+                    }
+                    .opacity(isLogoExpanded ? 0 : 1)
+                    .allowsHitTesting(!isLogoExpanded)
                 }
                 .padding()
             }
             .scrollDismissesKeyboard(.interactively)
 
             Group {
-                if isNativeKeyboardVisible {
+                if isLogoExpanded {
+                    EmptyView()
+                } else if isNativeKeyboardVisible {
                     HStack {
                         Spacer()
                         Button {
@@ -359,6 +422,11 @@ struct SubscriptionFormView: View {
             if currencyCode.isEmpty {
                 currencyCode = settingsStore.settings.currencyCode
             }
+            if case .edit(let sub) = mode,
+               let existing = store.customization(for: sub.id) {
+                customization = existing
+                pendingCustomizationID = existing.id
+            }
         }
         .sheet(isPresented: $showKeypad) {
             NumKeyPadSheet(amount: $price, currencyCode: $currencyCode) {
@@ -367,6 +435,21 @@ struct SubscriptionFormView: View {
             .environmentObject(settingsStore)
             .presentationDetents([.height(560)])
             .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showLogoSheet, onDismiss: {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
+                isLogoExpanded = false
+            }
+        }) {
+            SubscriptionLogoSheet(
+                customization: customizationBinding,
+                subscriptionName: name
+            ) {
+                showLogoSheet = false
+            }
+            .presentationDetents([.fraction(0.62)])
+            .presentationDragIndicator(.visible)
+            .presentationBackgroundInteraction(.disabled)
         }
         .navigationTitle(isEditMode ? "Edit Subscription" : "New Subscription")
         .navigationBarTitleDisplayMode(.inline)

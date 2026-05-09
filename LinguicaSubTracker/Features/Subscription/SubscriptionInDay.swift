@@ -98,7 +98,8 @@ struct SubscriptionInDay: View {
                             size: 40,
                             color: Color(hex: sub.colorHex),
                             logoName: SubscriptionTemplate.logoName(for: sub.name),
-                            name: sub.name
+                            name: sub.name,
+                            customization: store.customization(for: sub.id)
                         )
 
                 VStack(alignment: .leading, spacing: 2) {

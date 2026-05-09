@@ -23,9 +23,25 @@ final class AppStore: ObservableObject {
     @Published var subscriptions: [Subscription] = []
     @Published var currentMonth: Date = Date()
     @Published var filter: SubscriptionFilter = .all
+    @Published var logoCustomizations: [UUID: LogoCustomization] = [:]
 
     init() {
         subscriptions = StorageService.load()
+        logoCustomizations = StorageService.loadCustomizations()
+    }
+
+    func customization(for id: UUID) -> LogoCustomization? {
+        logoCustomizations[id]
+    }
+
+    func setCustomization(_ customization: LogoCustomization) {
+        logoCustomizations[customization.id] = customization
+        StorageService.saveCustomizations(logoCustomizations)
+    }
+
+    func clearCustomization(id: UUID) {
+        logoCustomizations.removeValue(forKey: id)
+        StorageService.saveCustomizations(logoCustomizations)
     }
 
     var filteredSubscriptions: [Subscription] {
@@ -51,5 +67,6 @@ final class AppStore: ObservableObject {
     func delete(_ subscription: Subscription) {
         subscriptions.removeAll { $0.id == subscription.id }
         StorageService.save(subscriptions)
+        clearCustomization(id: subscription.id)
     }
 }

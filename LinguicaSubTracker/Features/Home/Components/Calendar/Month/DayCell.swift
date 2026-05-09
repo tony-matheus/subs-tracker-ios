@@ -8,6 +8,7 @@ enum DayStatus {
 }
 
 struct DayCell: View {
+    @EnvironmentObject var store: AppStore
     let date: Date?
     var status: DayStatus = .normal
     var height: CGFloat = 68
@@ -81,7 +82,8 @@ struct DayCell: View {
             size: logoSize,
             color: Color(hex: sub.colorHex),
             logoName: SubscriptionTemplate.logoName(for: sub.name),
-            name: sub.name
+            name: sub.name,
+            customization: store.customization(for: sub.id)
         )
     }
 
