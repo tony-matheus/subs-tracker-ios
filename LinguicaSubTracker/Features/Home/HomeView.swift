@@ -63,29 +63,7 @@ struct HomeView: View {
     }
 
     private func jumpToCurrentMonth() {
-        let months = CalendarService.generateMonths()
-        let cal = Calendar.current
-        let now = Date()
-        guard let target = months.firstIndex(where: {
-            cal.isDate($0, equalTo: now, toGranularity: .month)
-        }) else { return }
-
-        let distance = abs(target - store.currentMonthIndex)
-        guard distance > 0 else { return }
-
-        let step = target > store.currentMonthIndex ? 1 : -1
-        let stepDuration: Double = max(0.04, 0.22 - Double(distance) * 0.012)
-        let pause: UInt64 = UInt64(stepDuration * 1_000_000_000)
-
-        Task { @MainActor in
-            while store.currentMonthIndex != target {
-                let next = store.currentMonthIndex + step
-                withAnimation(.easeInOut(duration: stepDuration)) {
-                    store.currentMonthIndex = next
-                }
-                try? await Task.sleep(nanoseconds: pause)
-            }
-        }
+        store.rewindRequest = (store.rewindRequest ?? 0) + 1
     }
 }
 

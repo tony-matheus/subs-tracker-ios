@@ -24,6 +24,7 @@ final class AppStore: ObservableObject {
     @Published var currentMonth: Date = Date()
     @Published var filter: SubscriptionFilter = .all
     @Published var logoCustomizations: [UUID: LogoCustomization] = [:]
+    @Published var rewindRequest: Int? = nil
 
     init() {
         subscriptions = StorageService.load()
