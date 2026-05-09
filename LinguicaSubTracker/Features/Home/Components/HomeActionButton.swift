@@ -5,84 +5,78 @@ struct HomeActionButton: View {
     var onAdd: () -> Void
     var onBackToCurrent: () -> Void
 
-    @State private var rippleScale: CGFloat = 0
-    @State private var rippleOpacity: Double = 0
-
-    private var iconName: String {
-        isOnCurrentMonth ? "plus" : "arrow.uturn.left"
-    }
-
-    private var iconColor: Color {
-        isOnCurrentMonth ? .purple : .secondary
-    }
-
-    private var label: String {
-        isOnCurrentMonth ? "Add subscription" : "Back to current"
-    }
-
-    private var rippleColor: Color {
-        isOnCurrentMonth ? .purple : .white
+    private var swapTransition: AnyTransition {
+        .asymmetric(
+            insertion: .scale(scale: 0.5).combined(with: .offset(y: -40)).combined(with: .opacity),
+            removal: .scale(scale: 0.5).combined(with: .offset(y: 40)).combined(with: .opacity)
+        )
     }
 
     var body: some View {
-        Button {
+        ZStack {
             if isOnCurrentMonth {
-                onAdd()
+                addButton
+                    .transition(swapTransition)
             } else {
-                onBackToCurrent()
-            }
-        } label: {
-            ZStack {
-                Circle()
-                    .fill(rippleColor.opacity(rippleOpacity))
-                    .frame(width: 30, height: 30)
-                    .scaleEffect(rippleScale)
-                    .allowsHitTesting(false)
-
-                HStack(spacing: 8) {
-                    Image(systemName: iconName)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(iconColor)
-                        .contentTransition(.opacity)
-                        .id(iconName)
-                        .transition(.scale.combined(with: .opacity))
-
-                    Text(label)
-                        .typography(.bodyMedium.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .id(label)
-                        .transition(.opacity)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(.ultraThinMaterial, in: Capsule())
-                .overlay(
-                    Capsule().stroke(Color.white.opacity(0.08), lineWidth: 1)
-                )
+                backButton
+                    .transition(swapTransition)
             }
         }
-        .buttonStyle(.plain)
-        .animation(.spring(response: 0.45, dampingFraction: 0.8), value: isOnCurrentMonth)
-        .onChange(of: isOnCurrentMonth) { _, _ in
-            triggerRipple()
-        }
+        .animation(.spring(response: 0.5, dampingFraction: 0.62), value: isOnCurrentMonth)
     }
 
-    private func triggerRipple() {
-        rippleScale = 0
-        rippleOpacity = 0.55
-        withAnimation(.easeOut(duration: 0.65)) {
-            rippleScale = 7
-            rippleOpacity = 0
+    private var addButton: some View {
+        Button(action: onAdd) {
+            HStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.purple)
+                Text("Add subscription")
+                    .typography(.bodyMedium.weight(.semibold))
+                    .foregroundStyle(.primary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().stroke(Color.white.opacity(0.08), lineWidth: 1))
         }
+        .buttonStyle(.plain)
+    }
+
+    private var backButton: some View {
+        Button(action: onBackToCurrent) {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.uturn.left")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.secondary)
+                Text("Back to current")
+                    .typography(.bodyMedium.weight(.semibold))
+                    .foregroundStyle(.primary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().stroke(Color.white.opacity(0.08), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
     }
 }
 
 #Preview {
-    VStack(spacing: 20) {
-        HomeActionButton(isOnCurrentMonth: true, onAdd: {}, onBackToCurrent: {})
-        HomeActionButton(isOnCurrentMonth: false, onAdd: {}, onBackToCurrent: {})
+    struct Demo: View {
+        @State var current = true
+        var body: some View {
+            VStack(spacing: 40) {
+                HomeActionButton(
+                    isOnCurrentMonth: current,
+                    onAdd: { current.toggle() },
+                    onBackToCurrent: { current.toggle() }
+                )
+                Button("Toggle") { current.toggle() }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.black)
+        }
     }
-    .padding()
-    .background(Color.black)
+    return Demo()
 }
