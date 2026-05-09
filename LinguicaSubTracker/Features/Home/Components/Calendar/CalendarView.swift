@@ -31,13 +31,16 @@ struct CalendarView: View {
             refreshMonths()
             syncDisplayedMonthToStore()
         }
+        .onChange(of: store.filter) { _, _ in
+            refreshMonths()
+        }
         .onChange(of: store.currentMonthIndex) { _, _ in
             syncDisplayedMonthToStore()
         }
     }
 
     private func refreshMonths() {
-        months = CalendarCache.shared.generateMonths(subs: store.subscriptions)
+        months = CalendarCache.shared.generateMonths(subs: store.filteredSubscriptions)
     }
 
     private func syncToCurrentMonth() {

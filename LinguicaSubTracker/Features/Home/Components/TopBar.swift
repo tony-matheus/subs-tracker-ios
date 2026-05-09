@@ -12,17 +12,74 @@ struct TopBar: View {
     @EnvironmentObject var store: AppStore
 
     @State private var showSettings = false
+    @State private var showStats = false
+
+    private var listBinding: Binding<String?> {
+        Binding(get: { store.filter.list }, set: { store.filter.list = $0 })
+    }
+
+    private var categoryBinding: Binding<String?> {
+        Binding(get: { store.filter.category }, set: { store.filter.category = $0 })
+    }
+
+    private var paymentBinding: Binding<String?> {
+        Binding(get: { store.filter.paymentMethod }, set: { store.filter.paymentMethod = $0 })
+    }
+
+    private var filterLabel: String {
+        let names = store.filter.activeNames
+        if names.isEmpty { return "All Subs" }
+        if names.count == 1 { return names[0] }
+        return "Filtered (\(names.count))"
+    }
 
     var body: some View {
         HStack {
             Menu {
-                Button("All Subscriptions") {}
-                Button("Active") {}
+                Button {
+                    store.filter = .all
+                } label: {
+                    if store.filter.isActive {
+                        Text("All Subscriptions")
+                    } else {
+                        Label("All Subscriptions", systemImage: "checkmark")
+                    }
+                }
+
+                Divider()
+
+                Menu("Lists") {
+                    Picker("Lists", selection: listBinding) {
+                        Text("All Lists").tag(String?.none)
+                        ForEach(settingsStore.settings.lists) { list in
+                            Text(list.name).tag(String?.some(list.name))
+                        }
+                    }
+                }
+
+                Menu("Categories") {
+                    Picker("Categories", selection: categoryBinding) {
+                        Text("All Categories").tag(String?.none)
+                        ForEach(settingsStore.settings.categories) { category in
+                            Text(category.name).tag(String?.some(category.name))
+                        }
+                    }
+                }
+
+                Menu("Payment Methods") {
+                    Picker("Payment Methods", selection: paymentBinding) {
+                        Text("All Payments").tag(String?.none)
+                        ForEach(settingsStore.settings.paymentMethods) { method in
+                            Text(method.name).tag(String?.some(method.name))
+                        }
+                    }
+                }
+
             } label: {
                 HStack(spacing: 4) {
-                    Text("All Subs")
+                    Text(filterLabel)
                         .typography(.titleSmall)
-                    Image(systemName: "chevron.down")
+                    Image(systemName: store.filter.isActive ? "line.3.horizontal.decrease.circle.fill" : "chevron.down")
                         .font(.system(size: 12, weight: .semibold))
                 }
                 .foregroundStyle(.gray)
@@ -39,7 +96,7 @@ struct TopBar: View {
                 }
 
                 Button {
-                    print("Stats Tapped")
+                    showStats = true
                 } label: {
                     Image(systemName: "chart.bar")
                         .iconStyle()
@@ -60,6 +117,18 @@ struct TopBar: View {
                 .environmentObject(store)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showStats) {
+            StatsSheet()
+                .environmentObject(settingsStore)
+                .environmentObject(store)
+                .presentationDetents([.height(550)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground {
+                    Rectangle()
+                        .fill(.ultraThickMaterial)
+                        .opacity(0.8)
+                }
         }
     }
 }

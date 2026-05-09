@@ -20,7 +20,7 @@ struct TotalView: View {
 
     var total: Double {
         SubscriptionService.totalForMonth(
-            store.subscriptions,
+            store.filteredSubscriptions,
             month: store.currentMonth
         )
     }

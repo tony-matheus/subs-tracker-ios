@@ -74,27 +74,8 @@ struct SubscriptionSummarySheet: View {
             .environmentObject(store)
         }
     }
-
-    // MARK: - Toolbar
-
     private var toolbarRow: some View {
         HStack {
-            // Edit (left)
-            Button {
-                showEdit = true
-            } label: {
-                Text("Edit")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(themeColor)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Capsule())
-            }
-
-            Spacer()
-
-            // Active status picker (right)
             Menu {
                 Button("Active")   { toggleActive(true)  }
                 Button("Inactive") { toggleActive(false) }
@@ -114,6 +95,21 @@ struct SubscriptionSummarySheet: View {
                 .background(.ultraThinMaterial)
                 .clipShape(Capsule())
             }
+
+            Spacer()
+
+            Button {
+                showEdit = true
+            } label: {
+                Text("Edit")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(themeColor)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
+            }
+
         }
         .padding(.top, 8)
     }

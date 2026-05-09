@@ -2,15 +2,39 @@ import Foundation
 import SwiftUI
 import Combine
 
+struct SubscriptionFilter: Equatable {
+    var list: String?
+    var category: String?
+    var paymentMethod: String?
+
+    static let all = SubscriptionFilter()
+
+    var isActive: Bool { list != nil || category != nil || paymentMethod != nil }
+
+    var activeNames: [String] {
+        [list, category, paymentMethod].compactMap { $0 }
+    }
+}
+
 final class AppStore: ObservableObject {
     @Published var selectedDay: Date?
     @Published var selectedSubscription: Subscription?
     @Published var currentMonthIndex: Int = 0
     @Published var subscriptions: [Subscription] = []
     @Published var currentMonth: Date = Date()
+    @Published var filter: SubscriptionFilter = .all
 
     init() {
         subscriptions = StorageService.load()
+    }
+
+    var filteredSubscriptions: [Subscription] {
+        subscriptions.filter { sub in
+            if let list = filter.list, sub.list != list { return false }
+            if let category = filter.category, sub.category != category { return false }
+            if let payment = filter.paymentMethod, sub.paymentMethod != payment { return false }
+            return true
+        }
     }
 
     func add(_ subscription: Subscription) {

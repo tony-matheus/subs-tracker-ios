@@ -16,9 +16,13 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    block1
-                    block2
-                    block3
+                    NumberPreferences
+                    FiltersPreferences
+                    GlassSection {
+                        BudgetEditor()
+                            .environmentObject(settingsStore)
+                            .environmentObject(store)
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -28,9 +32,15 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: {
+                    Button {
+                        dismiss()
+                    } label: {
                         Image(systemName: "xmark")
-                            .iconStyle(size: 13, weight: .semibold, color: .secondary)
+                            .iconStyle(
+                                size: 14,
+                                weight: .semibold,
+                                color: .secondary
+                            )
                             .frame(width: 32, height: 32)
                     }
                 }
@@ -62,9 +72,7 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Block 1: Preferences
-
-    private var block1: some View {
+    private var NumberPreferences: some View {
         GlassSection {
             Button {
                 showCurrencyPicker = true
@@ -78,7 +86,11 @@ struct SettingsView: View {
                         .typography(.bodyMedium)
                         .foregroundStyle(.secondary)
                     Image(systemName: "chevron.right")
-                        .iconStyle(size: 12, weight: .semibold, color: .secondary)
+                        .iconStyle(
+                            size: 12,
+                            weight: .semibold,
+                            color: .secondary
+                        )
                 }
                 .frame(height: 44)
             }
@@ -120,9 +132,7 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Block 2: Categories, Payment Methods, Lists
-
-    private var block2: some View {
+    private var FiltersPreferences: some View {
         GlassSection {
             Button {
                 showCategories = true
@@ -139,7 +149,11 @@ struct SettingsView: View {
                         .typography(.bodyMedium)
                         .foregroundStyle(.secondary)
                     Image(systemName: "chevron.right")
-                        .iconStyle(size: 12, weight: .semibold, color: .secondary)
+                        .iconStyle(
+                            size: 12,
+                            weight: .semibold,
+                            color: .secondary
+                        )
                 }
                 .frame(height: 44)
             }
@@ -162,7 +176,11 @@ struct SettingsView: View {
                         .typography(.bodyMedium)
                         .foregroundStyle(.secondary)
                     Image(systemName: "chevron.right")
-                        .iconStyle(size: 12, weight: .semibold, color: .secondary)
+                        .iconStyle(
+                            size: 12,
+                            weight: .semibold,
+                            color: .secondary
+                        )
                 }
                 .frame(height: 44)
             }
@@ -185,21 +203,15 @@ struct SettingsView: View {
                         .typography(.bodyMedium)
                         .foregroundStyle(.secondary)
                     Image(systemName: "chevron.right")
-                        .iconStyle(size: 12, weight: .semibold, color: .secondary)
+                        .iconStyle(
+                            size: 12,
+                            weight: .semibold,
+                            color: .secondary
+                        )
                 }
                 .frame(height: 44)
             }
             .buttonStyle(.plain)
-        }
-    }
-
-    // MARK: - Block 3: Budget
-
-    private var block3: some View {
-        GlassSection {
-            BudgetEditor()
-                .environmentObject(settingsStore)
-                .environmentObject(store)
         }
     }
 }
