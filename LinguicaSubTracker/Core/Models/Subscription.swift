@@ -9,7 +9,6 @@ struct Subscription: Identifiable, Codable, Equatable, Hashable {
     let id: UUID
     var name: String
     var price: Double
-    var colorHex: String
 
     var schedule: SubscriptionSchedule
     var startDate: Date
@@ -27,7 +26,6 @@ struct Subscription: Identifiable, Codable, Equatable, Hashable {
         id: UUID = UUID(),
         name: String,
         price: Double,
-        colorHex: String,
         schedule: SubscriptionSchedule,
         startDate: Date,
         isActive: Bool = true,
@@ -40,7 +38,6 @@ struct Subscription: Identifiable, Codable, Equatable, Hashable {
         self.id = id
         self.name = name
         self.price = price
-        self.colorHex = colorHex
         self.schedule = schedule
         self.startDate = startDate
         self.isActive = isActive

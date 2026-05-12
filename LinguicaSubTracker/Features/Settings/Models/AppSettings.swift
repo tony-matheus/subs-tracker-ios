@@ -8,6 +8,8 @@ struct AppSettings: Codable {
     var categories: [AppCategory]
     var paymentMethods: [PaymentMethod]
     var lists: [SubscriptionList]
+    // Optional so previously persisted settings decode unchanged (nil → .system).
+    var themeMode: ThemeMode? = nil
 
     static let `default` = AppSettings(
         currencyCode: "CAD",

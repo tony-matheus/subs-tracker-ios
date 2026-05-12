@@ -1,10 +1,3 @@
-//
-//  LinguicaSubTrackerTests.swift
-//  LinguicaSubTrackerTests
-//
-//  Created by Tony Matheus on 23/04/26.
-//
-
 import Testing
 @testable import LinguicaSubTracker
 

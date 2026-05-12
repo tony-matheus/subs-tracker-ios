@@ -1,30 +1,14 @@
 import Foundation
 import SwiftUI
-import Combine
+import Observation
 
-struct SubscriptionFilter: Equatable {
-    var list: String?
-    var category: String?
-    var paymentMethod: String?
-
-    static let all = SubscriptionFilter()
-
-    var isActive: Bool { list != nil || category != nil || paymentMethod != nil }
-
-    var activeNames: [String] {
-        [list, category, paymentMethod].compactMap { $0 }
-    }
-}
-
-final class AppStore: ObservableObject {
-    @Published var selectedDay: Date?
-    @Published var selectedSubscription: Subscription?
-    @Published var currentMonthIndex: Int = 0
-    @Published var subscriptions: [Subscription] = []
-    @Published var currentMonth: Date = Date()
-    @Published var filter: SubscriptionFilter = .all
-    @Published var logoCustomizations: [UUID: LogoCustomization] = [:]
-    @Published var rewindRequest: Int? = nil
+/// Pure data layer: subscriptions + logo customizations + CRUD bridge to `StorageService`.
+/// UI/navigation state lives on `AppCoordinator`; feature-scoped state lives on its ViewModel.
+@Observable
+@MainActor
+final class AppStore {
+    var subscriptions: [Subscription] = []
+    var logoCustomizations: [UUID: LogoCustomization] = [:]
 
     init() {
         subscriptions = StorageService.load()
@@ -43,15 +27,6 @@ final class AppStore: ObservableObject {
     func clearCustomization(id: UUID) {
         logoCustomizations.removeValue(forKey: id)
         StorageService.saveCustomizations(logoCustomizations)
-    }
-
-    var filteredSubscriptions: [Subscription] {
-        subscriptions.filter { sub in
-            if let list = filter.list, sub.list != list { return false }
-            if let category = filter.category, sub.category != category { return false }
-            if let payment = filter.paymentMethod, sub.paymentMethod != payment { return false }
-            return true
-        }
     }
 
     func add(_ subscription: Subscription) {

@@ -8,7 +8,7 @@ enum BudgetColor {
         guard let budget, budget > 0 else { return .primary }
         let ratio = spent / budget
         switch ratio {
-        case ..<0.5:   return .primary
+        case ..<0.5:   return .green
         case 0.5..<0.75: return .yellow
         case 0.75..<0.9: return .orange
         case 0.9..<1.0:  return Color(red: 1, green: 0.35, blue: 0)
