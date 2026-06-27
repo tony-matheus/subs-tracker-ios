@@ -6,8 +6,8 @@ struct MonthView: View {
     let store: AppStore
     let month: Date
     let grid: [Date?]
-    let subscriptionCounts: [Int]
-    let subscriptions: [[Subscription]]
+    let expenseCounts: [Int]
+    let expenses: [[Expense]]
 
     var height: CGFloat = 370
     var spacing: CGFloat = 4
@@ -48,7 +48,7 @@ struct MonthView: View {
                         store: store,
                         date: value,
                         status: status(for: value),
-                        subscriptions: subscriptions[index]
+                        expenses: expenses[index]
                     ),
                     height: cellHeight,
                     onTap: { date in onTap(date) },

@@ -14,8 +14,8 @@ struct CalendarView: View {
 
     var body: some View {
         // Explicit observation reads — ensures CalendarView body re-evaluates
-        // when subscriptions / filter change, matching the BudgetEditor pattern.
-        let _ = store.subscriptions
+        // when expenses / filter change, matching the BudgetEditor pattern.
+        let _ = store.expenses
         let _ = coordinator.filter
 
         ZStack {
@@ -25,8 +25,8 @@ struct CalendarView: View {
                         store: store,
                         month: monthData.date,
                         grid: monthData.grid,
-                        subscriptionCounts: monthData.subscriptionCounts,
-                        subscriptions: monthData.subscriptions,
+                        expenseCounts: monthData.expenseCounts,
+                        expenses: monthData.expenses,
                         onTap: { date in coordinator.selectedDay = date }
                     )
                     .tag(index)
@@ -56,7 +56,7 @@ struct CalendarView: View {
         }
         .frame(height: 430)
         .onAppear { viewModel.onAppear() }
-        .onChange(of: store.subscriptions) { _, _ in viewModel.onSubscriptionsChange() }
+        .onChange(of: store.expenses) { _, _ in viewModel.onExpensesChange() }
         .onChange(of: coordinator.filter) { _, _ in viewModel.onFilterChange() }
         .onChange(of: viewModel.currentMonthIndex) { _, _ in viewModel.onCurrentMonthIndexChange() }
         .onChange(of: viewModel.rewindToken) { _, token in viewModel.onRewindRequest(token) }

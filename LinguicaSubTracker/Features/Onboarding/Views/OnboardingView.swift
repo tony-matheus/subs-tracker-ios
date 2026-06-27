@@ -46,7 +46,7 @@ struct OnboardingView: View {
         case .calendar:
             OnboardingFeaturePage(
                 title: "Your month at a glance",
-                subtitle: "Every subscription lands on its renewal day. Drag a finger across the calendar — go on, make waves."
+                subtitle: "Every expense lands on its renewal day. Drag a finger across the calendar — go on, make waves."
             ) {
                 OnboardingCalendarHero()
             }
@@ -67,7 +67,7 @@ struct OnboardingView: View {
         case .stats:
             OnboardingFeaturePage(
                 title: "See where it all goes",
-                subtitle: "Charts and forecasts turn your subscriptions into a clear monthly picture."
+                subtitle: "Charts and forecasts turn your expenses into a clear monthly picture."
             ) {
                 OnboardingStatsHero()
             }

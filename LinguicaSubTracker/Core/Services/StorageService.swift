@@ -1,7 +1,8 @@
 import Foundation
 
 enum StorageService {
-    private static let subscriptionsKey = "subscriptions"
+    private static let expensesKey = "expenses"
+    private static let legacyExpensesKey = "subscriptions"
     private static let settingsKey = "app_settings"
     private static let customizationsKey = "logo_customizations"
     private static let onboardingKey = "has_completed_onboarding"
@@ -12,19 +13,31 @@ enum StorageService {
     }
 
 
-    static func save(_ subscriptions: [Subscription]) {
-        if let data = try? JSONEncoder().encode(subscriptions) {
-            UserDefaults.standard.set(data, forKey: subscriptionsKey)
+    static func save(_ expenses: [Expense]) {
+        if let data = try? JSONEncoder().encode(expenses) {
+            UserDefaults.standard.set(data, forKey: expensesKey)
         }
     }
 
-    static func load() -> [Subscription] {
-        guard let data = UserDefaults.standard.data(forKey: subscriptionsKey),
-              let decoded = try? JSONDecoder().decode([Subscription].self, from: data)
-        else {
-            return []
+    static func load() -> [Expense] {
+        let defaults = UserDefaults.standard
+
+        // Current key.
+        if let data = defaults.data(forKey: expensesKey),
+           let decoded = try? JSONDecoder().decode([Expense].self, from: data) {
+            return decoded
         }
-        return decoded
+
+        // One-time migration: pre-rename data lived under "subscriptions".
+        // The backward-compatible decoder reads the legacy `schedule` key.
+        if let legacy = defaults.data(forKey: legacyExpensesKey),
+           let decoded = try? JSONDecoder().decode([Expense].self, from: legacy) {
+            save(decoded)
+            defaults.removeObject(forKey: legacyExpensesKey)
+            return decoded
+        }
+
+        return []
     }
 
 

@@ -121,7 +121,7 @@ struct BudgetEditor: View {
 
         let _ = settingsStore.settings.monthlyBudget
         let _ = settingsStore.settings.currencyCode
-        let _ = store.subscriptions
+        let _ = store.expenses
 
         VStack(spacing: 14) {
             HStack {

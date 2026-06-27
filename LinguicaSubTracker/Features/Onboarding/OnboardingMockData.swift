@@ -16,13 +16,13 @@ enum OnboardingMockData {
         }
 
         let store = AppStore()
-        store.subscriptions = [
-            Subscription(name: "Netflix", price: 16.99, schedule: .monthly, startDate: day(3),  category: "Entertainment", list: "Personal"),
-            Subscription(name: "Spotify", price: 10.99, schedule: .monthly, startDate: day(8),  category: "Lifestyle",     list: "Family"),
-            Subscription(name: "Disney+", price: 7.99,  schedule: .monthly, startDate: day(12), category: "Entertainment", list: "Family"),
-            Subscription(name: "iCloud",  price: 2.99,  schedule: .monthly, startDate: day(17), category: "Utilities",     list: "Personal"),
-            Subscription(name: "ChatGPT", price: 20.00, schedule: .monthly, startDate: day(21), category: "Productivity",  list: "Work"),
-            Subscription(name: "YouTube", price: 13.99, schedule: .monthly, startDate: day(26), category: "Entertainment", list: "Personal"),
+        store.expenses = [
+            Expense(name: "Netflix", price: 16.99, billingCycle: .monthly, startDate: day(3),  category: "Entertainment", list: "Personal"),
+            Expense(name: "Spotify", price: 10.99, billingCycle: .monthly, startDate: day(8),  category: "Lifestyle",     list: "Family"),
+            Expense(name: "Disney+", price: 7.99,  billingCycle: .monthly, startDate: day(12), category: "Entertainment", list: "Family"),
+            Expense(name: "iCloud",  price: 2.99,  billingCycle: .monthly, startDate: day(17), category: "Utilities",     list: "Personal"),
+            Expense(name: "ChatGPT", price: 20.00, billingCycle: .monthly, startDate: day(21), category: "Productivity",  list: "Work"),
+            Expense(name: "YouTube", price: 13.99, billingCycle: .monthly, startDate: day(26), category: "Entertainment", list: "Personal"),
         ]
         return store
     }

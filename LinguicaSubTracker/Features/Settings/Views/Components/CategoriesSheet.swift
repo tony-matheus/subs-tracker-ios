@@ -22,7 +22,7 @@ struct CategoriesSheet: View {
 
                     if vm.hasDefaultCategory {
                         Text(
-                            "The 'Other' category cannot be deleted as it automatically serves as a default for subscriptions without a specific category."
+                            "The 'Other' category cannot be deleted as it automatically serves as a default for expenses without a specific category."
                         )
                         .typography(.bodySmall)
                         .foregroundStyle(.secondary)

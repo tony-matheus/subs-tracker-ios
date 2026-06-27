@@ -60,7 +60,7 @@ final class SettingsStore {
 
     func addList(_ name: String, colorHex: String) {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        settings.lists.append(SubscriptionList(name: name, colorHex: colorHex))
+        settings.lists.append(ExpenseList(name: name, colorHex: colorHex))
     }
 
     func deleteLists(ids: Set<UUID>) {

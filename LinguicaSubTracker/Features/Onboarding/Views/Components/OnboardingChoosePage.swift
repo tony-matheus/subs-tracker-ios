@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Final fork — doubles as the "edit anything" explainer. Shows the live
-/// Netflix subscription card (tap it for a ripple), explains that anything can
+/// Netflix expense card (tap it for a ripple), explains that anything can
 /// be tweaked later, then offers the two paths: add a batch now (Next) or jump
 /// straight into the app (Skip).
 struct OnboardingChoosePage: View {
@@ -22,7 +22,7 @@ struct OnboardingChoosePage: View {
                     .typography(.displaySmall)
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
-                Text("Tap a subscription to tweak its price, schedule or logo. Add a few now, or jump straight in and add them whenever you like.")
+                Text("Tap an expense to tweak its price, schedule or logo. Add a few now, or jump straight in and add them whenever you like.")
                     .typography(.bodyLarge)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -33,7 +33,7 @@ struct OnboardingChoosePage: View {
 
             VStack(spacing: 12) {
                 AppButton(
-                    title: "Add subscriptions",
+                    title: "Add expenses",
                     icon: "arrow.right",
                     style: .primary,
                     appearance: .solid,

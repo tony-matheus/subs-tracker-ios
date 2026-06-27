@@ -25,8 +25,8 @@ final class HomeViewModel {
     var isOnCurrentMonth: Bool { calendarViewModel.isOnCurrentMonth }
 
     var monthlyTotal: Double {
-        SubscriptionService.totalForMonth(
-            coordinator.filtered(store.subscriptions),
+        ExpenseService.totalForMonth(
+            coordinator.filtered(store.expenses),
             month: calendarViewModel.currentMonth
         )
     }
@@ -49,7 +49,7 @@ final class HomeViewModel {
 
     var isFilterActive: Bool { coordinator.filter.isActive }
 
-    var lists: [SubscriptionList] { settingsStore.settings.lists }
+    var lists: [ExpenseList] { settingsStore.settings.lists }
     var categories: [AppCategory] { settingsStore.settings.categories }
     var paymentMethods: [PaymentMethod] { settingsStore.settings.paymentMethods }
 
@@ -68,10 +68,10 @@ final class HomeViewModel {
     }
 
     var selectedDay: Date? { coordinator.selectedDay }
-    var selectedSubscription: Subscription? { coordinator.selectedSubscription }
+    var selectedExpense: Expense? { coordinator.selectedExpense }
 
-    func subscriptions(for day: Date) -> [Subscription] {
-        SubscriptionService.subscriptions(for: day, subs: coordinator.filtered(store.subscriptions))
+    func expenses(for day: Date) -> [Expense] {
+        ExpenseService.expenses(for: day, expenses: coordinator.filtered(store.expenses))
     }
 
     func didTapAdd() {
@@ -88,7 +88,7 @@ final class HomeViewModel {
         coordinator.selectedDayBinding()
     }
 
-    func selectedSubscriptionBinding() -> Binding<Bool> {
-        coordinator.selectedSubscriptionBinding()
+    func selectedExpenseBinding() -> Binding<Bool> {
+        coordinator.selectedExpenseBinding()
     }
 }

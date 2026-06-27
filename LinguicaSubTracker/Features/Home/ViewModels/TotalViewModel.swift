@@ -27,8 +27,8 @@ final class TotalViewModel {
     }
 
     var total: Double {
-        SubscriptionService.totalForMonth(
-            coordinator.filtered(store.subscriptions),
+        ExpenseService.totalForMonth(
+            coordinator.filtered(store.expenses),
             month: currentMonth
         )
     }

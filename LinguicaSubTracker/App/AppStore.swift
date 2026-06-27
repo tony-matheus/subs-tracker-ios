@@ -2,16 +2,16 @@ import Foundation
 import SwiftUI
 import Observation
 
-/// Pure data layer: subscriptions + logo customizations + CRUD bridge to `StorageService`.
+/// Pure data layer: expenses + logo customizations + CRUD bridge to `StorageService`.
 /// UI/navigation state lives on `AppCoordinator`; feature-scoped state lives on its ViewModel.
 @Observable
 @MainActor
 final class AppStore {
-    var subscriptions: [Subscription] = []
+    var expenses: [Expense] = []
     var logoCustomizations: [UUID: LogoCustomization] = [:]
 
     init() {
-        subscriptions = StorageService.load()
+        expenses = StorageService.load()
         logoCustomizations = StorageService.loadCustomizations()
     }
 
@@ -29,20 +29,20 @@ final class AppStore {
         StorageService.saveCustomizations(logoCustomizations)
     }
 
-    func add(_ subscription: Subscription) {
-        subscriptions.append(subscription)
-        StorageService.save(subscriptions)
+    func add(_ expense: Expense) {
+        expenses.append(expense)
+        StorageService.save(expenses)
     }
 
-    func update(_ subscription: Subscription) {
-        guard let index = subscriptions.firstIndex(where: { $0.id == subscription.id }) else { return }
-        subscriptions[index] = subscription
-        StorageService.save(subscriptions)
+    func update(_ expense: Expense) {
+        guard let index = expenses.firstIndex(where: { $0.id == expense.id }) else { return }
+        expenses[index] = expense
+        StorageService.save(expenses)
     }
 
-    func delete(_ subscription: Subscription) {
-        subscriptions.removeAll { $0.id == subscription.id }
-        StorageService.save(subscriptions)
-        clearCustomization(id: subscription.id)
+    func delete(_ expense: Expense) {
+        expenses.removeAll { $0.id == expense.id }
+        StorageService.save(expenses)
+        clearCustomization(id: expense.id)
     }
 }

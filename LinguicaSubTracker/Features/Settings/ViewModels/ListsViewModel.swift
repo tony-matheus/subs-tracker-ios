@@ -19,7 +19,7 @@ final class ListsViewModel {
         self.settingsStore = settingsStore
     }
 
-    var lists: [SubscriptionList] { settingsStore.settings.lists }
+    var lists: [ExpenseList] { settingsStore.settings.lists }
     var canAdd: Bool { !newName.trimmingCharacters(in: .whitespaces).isEmpty }
 
     func commitAdd() {
@@ -42,7 +42,7 @@ final class ListsViewModel {
         mode = .viewing
     }
 
-    func isSelectable(_ list: SubscriptionList) -> Bool {
+    func isSelectable(_ list: ExpenseList) -> Bool {
         !list.isDefault
     }
 
@@ -66,7 +66,7 @@ final class ListsViewModel {
         settingsStore.updateListColor(id: id, colorHex: colorHex)
     }
 
-    func list(for id: UUID) -> SubscriptionList? {
+    func list(for id: UUID) -> ExpenseList? {
         lists.first { $0.id == id }
     }
 }

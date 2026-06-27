@@ -3,27 +3,27 @@ import Foundation
 enum StatsPreviewData {
     static func makeDemoStore() -> AppStore {
         let store = AppStore()
-        store.subscriptions = [
-            Subscription(
+        store.expenses = [
+            Expense(
                 name: "Netflix",
                 price: 15.99,
-                schedule: .monthly,
+                billingCycle: .monthly,
                 startDate: Date(),
                 category: "Entertainment",
                 list: "Personal"
             ),
-            Subscription(
+            Expense(
                 name: "Spotify",
                 price: 10.99,
-                schedule: .monthly,
+                billingCycle: .monthly,
                 startDate: Date(),
                 category: "Entertainment",
                 list: "Personal"
             ),
-            Subscription(
+            Expense(
                 name: "iCloud",
                 price: 2.99,
-                schedule: .monthly,
+                billingCycle: .monthly,
                 startDate: Date(),
                 category: "Utilities",
                 list: "Personal"

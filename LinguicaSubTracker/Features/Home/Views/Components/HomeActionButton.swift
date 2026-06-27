@@ -11,7 +11,7 @@ struct HomeActionButton: View {
                 HStack(spacing: 8) {
                     Image(systemName: isOnCurrentMonth ? "plus" : "arrow.uturn.left")
                         .foregroundStyle((isOnCurrentMonth ? Color.green : Color.purple).gradient)
-                    Text(isOnCurrentMonth ? "Add subscription" : "Back to current")
+                    Text(isOnCurrentMonth ? "Add expense" : "Back to current")
                 }
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color.primary.gradient)

@@ -1,15 +1,15 @@
 import SwiftUI
 
 /// Reusable sort picker chip. Shows the current sort label + chevron, opens a
-/// Menu listing every `SubscriptionSortType` with an arrow on the active row.
+/// Menu listing every `ExpenseSortType` with an arrow on the active row.
 struct SortChip: View {
-    let sort: SubscriptionSortType
+    let sort: ExpenseSortType
     let direction: SortDirection
-    let onPick: (SubscriptionSortType) -> Void
+    let onPick: (ExpenseSortType) -> Void
 
     var body: some View {
         Menu {
-            ForEach(SubscriptionSortType.allCases) { type in
+            ForEach(ExpenseSortType.allCases) { type in
                 Button {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                         onPick(type)

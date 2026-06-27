@@ -32,7 +32,7 @@ struct SubscriptionTemplate: Identifiable, Hashable {
     }
 
     /// Build a customization seeded with the template's colors.
-    /// `symbolName` is left nil so `SubscriptionLogoCircle` falls back to the bundle logo asset.
+    /// `symbolName` is left nil so `LogoCircle` falls back to the bundle logo asset.
     func makeCustomization(id: UUID) -> LogoCustomization {
         LogoCustomization(
             id: id,
@@ -51,21 +51,21 @@ struct SubscriptionTemplate: Identifiable, Hashable {
     /// Case-insensitive exact match, then localized-contains either direction.
     /// Single source of truth used by `logoName(for:)` and the unified
     /// logo-resolution helper on `LogoCustomization`.
-    static func template(matching subscriptionName: String) -> SubscriptionTemplate? {
+    static func template(matching name: String) -> SubscriptionTemplate? {
         mock.first {
-            $0.name.caseInsensitiveCompare(subscriptionName) == .orderedSame
+            $0.name.caseInsensitiveCompare(name) == .orderedSame
         }
             ?? mock.first {
-                $0.name.localizedCaseInsensitiveContains(subscriptionName)
-                    || subscriptionName.localizedCaseInsensitiveContains(
+                $0.name.localizedCaseInsensitiveContains(name)
+                    || name.localizedCaseInsensitiveContains(
                         $0.name
                     )
             }
     }
 
     /// Returns the logo asset name for a given subscription name, using case-insensitive matching.
-    static func logoName(for subscriptionName: String) -> String? {
-        template(matching: subscriptionName)?.logo
+    static func logoName(for name: String) -> String? {
+        template(matching: name)?.logo
     }
 
     // MARK: - Preview
@@ -79,7 +79,7 @@ struct SubscriptionTemplate: Identifiable, Hashable {
             LazyVGrid(columns: columns, spacing: 24) {
                 ForEach(mock) { template in
                     VStack(spacing: 8) {
-                        SubscriptionLogoCircle(
+                        LogoCircle(
                             size: 72,
                             customization: template.makeCustomization(id: template.id),
                             logoName: template.logo,

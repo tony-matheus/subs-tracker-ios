@@ -54,7 +54,7 @@ struct CalendarRewindOverlay: View {
                                 store: store,
                                 date: date,
                                 status: status(for: date),
-                                subscriptions: month.subscriptions[index]
+                                expenses: month.expenses[index]
                             ),
                             height: cellHeight,
                             onTap: { _ in }

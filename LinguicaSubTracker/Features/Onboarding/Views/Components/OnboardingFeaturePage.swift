@@ -37,7 +37,7 @@ struct OnboardingFeaturePage<Hero: View>: View {
 #Preview {
     OnboardingFeaturePage(
         title: "Your month at a glance",
-        subtitle: "Every subscription lands on its renewal day."
+        subtitle: "Every expense lands on its renewal day."
     ) {
         OnboardingEditingHero()
     }

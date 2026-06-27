@@ -7,7 +7,7 @@ struct AppSettings: Codable {
     var monthlyBudget: Double?
     var categories: [AppCategory]
     var paymentMethods: [PaymentMethod]
-    var lists: [SubscriptionList]
+    var lists: [ExpenseList]
     // Optional so previously persisted settings decode unchanged (nil → .system).
     var themeMode: ThemeMode? = nil
 
@@ -32,9 +32,9 @@ struct AppSettings: Codable {
             PaymentMethod(name: "PayPal"),
         ],
         lists: [
-            SubscriptionList(name: "Personal", colorHex: "#007AFF"),
-            SubscriptionList(name: "Work",     colorHex: "#34C759"),
-            SubscriptionList(name: "Family",   colorHex: "#FF9500"),
+            ExpenseList(name: "Personal", colorHex: "#007AFF"),
+            ExpenseList(name: "Work",     colorHex: "#34C759"),
+            ExpenseList(name: "Family",   colorHex: "#FF9500"),
         ]
     )
 }

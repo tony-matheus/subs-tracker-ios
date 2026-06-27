@@ -73,10 +73,10 @@ final class OnboardingViewModel {
     func commit() {
         for draft in validDrafts {
             store.add(
-                Subscription(
+                Expense(
                     name: draft.name.trimmingCharacters(in: .whitespaces),
                     price: draft.price,
-                    schedule: .monthly,
+                    billingCycle: .monthly,
                     startDate: draft.startDate
                 )
             )

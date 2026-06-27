@@ -24,12 +24,12 @@ struct HomeView: View {
     var body: some View {
         @Bindable var vm = viewModel
         // Explicit reads: registers direct observation on store + coordinator
-        // so HomeView re-evaluates on subscription add/update/delete and
+        // so HomeView re-evaluates on expense add/update/delete and
         // selection changes (computed-prop chains through the VM aren't
         // always tracked reliably).
-        let _ = store.subscriptions
+        let _ = store.expenses
         let _ = coordinator.selectedDay
-        let _ = coordinator.selectedSubscription
+        let _ = coordinator.selectedExpense
 
         NavigationStack {
             VStack {
@@ -79,10 +79,10 @@ struct HomeView: View {
                             vm.clearFilter()
                         } label: {
                             if vm.isFilterActive {
-                                Text("All Subscriptions")
+                                Text("All Expenses")
                             } else {
                                 Label(
-                                    "All Subscriptions",
+                                    "All Expenses",
                                     systemImage: "checkmark"
                                 )
                             }
@@ -159,7 +159,7 @@ struct HomeView: View {
                 for: .bottomBar
             )
             .sheet(isPresented: $vm.showAddSheet) {
-                SubscriptionListSheet(
+                ExpenseTemplateSheet(
                     date: Date(),
                     store: vm.store,
                     settingsStore: vm.settingsStore
@@ -192,15 +192,15 @@ struct HomeView: View {
             }
             .sheet(isPresented: vm.selectedDayBinding()) {
                 if let day = vm.selectedDay {
-                    let daySubs = vm.subscriptions(for: day)
+                    let daySubs = vm.expenses(for: day)
                     if daySubs.isEmpty {
-                        SubscriptionListSheet(
+                        ExpenseTemplateSheet(
                             date: day,
                             store: vm.store,
                             settingsStore: vm.settingsStore
                         )
                     } else {
-                        SubscriptionInDay(
+                        ExpensesInDay(
                             date: day,
                             store: vm.store,
                             settingsStore: vm.settingsStore,
@@ -209,10 +209,10 @@ struct HomeView: View {
                     }
                 }
             }
-            .sheet(isPresented: vm.selectedSubscriptionBinding()) {
-                if let sub = vm.selectedSubscription {
-                    SubscriptionSummarySheet(
-                        subscription: sub,
+            .sheet(isPresented: vm.selectedExpenseBinding()) {
+                if let expense = vm.selectedExpense {
+                    ExpenseSummarySheet(
+                        expense: expense,
                         store: vm.store,
                         settingsStore: vm.settingsStore,
                         coordinator: coordinator

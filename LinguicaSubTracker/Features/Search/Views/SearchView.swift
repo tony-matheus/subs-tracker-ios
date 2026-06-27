@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SearchView: View {
     @State private var viewModel: SearchViewModel
-    @State private var subscriptionToDelete: Subscription?
+    @State private var expenseToDelete: Expense?
     @State private var isSearchFocused: Bool = false
 
     @Environment(\.dismiss) private var dismiss
@@ -31,8 +31,8 @@ struct SearchView: View {
         @Bindable var vm = viewModel
         // Force re-evaluation on store changes (computed-prop tracking is
         // unreliable through @Observable chains — same pattern as HomeView).
-        let _ = store.subscriptions
-        let items = vm.displayedSubscriptions
+        let _ = store.expenses
+        let items = vm.displayedExpenses
 
         // `.searchable` requires a NavigationStack/SplitView ancestor; wrap
         // here so the cover host staysˆ simple. Native search bar lives in the
@@ -69,10 +69,10 @@ struct SearchView: View {
                 isSearchFocused = true
             }
         }
-        .sheet(isPresented: vm.selectedSubscriptionBinding()) {
-            if let sub = vm.selectedSubscription {
-                SubscriptionSummarySheet(
-                    subscription: sub,
+        .sheet(isPresented: vm.selectedExpenseBinding()) {
+            if let expense = vm.selectedExpense {
+                ExpenseSummarySheet(
+                    expense: expense,
                     store: store,
                     settingsStore: settingsStore,
                     coordinator: coordinator
@@ -80,33 +80,33 @@ struct SearchView: View {
             }
         }
         .sheet(isPresented: $vm.showAddSheet) {
-            SubscriptionListSheet(
+            ExpenseTemplateSheet(
                 date: Date(),
                 store: store,
                 settingsStore: settingsStore
             )
         }
         .alert(
-            "Delete \"\(subscriptionToDelete?.name ?? "")\"?",
+            "Delete \"\(expenseToDelete?.name ?? "")\"?",
             isPresented: .init(
-                get: { subscriptionToDelete != nil },
-                set: { if !$0 { subscriptionToDelete = nil } }
+                get: { expenseToDelete != nil },
+                set: { if !$0 { expenseToDelete = nil } }
             )
         ) {
             Button("Delete", role: .destructive) {
-                if let sub = subscriptionToDelete {
-                    vm.delete(sub)
+                if let expense = expenseToDelete {
+                    vm.delete(expense)
                 }
-                subscriptionToDelete = nil
+                expenseToDelete = nil
             }
             Button("Cancel", role: .cancel) {
-                subscriptionToDelete = nil
+                expenseToDelete = nil
             }
         } message: {
             Text("This action cannot be undone.")
         }
         .alert(
-            "Delete \(vm.selectionCount) subscription\(vm.selectionCount == 1 ? "" : "s")?",
+            "Delete \(vm.selectionCount) expense\(vm.selectionCount == 1 ? "" : "s")?",
             isPresented: $vm.showBulkDeleteAlert
         ) {
             Button("Delete", role: .destructive) {
@@ -174,7 +174,7 @@ struct SearchView: View {
 
     // MARK: - Content (empty CTA / no matches / list)
     @ViewBuilder
-    private func content(vm: SearchViewModel, items: [Subscription])
+    private func content(vm: SearchViewModel, items: [Expense])
         -> some View
     {
         if vm.storeIsEmpty {
@@ -187,18 +187,18 @@ struct SearchView: View {
     }
 
     @ViewBuilder
-    private func list(vm: SearchViewModel, items: [Subscription]) -> some View {
+    private func list(vm: SearchViewModel, items: [Expense]) -> some View {
         // `List` provides native cell virtualization — no memory leak risk
         // even with thousands of rows.
         List {
-            ForEach(items) { sub in
-                rowView(sub: sub, vm: vm)
+            ForEach(items) { expense in
+                rowView(expense: expense, vm: vm)
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         if !vm.isSelectionMode {
                             Button("Delete", systemImage: "trash") {
-                                subscriptionToDelete = sub
+                                expenseToDelete = expense
                             }
                             .tint(.red)
                         }
@@ -223,30 +223,30 @@ struct SearchView: View {
     }
 
     @ViewBuilder
-    private func rowView(sub: Subscription, vm: SearchViewModel) -> some View {
+    private func rowView(expense: Expense, vm: SearchViewModel) -> some View {
         HStack(spacing: 12) {
             if vm.isSelectionMode {
                 Image(
-                    systemName: vm.isSelected(sub)
+                    systemName: vm.isSelected(expense)
                         ? "checkmark.circle.fill" : "circle"
                 )
                 .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(
-                    vm.isSelected(sub) ? Color.accentColor : .secondary
+                    vm.isSelected(expense) ? Color.accentColor : .secondary
                 )
                 .padding(.leading, 16)
                 .transition(.move(edge: .leading).combined(with: .opacity))
             }
 
-            SubscriptionRow(subscription: sub) {
+            ExpenseRow(expense: expense) {
                 if vm.isSelectionMode {
                     withAnimation(
                         .spring(response: 0.25, dampingFraction: 0.85)
                     ) {
-                        vm.toggleSelection(sub)
+                        vm.toggleSelection(expense)
                     }
                 } else {
-                    vm.selectSubscription(sub)
+                    vm.selectExpense(expense)
                 }
             }
         }
@@ -266,18 +266,18 @@ struct SearchView: View {
                 .font(.system(size: 64))
                 .foregroundStyle(.secondary.opacity(0.5))
 
-            Text("No subscriptions yet")
+            Text("No expenses yet")
                 .typography(.titleLarge.weight(.semibold))
                 .foregroundStyle(.primary)
 
-            Text("Track your first subscription to see it here.")
+            Text("Track your first expense to see it here.")
                 .typography(.bodyMedium)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
             AppButton(
-                title: "Add Subscription",
+                title: "Add Expense",
                 icon: "plus",
                 style: .primary,
                 appearance: .solid,

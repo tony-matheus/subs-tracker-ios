@@ -19,7 +19,7 @@ struct DayCell: View {
 
     private let logoSize: CGFloat = 26
     private let cornerRadius: CGFloat = 20
-    private let subscriptionInset: CGFloat = 4
+    private let expenseInset: CGFloat = 4
     private let dayLabelInset: CGFloat = 8
 
     var body: some View {
@@ -42,8 +42,8 @@ struct DayCell: View {
                 }
             }
             .overlay {
-                if let primary = viewModel.primarySub {
-                    subscriptionFloatingLayer(primary: primary)
+                if let primary = viewModel.primaryExpense {
+                    expenseFloatingLayer(primary: primary)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
@@ -74,22 +74,22 @@ struct DayCell: View {
         }
     }
 
-    private func subscriptionFloatingLayer(primary: Subscription) -> some View {
+    private func expenseFloatingLayer(primary: Expense) -> some View {
         HStack(spacing: -10) {
             if viewModel.overflowCount > 0 {
                 overflowBadge(remaining: viewModel.overflowCount)
             }
-            if viewModel.subscriptions.count >= 2 {
-                logoCircle(sub: viewModel.subscriptions[1])
+            if viewModel.expenses.count >= 2 {
+                logoCircle(expense: viewModel.expenses[1])
             }
-            logoCircle(sub: primary)
+            logoCircle(expense: primary)
         }
         .frame(
             maxWidth: .infinity,
             maxHeight: .infinity,
             alignment: .bottomTrailing
         )
-        .padding(subscriptionInset)
+        .padding(expenseInset)
         .allowsHitTesting(false)
     }
 
@@ -107,12 +107,12 @@ struct DayCell: View {
         }
     }
 
-    private func logoCircle(sub: Subscription) -> some View {
-        SubscriptionLogoCircle(
+    private func logoCircle(expense: Expense) -> some View {
+        LogoCircle(
             size: logoSize,
-            customization: sub.logoCustomization(in: viewModel.store),
-            logoName: sub.logoName,
-            name: sub.name
+            customization: expense.logoCustomization(in: viewModel.store),
+            logoName: expense.logoName,
+            name: expense.name
         )
     }
 

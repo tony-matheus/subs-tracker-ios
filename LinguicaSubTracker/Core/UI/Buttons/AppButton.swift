@@ -382,7 +382,7 @@ private struct GlassIfNeeded: ViewModifier {
                         HStack(spacing: 8) {
                             AppButton(
                                 icon: "plus",
-                                accessibilityTitle: "Add subscription",
+                                accessibilityTitle: "Add expense",
                                 style: .primary,
                                 appearance: .solid,
                                 size: size,

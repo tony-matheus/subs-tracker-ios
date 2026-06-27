@@ -13,15 +13,15 @@ enum HomePreviewData {
         }
 
         let store = AppStore()
-        store.subscriptions = [
-            Subscription(name: "Netflix",   price: 15.99, schedule: .monthly, startDate: day(4),  category: "Entertainment", list: "Personal"),
-            Subscription(name: "Notion",    price: 8.00, schedule: .monthly, startDate: day(11), category: "Productivity",  list: "Work"),
-            Subscription(name: "iCloud",    price: 2.99, schedule: .monthly, startDate: day(18), category: "Utilities",     list: "Personal"),
-            Subscription(name: "Spotify",   price: 10.99, schedule: .monthly, startDate: day(22), category: "Lifestyle",     list: "Family"),
-            Subscription(name: "1Password", price: 4.99, schedule: .monthly, startDate: day(27), category: "Utilities",     list: "Personal"),
-            Subscription(name: "YouTube",   price: 13.99, schedule: .monthly, startDate: day(11), category: "Entertainment", list: "Personal"),
-            Subscription(name: "ChatGPT",   price: 20.00, schedule: .monthly, startDate: day(11), category: "Productivity",  list: "Work"),
-            Subscription(name: "Disney+",   price: 7.99, schedule: .monthly, startDate: day(11), category: "Entertainment", list: "Family"),
+        store.expenses = [
+            Expense(name: "Netflix",   price: 15.99, billingCycle: .monthly, startDate: day(4),  category: "Entertainment", list: "Personal"),
+            Expense(name: "Notion",    price: 8.00, billingCycle: .monthly, startDate: day(11), category: "Productivity",  list: "Work"),
+            Expense(name: "iCloud",    price: 2.99, billingCycle: .monthly, startDate: day(18), category: "Utilities",     list: "Personal"),
+            Expense(name: "Spotify",   price: 10.99, billingCycle: .monthly, startDate: day(22), category: "Lifestyle",     list: "Family"),
+            Expense(name: "1Password", price: 4.99, billingCycle: .monthly, startDate: day(27), category: "Utilities",     list: "Personal"),
+            Expense(name: "YouTube",   price: 13.99, billingCycle: .monthly, startDate: day(11), category: "Entertainment", list: "Personal"),
+            Expense(name: "ChatGPT",   price: 20.00, billingCycle: .monthly, startDate: day(11), category: "Productivity",  list: "Work"),
+            Expense(name: "Disney+",   price: 7.99, billingCycle: .monthly, startDate: day(11), category: "Entertainment", list: "Family"),
         ]
         return store
     }

@@ -24,7 +24,7 @@ final class BudgetEditorViewModel {
         let startOfMonth = Calendar.current.date(
             from: Calendar.current.dateComponents([.year, .month], from: Date())
         ) ?? Date()
-        return SubscriptionService.totalForMonth(store.subscriptions, month: startOfMonth)
+        return ExpenseService.totalForMonth(store.expenses, month: startOfMonth)
     }
 
     /// Spending ratio clamped to [0, 1]. Zero when no budget is set.

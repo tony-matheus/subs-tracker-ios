@@ -26,8 +26,8 @@ final class StatsViewModel {
         let calendar = Calendar.current
         let current = calendar.component(.year, from: Date())
         var years = Set<Int>([current])
-        for sub in store.subscriptions {
-            years.insert(calendar.component(.year, from: sub.startDate))
+        for expense in store.expenses {
+            years.insert(calendar.component(.year, from: expense.startDate))
         }
         return Array(years).sorted(by: >)
     }
@@ -73,27 +73,27 @@ final class StatsViewModel {
     }
 
     var averageMonthlyLabel: String {
-        let months = SubscriptionService.monthsRemaining(in: year)
+        let months = ExpenseService.monthsRemaining(in: year)
         let avg = months > 0 ? total / Double(months) : 0
         return MoneyFormatter.format(avg, settings: settingsStore.settings)
     }
 
     var activeCount: Int {
-        store.subscriptions.filter { $0.isActive }.count
+        store.expenses.filter { $0.isActive }.count
     }
 
     var activeCountLabel: String {
-        "You have \(activeCount) active subscription\(activeCount == 1 ? "" : "s")"
+        "You have \(activeCount) active expense\(activeCount == 1 ? "" : "s")"
     }
 
     private var amountsByName: [String: Double] {
         switch dimension {
         case .categories:
-            return SubscriptionService.remainingForecastByCategory(store.subscriptions, year: year)
+            return ExpenseService.remainingForecastByCategory(store.expenses, year: year)
         case .lists:
-            return SubscriptionService.remainingForecastByList(store.subscriptions, year: year)
+            return ExpenseService.remainingForecastByList(store.expenses, year: year)
         case .payments:
-            return SubscriptionService.remainingForecastByPaymentMethod(store.subscriptions, year: year)
+            return ExpenseService.remainingForecastByPaymentMethod(store.expenses, year: year)
         }
     }
 
