@@ -4,6 +4,8 @@ struct BudgetEditor: View {
     private let settingsStore: SettingsStore
     private let store: AppStore
     @State private var viewModel: BudgetEditorViewModel
+    @State private var confirmingClear = false
+    @State private var revertTask: Task<Void, Never>?
 
     init(settingsStore: SettingsStore, store: AppStore) {
         self.settingsStore = settingsStore
@@ -39,20 +41,55 @@ struct BudgetEditor: View {
         //        }
     }
 
+    @ViewBuilder
     private func clearButton(vm: BudgetEditorViewModel) -> some View {
-        AppButton(
-            icon: "eraser.fill",
-            accessibilityTitle: "Clear",
-            style: .secondary,
-            appearance: .ghost,
-            action: {
-                withAnimation(
-                    .spring(response: 0.3, dampingFraction: 0.8)
-                ) {
+        if confirmingClear {
+            Button {
+                revertTask?.cancel()
+                revertTask = nil
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    confirmingClear = false
                     vm.clearBudget()
                 }
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 13, weight: .semibold))
+                        .contentTransition(.symbolEffect(.replace))
+                    Text("Clear?")
+                        .typography(.bodySmall)
+                }
+                .foregroundStyle(.red)
+                .padding(.vertical, 6)
+                .padding(.horizontal, 10)
             }
-        )
+            .buttonStyle(.plain)
+            .glassEffect(.regular.tint(.red.opacity(0.15)).interactive(), in: Capsule())
+            .transition(.scale(scale: 0.85).combined(with: .opacity))
+        } else {
+            AppButton(
+                icon: "eraser.fill",
+                accessibilityTitle: "Clear budget",
+                style: .secondary,
+                appearance: .ghost,
+                action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        confirmingClear = true
+                    }
+                    revertTask?.cancel()
+                    revertTask = Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(2))
+                        guard !Task.isCancelled else { return }
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            confirmingClear = false
+                        }
+                    }
+                }
+            )
+            .transition(.scale(scale: 0.85).combined(with: .opacity))
+        }
     }
 
     private func bugdetIndicator(
@@ -167,6 +204,7 @@ struct BudgetEditor: View {
 
             if vm.hasBudget {
                 bugdetIndicator(vm: vm)
+                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
         }
         .sheet(isPresented: $vm.showKeypad) {

@@ -20,14 +20,14 @@ struct SettingsView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     appearancePreferences(vm: vm)
-                    numberPreferences(vm: vm)
-                    filtersPreferences(vm: vm)
                     GlassSection {
                         BudgetEditor(
                             settingsStore: vm.settingsStore,
                             store: vm.store
                         )
                     }
+                    numberPreferences(vm: vm)
+                    filtersPreferences(vm: vm)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -73,16 +73,16 @@ struct SettingsView: View {
     private func appearancePreferences(vm: SettingsViewModel) -> some View {
         GlassSection {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Appearance")
-                    .typography(.bodyLarge)
-                    .foregroundStyle(.primary)
-
-                Picker("Appearance", selection: vm.themeModeBinding()) {
-                    ForEach(ThemeMode.allCases) { mode in
-                        Text(mode.label).tag(mode)
-                    }
+                HStack(spacing: 10) {
+                    Image(systemName: "paintbrush.fill")
+                        .iconStyle(size: 16, weight: .medium, color: .secondary)
+                        .frame(width: 24)
+                    Text("Appearance")
+                        .typography(.bodyLarge)
+                        .foregroundStyle(.primary)
                 }
-                .pickerStyle(.segmented)
+
+                AppearanceSelector(selection: vm.themeModeBinding())
             }
             .padding(.vertical, 8)
         }
@@ -95,6 +95,9 @@ struct SettingsView: View {
                 vm.showCurrencyPicker = true
             } label: {
                 HStack {
+                    Image(systemName: "banknote.fill")
+                        .iconStyle(size: 16, weight: .medium, color: .secondary)
+                        .frame(width: 24)
                     Text("Main Currency")
                         .typography(.bodyLarge)
                         .foregroundStyle(.primary)
@@ -117,13 +120,18 @@ struct SettingsView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Toggle(isOn: vm.roundAmountsBinding()) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Rounding")
-                            .typography(.bodyLarge)
-                            .foregroundStyle(.primary)
-                        Text("Display amounts without decimals")
-                            .typography(.bodySmall)
-                            .foregroundStyle(.secondary)
+                    HStack(spacing: 10) {
+                        Image(systemName: "0.circle.fill")
+                            .iconStyle(size: 16, weight: .medium, color: .secondary)
+                            .frame(width: 24)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Rounding")
+                                .typography(.bodyLarge)
+                                .foregroundStyle(.primary)
+                            Text("Display amounts without decimals")
+                                .typography(.bodySmall)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .green))
@@ -134,13 +142,18 @@ struct SettingsView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Toggle(isOn: vm.abbreviateLargeNumbersBinding()) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Abbreviate Large Numbers")
-                            .typography(.bodyLarge)
-                            .foregroundStyle(.primary)
-                        Text("Use compact format like 74.5k")
-                            .typography(.bodySmall)
-                            .foregroundStyle(.secondary)
+                    HStack(spacing: 10) {
+                        Image(systemName: "k.circle.fill")
+                            .iconStyle(size: 16, weight: .medium, color: .secondary)
+                            .frame(width: 24)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Abbreviate Large Numbers")
+                                .typography(.bodyLarge)
+                                .foregroundStyle(.primary)
+                            Text("Use compact format like 74.5k")
+                                .typography(.bodySmall)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .toggleStyle(SwitchToggleStyle(tint: .green))
