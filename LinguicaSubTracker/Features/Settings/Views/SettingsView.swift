@@ -19,15 +19,38 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    appearancePreferences(vm: vm)
+                    numberPreferences(vm: vm)
+                    filtersPreferences(vm: vm)
                     GlassSection {
                         BudgetEditor(
                             settingsStore: vm.settingsStore,
                             store: vm.store
                         )
                     }
-                    numberPreferences(vm: vm)
-                    filtersPreferences(vm: vm)
+                    appearancePreferences(vm: vm)
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Made with")
+                            Image(systemName: "suit.heart.fill")
+                                .symbolEffect(
+                                    .bounce.up.byLayer,
+                                    options: .repeat(.periodic(delay: 0.3))
+                                )
+                                .foregroundStyle(.red)
+                            Text("by")
+                            Link(
+                                "@tony_linguica",
+                                destination: URL(string: "x.com/tony_linguica")!
+                            )
+                        }
+                        .typography(.titleSmall)
+                        .foregroundStyle(.secondary)
+                        HStack {
+                            Text("version: 0.0.1")
+                                .typography(.bodySmall)
+                                .foregroundStyle(Color.secondary)
+                        }
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -122,7 +145,11 @@ struct SettingsView: View {
                 Toggle(isOn: vm.roundAmountsBinding()) {
                     HStack(spacing: 10) {
                         Image(systemName: "0.circle.fill")
-                            .iconStyle(size: 16, weight: .medium, color: .secondary)
+                            .iconStyle(
+                                size: 16,
+                                weight: .medium,
+                                color: .secondary
+                            )
                             .frame(width: 24)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Rounding")
@@ -144,7 +171,11 @@ struct SettingsView: View {
                 Toggle(isOn: vm.abbreviateLargeNumbersBinding()) {
                     HStack(spacing: 10) {
                         Image(systemName: "k.circle.fill")
-                            .iconStyle(size: 16, weight: .medium, color: .secondary)
+                            .iconStyle(
+                                size: 16,
+                                weight: .medium,
+                                color: .secondary
+                            )
                             .frame(width: 24)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Abbreviate Large Numbers")
