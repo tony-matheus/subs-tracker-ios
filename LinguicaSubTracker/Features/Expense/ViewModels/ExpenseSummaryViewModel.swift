@@ -2,6 +2,12 @@ import Foundation
 import Observation
 import SwiftUI
 
+/// Single field editable in place from the summary sheet.
+enum QuickEditField: String, Identifiable {
+    case name, amount, category, list, type
+    var id: String { rawValue }
+}
+
 @Observable
 @MainActor
 final class ExpenseSummaryViewModel {
@@ -9,7 +15,12 @@ final class ExpenseSummaryViewModel {
     var showEdit = false
     var isActive: Bool
 
-    let expense: Expense
+    var quickEdit: QuickEditField?
+    var draftName: String = ""
+    var draftAmount: Double = 0
+    var currencyCode: String = "CAD"
+
+    private(set) var expense: Expense
     let store: AppStore
     let coordinator: AppCoordinator
 
@@ -62,5 +73,49 @@ final class ExpenseSummaryViewModel {
     func applyEdit(_ updated: Expense) {
         store.update(updated)
         coordinator.selectedExpense = nil
+    }
+
+    // MARK: - Quick single-field edits (sheet stays open)
+
+    func beginQuickEdit(_ field: QuickEditField) {
+        switch field {
+        case .name: draftName = expense.name
+        case .amount: draftAmount = expense.price
+        case .category, .list, .type: break
+        }
+        quickEdit = field
+    }
+
+    func commitQuickName() {
+        let trimmed = draftName.trimmingCharacters(in: .whitespaces)
+        if !trimmed.isEmpty { apply { $0.name = trimmed } }
+        quickEdit = nil
+    }
+
+    func commitQuickAmount() {
+        if draftAmount > 0 { apply { $0.price = draftAmount } }
+        quickEdit = nil
+    }
+
+    func quickSet(category: String) {
+        apply { $0.category = category }
+        quickEdit = nil
+    }
+
+    func quickSet(list: String) {
+        apply { $0.list = list }
+        quickEdit = nil
+    }
+
+    func quickSet(type: ExpenseType) {
+        apply { $0.type = type }
+        quickEdit = nil
+    }
+
+    private func apply(_ mutate: (inout Expense) -> Void) {
+        var updated = expense
+        mutate(&updated)
+        expense = updated
+        store.update(updated)
     }
 }

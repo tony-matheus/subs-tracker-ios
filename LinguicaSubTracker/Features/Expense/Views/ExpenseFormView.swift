@@ -58,6 +58,250 @@ struct ExpenseFormView: View {
         }
     }
 
+    // MARK: - Hero fields
+
+    /// Large borderless title-style name field under the logo.
+    private func nameField(vm: ExpenseFormViewModel) -> some View {
+        @Bindable var vm = vm
+        return VStack(spacing: 4) {
+            TextField("Expense name", text: $vm.name)
+                .multilineTextAlignment(.center)
+                .typography(.headlineMedium)
+                .foregroundStyle(vm.themeAccent)
+                .focused($nameFocused)
+                .submitLabel(.done)
+                .onChange(of: vm.name) { _, _ in vm.clearNameErrorIfFixed() }
+
+            if let err = vm.nameError {
+                Text(err)
+                    .typography(.bodySmall)
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
+    /// Visual centerpiece — big tap target that opens the keypad.
+    private func amountButton(vm: ExpenseFormViewModel) -> some View {
+        VStack(spacing: 6) {
+            Button {
+                vm.showKeypad = true
+            } label: {
+                VStack(spacing: 4) {
+                    Text("Amount")
+                        .typography(.labelMedium)
+                        .foregroundStyle(vm.themeAccent.opacity(0.85))
+                    Text(vm.price, format: .currency(code: vm.currencyCode))
+                        .typography(.displaySmall)
+                        .foregroundStyle(vm.priceError != nil ? Color.red : Color.primary)
+                        .contentTransition(.numericText())
+                        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: vm.price)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+            }
+            .buttonStyle(.plain)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(vm.priceError != nil ? Color.red : Color.clear, lineWidth: 1)
+            )
+
+            if let err = vm.priceError {
+                Text(err)
+                    .typography(.bodySmall)
+                    .foregroundStyle(.red)
+            }
+        }
+        .onChange(of: vm.price) { _, _ in vm.clearPriceErrorIfFixed() }
+    }
+
+    /// Horizontal color-chip row driven by the user's categories.
+    private func categoryChips(vm: ExpenseFormViewModel) -> some View {
+        GlassSection {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Category")
+                    .typography(.labelMedium)
+                    .foregroundStyle(vm.themeAccent.opacity(0.85))
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(vm.settingsStore.settings.categories) { category in
+                            categoryChip(category, vm: vm)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func categoryChip(_ category: AppCategory, vm: ExpenseFormViewModel) -> some View {
+        let color = Color(hex: category.colorHex)
+        let isSelected = vm.category == category.name
+
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                vm.category = category.name
+            }
+        } label: {
+            Text(category.name)
+                .typography(.bodyMedium.weight(.semibold))
+                .foregroundStyle(isSelected ? color.contrastingForeground : .primary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule().fill(isSelected ? color : color.opacity(0.14))
+                )
+                .overlay(
+                    Capsule().stroke(
+                        isSelected ? Color.clear : color.opacity(0.55),
+                        lineWidth: 1
+                    )
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Secondary fields
+
+    private func moreDetailsSection(vm: ExpenseFormViewModel) -> some View {
+        @Bindable var vm = vm
+        return GlassSection {
+            HStack {
+                Text("More details")
+                    .typography(.titleMedium)
+                    .foregroundStyle(vm.themeAccent)
+                Spacer()
+            }
+
+            VStack(spacing: 0) {
+                    Divider().padding(.vertical, 8)
+
+                    FormRow(label: "Type", labelColor: vm.themeAccent) {
+                        AppPicker(
+                            title: "",
+                            selection: $vm.type,
+                            options: ExpenseType.allCases.map {
+                                (value: $0, label: $0.displayName)
+                            },
+                            tint: vm.themeAccent
+                        )
+                    }
+
+                    Divider()
+
+                    FormRow(label: "Payment Schedule", labelColor: vm.themeAccent) {
+                        AppPicker(
+                            title: "",
+                            selection: $vm.billingCycle,
+                            options: BillingCycle.allCases.map {
+                                (value: $0, label: $0.displayName)
+                            },
+                            tint: vm.themeAccent
+                        )
+                    }
+
+                    Divider()
+
+                    FormRow(label: "Start Date", labelColor: vm.themeAccent) {
+                        DatePicker(
+                            "",
+                            selection: $vm.startDate,
+                            displayedComponents: .date
+                        )
+                        .labelsHidden()
+                        .typography(.bodyMedium)
+                        .tint(vm.themeAccent)
+                    }
+
+                    Divider()
+
+                    FormRow(label: "End Date", labelColor: vm.themeAccent) {
+                        HStack(spacing: 8) {
+                            if let end = vm.endDate {
+                                DatePicker(
+                                    "",
+                                    selection: Binding(
+                                        get: { end },
+                                        set: { vm.endDate = $0 }
+                                    ),
+                                    in: vm.startDate...,
+                                    displayedComponents: .date
+                                )
+                                .labelsHidden()
+                                .typography(.bodyMedium)
+                                .tint(vm.themeAccent)
+
+                                Button {
+                                    vm.endDate = nil
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                            } else {
+                                Button("Set end date") {
+                                    vm.endDate = Calendar.current.date(
+                                        byAdding: .month,
+                                        value: 1,
+                                        to: vm.startDate
+                                    ) ?? vm.startDate
+                                }
+                                .typography(.bodyMedium)
+                                .foregroundStyle(vm.themeAccent)
+                            }
+                        }
+                    }
+
+                    Divider()
+
+                    FormRow(
+                        label: "Pay with",
+                        icon: "wallet.bifold.fill",
+                        iconColor: vm.themeAccent,
+                        labelColor: vm.themeAccent
+                    ) {
+                        AppPicker(
+                            title: "",
+                            selection: $vm.paymentMethod,
+                            options: vm.paymentOptions,
+                            tint: vm.themeAccent
+                        )
+                    }
+
+                    Divider()
+
+                    FormRow(
+                        label: "List",
+                        icon: "list.dash",
+                        iconColor: vm.themeAccent,
+                        labelColor: vm.themeAccent
+                    ) {
+                        AppPicker(
+                            title: "",
+                            selection: $vm.list,
+                            options: vm.listOptions,
+                            tint: vm.themeAccent
+                        )
+                    }
+
+                    Divider().padding(.bottom, 8)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Notes")
+                            .typography(.titleMedium)
+                            .foregroundStyle(vm.themeAccent)
+
+                        TextEditor(text: $vm.notes)
+                            .frame(height: 100)
+                            .scrollContentBackground(.hidden)
+                            .typography(.bodyMedium)
+                    }
+            }
+        }
+    }
+
     private var formContent: some View {
         @Bindable var vm = viewModel
 
@@ -91,191 +335,13 @@ struct ExpenseFormView: View {
                     .padding(.top, vm.isLogoExpanded ? 60 : 16)
 
                     Group {
-                        GlassSection {
-                            FormRow(label: "Name", labelColor: vm.themeAccent) {
-                                TextField("Your expense name", text: $vm.name)
-                                    .multilineTextAlignment(.trailing)
-                                    .typography(.bodyMedium)
-                                    .focused($nameFocused)
-                                    .onChange(of: vm.name) { _, _ in vm.clearNameErrorIfFixed() }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .contentShape(Rectangle())
-                            .onTapGesture { nameFocused = true }
+                        nameField(vm: vm)
 
-                            if let err = vm.nameError {
-                                Text(err)
-                                    .typography(.bodySmall)
-                                    .foregroundStyle(.red)
-                                    .frame(maxWidth: .infinity, alignment: .trailing)
-                                    .padding(.top, 4)
-                            }
+                        amountButton(vm: vm)
 
-                            Divider()
+                        categoryChips(vm: vm)
 
-                            FormRow(label: "Type", labelColor: vm.themeAccent) {
-                                AppPicker(
-                                    title: "",
-                                    selection: $vm.type,
-                                    options: ExpenseType.allCases.map {
-                                        (value: $0, label: $0.displayName)
-                                    },
-                                    tint: vm.themeAccent
-                                )
-                            }
-
-                            Divider()
-
-                            FormRow(label: "Payment Schedule", labelColor: vm.themeAccent) {
-                                AppPicker(
-                                    title: "",
-                                    selection: $vm.billingCycle,
-                                    options: BillingCycle.allCases.map {
-                                        (value: $0, label: $0.displayName)
-                                    },
-                                    tint: vm.themeAccent
-                                )
-                            }
-
-                            Divider()
-
-                            FormRow(label: "Start Date", labelColor: vm.themeAccent) {
-                                DatePicker(
-                                    "",
-                                    selection: $vm.startDate,
-                                    displayedComponents: .date
-                                )
-                                .labelsHidden()
-                                .typography(.bodyMedium)
-                                .tint(vm.themeAccent)
-                            }
-
-                            Divider()
-
-                            FormRow(label: "End Date", labelColor: vm.themeAccent) {
-                                HStack(spacing: 8) {
-                                    if let end = vm.endDate {
-                                        DatePicker(
-                                            "",
-                                            selection: Binding(
-                                                get: { end },
-                                                set: { vm.endDate = $0 }
-                                            ),
-                                            in: vm.startDate...,
-                                            displayedComponents: .date
-                                        )
-                                        .labelsHidden()
-                                        .typography(.bodyMedium)
-                                        .tint(vm.themeAccent)
-
-                                        Button {
-                                            vm.endDate = nil
-                                        } label: {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .foregroundStyle(.secondary)
-                                        }
-                                        .buttonStyle(.plain)
-                                    } else {
-                                        Button("Set end date") {
-                                            vm.endDate = Calendar.current.date(
-                                                byAdding: .month,
-                                                value: 1,
-                                                to: vm.startDate
-                                            ) ?? vm.startDate
-                                        }
-                                        .typography(.bodyMedium)
-                                        .foregroundStyle(vm.themeAccent)
-                                    }
-                                }
-                            }
-                        }
-
-                        GlassSection {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Button {
-                                    vm.showKeypad = true
-                                } label: {
-                                    FormRow(label: "Amount", labelColor: vm.themeAccent) {
-                                        Text(vm.price, format: .currency(code: vm.currencyCode))
-                                            .typography(.headlineSmall.weight(.regular))
-                                            .foregroundStyle(vm.priceError != nil ? .red : .primary)
-                                    }
-                                }
-                                .buttonStyle(.plain)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(vm.priceError != nil ? Color.red : Color.clear, lineWidth: 1)
-                                        .padding(-6)
-                                )
-                                if let err = vm.priceError {
-                                    Text(err)
-                                        .typography(.bodySmall)
-                                        .foregroundStyle(.red)
-                                }
-                            }
-                            .onChange(of: vm.price) { _, _ in vm.clearPriceErrorIfFixed() }
-                        }
-
-                        GlassSection {
-                            FormRow(
-                                label: "Category",
-                                icon: "tag.fill",
-                                iconColor: vm.themeAccent,
-                                labelColor: vm.themeAccent
-                            ) {
-                                AppPicker(
-                                    title: "",
-                                    selection: $vm.category,
-                                    options: vm.categoryOptions,
-                                    tint: vm.themeAccent
-                                )
-                            }
-
-                            Divider()
-
-                            FormRow(
-                                label: "Pay with",
-                                icon: "wallet.bifold.fill",
-                                iconColor: vm.themeAccent,
-                                labelColor: vm.themeAccent
-                            ) {
-                                AppPicker(
-                                    title: "",
-                                    selection: $vm.paymentMethod,
-                                    options: vm.paymentOptions,
-                                    tint: vm.themeAccent
-                                )
-                            }
-
-                            Divider()
-
-                            FormRow(
-                                label: "List",
-                                icon: "list.dash",
-                                iconColor: vm.themeAccent,
-                                labelColor: vm.themeAccent
-                            ) {
-                                AppPicker(
-                                    title: "",
-                                    selection: $vm.list,
-                                    options: vm.listOptions,
-                                    tint: vm.themeAccent
-                                )
-                            }
-                        }
-
-                        GlassSection {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Notes")
-                                    .typography(.titleMedium)
-                                    .foregroundStyle(vm.themeAccent)
-
-                                TextEditor(text: $vm.notes)
-                                    .frame(height: 100)
-                                    .scrollContentBackground(.hidden)
-                                    .typography(.bodyMedium)
-                            }
-                        }
+                        moreDetailsSection(vm: vm)
 
                         Spacer(minLength: 100)
                     }

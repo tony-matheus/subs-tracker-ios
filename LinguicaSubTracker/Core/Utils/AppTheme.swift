@@ -55,6 +55,18 @@ extension Color {
             ? UIColor(red: 0.078, green: 0.082, blue: 0.094, alpha: 1) // #141518 steel
             : UIColor(red: 0.769, green: 0.788, blue: 0.812, alpha: 1) // #C4C9CF silver edge
     })
+
+    /// Mascot crow body — a crow is legitimately dark, so this stays
+    /// near-black slate in both schemes; only nudged per mode for contrast
+    /// against the metal-grey backgrounds.
+    static let mascotBody = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.129, green: 0.137, blue: 0.165, alpha: 1) // #212329
+            : UIColor(red: 0.157, green: 0.169, blue: 0.204, alpha: 1) // #282B34
+    })
+
+    /// Mascot beak and legs — warm amber, scheme-independent.
+    static let mascotBeak = Color(red: 0.949, green: 0.678, blue: 0.212) // #F2AD36
 }
 
 /// Full-screen metal gradient background shared by all root screens.

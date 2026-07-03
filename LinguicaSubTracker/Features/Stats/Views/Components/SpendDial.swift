@@ -104,6 +104,9 @@ struct SpendDial: View {
             velocity = 0
             updateSelection(initial: true)
         }
+        .onChange(of: selectedID) { _, newID in
+            rotateToSegment(id: newID)
+        }
         .onAppear {
             updateSelection(initial: true)
             if hintRotationOnAppear {
@@ -235,6 +238,29 @@ struct SpendDial: View {
     private var selectedItem: DialItem? {
         guard let id = selectedID else { return nil }
         return items.first { $0.id == id }
+    }
+
+    /// Spin the dial so `id`'s segment centers under the top indicator.
+    /// No-op when that segment is already at the top (drag-driven changes),
+    /// so external selection (e.g. legend taps) never fights the gesture.
+    private func rotateToSegment(id: String?) {
+        guard let id, let idx = items.firstIndex(where: { $0.id == id }) else { return }
+        if let topIdx = segmentIndexAtTop(), items[topIdx].id == id { return }
+
+        stopDecay()
+        previousAngle = nil
+        velocity = 0
+
+        let mid = cumulative[idx] + fractions[idx] / 2
+        let raw = -mid * 360
+        // Shortest arc from the current rotation.
+        var delta = (raw - rotation).truncatingRemainder(dividingBy: 360)
+        if delta > 180 { delta -= 360 }
+        if delta < -180 { delta += 360 }
+
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            rotation += delta
+        }
     }
 
     private func updateSelection(initial: Bool) {

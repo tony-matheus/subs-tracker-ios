@@ -253,6 +253,42 @@ enum ExpenseService {
     }
 
 
+    /// Month total split by an arbitrary key. `nil` keys are excluded.
+    static func totalForMonthGrouped(
+        _ expenses: [Expense],
+        month: Date,
+        key: (Expense) -> String?
+    ) -> [String: Double] {
+        let calendar = Calendar.current
+
+        guard let range = calendar.range(of: .day, in: .month, for: month),
+              let firstOfMonth = calendar.date(
+                from: calendar.dateComponents([.year, .month], from: month)
+              )
+        else { return [:] }
+
+        var result: [String: Double] = [:]
+        for day in range {
+            guard let date = calendar.date(byAdding: .day, value: day - 1, to: firstOfMonth) else { continue }
+            for exp in self.expenses(for: date, expenses: expenses) {
+                guard let k = key(exp) else { continue }
+                result[k, default: 0] += exp.price
+            }
+        }
+        return result
+    }
+
+    /// Projected total for each month (1...12) of `year`, from billing cycles.
+    static func monthlyForecast(_ expenses: [Expense], year: Int) -> [Double] {
+        let calendar = Calendar.current
+        return (1...12).map { month in
+            guard let firstOfMonth = calendar.date(
+                from: DateComponents(year: year, month: month, day: 1)
+            ) else { return 0 }
+            return totalForMonth(expenses, month: firstOfMonth)
+        }
+    }
+
     static func totalForMonth(_ expenses: [Expense], month: Date) -> Double {
         let calendar = Calendar.current
 
