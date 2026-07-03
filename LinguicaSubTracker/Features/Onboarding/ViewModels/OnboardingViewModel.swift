@@ -16,7 +16,7 @@ enum OnboardingPage: Int, CaseIterable {
 @Observable
 @MainActor
 final class OnboardingViewModel {
-    var page: OnboardingPage = .welcome
+    var page: OnboardingPage = .calendar
     /// Set before `page` mutates so the liquid ripple anchors on the
     /// correct edge for forward vs. backward navigation.
     private(set) var movingForward = true

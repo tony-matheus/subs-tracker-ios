@@ -43,13 +43,13 @@ struct OnboardingView: View {
     @ViewBuilder
     private var pageContent: some View {
         switch viewModel.page {
-        case .welcome:
-            OnboardingFeaturePage(
-                title: "Meet your money crow",
-                subtitle: "Crows hoard shiny things. This one hoards your savings — tracking every expense so nothing slips away."
-            ) {
-                OnboardingMascotHero()
-            }
+        // case .welcome:
+        //     OnboardingFeaturePage(
+        //         title: "Meet your money crow",
+        //         subtitle: "Crows hoard shiny things. This one hoards your savings — tracking every expense so nothing slips away."
+        //     ) {
+        //         OnboardingMascotHero()
+        //     }
         case .calendar:
             OnboardingFeaturePage(
                 title: "Your month at a glance",
