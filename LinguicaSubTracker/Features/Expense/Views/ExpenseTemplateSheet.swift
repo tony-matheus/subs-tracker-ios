@@ -3,6 +3,7 @@ import SwiftUI
 struct ExpenseTemplateSheet: View {
     @State private var viewModel: ExpenseTemplateSheetViewModel
     @State private var isSearchFocused: Bool = false
+    @State private var showReceiptScan: Bool = false
     @Environment(\.dismiss) private var dismiss
 
     let store: AppStore
@@ -77,6 +78,13 @@ struct ExpenseTemplateSheet: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        showReceiptScan = true
+                    } label: {
+                        Image(systemName: "doc.text.viewfinder")
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
                         vm.createBlank()
                     } label: {
                         Image(systemName: "plus")
@@ -84,6 +92,14 @@ struct ExpenseTemplateSheet: View {
                     .buttonStyle(.glassProminent)
                     .tint(Color.green.gradient)
                 }
+            }
+            .sheet(isPresented: $showReceiptScan) {
+                ReceiptScanSheet(
+                    date: vm.date,
+                    store: store,
+                    settingsStore: settingsStore,
+                    onSaved: { dismiss() }
+                )
             }
             .navigationDestination(item: $vm.selectedService) { service in
                 ExpenseFormView(

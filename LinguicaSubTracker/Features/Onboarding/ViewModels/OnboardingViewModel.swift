@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 enum OnboardingPage: Int, CaseIterable {
-    case welcome
+    // case welcome // hidden with the mascot core elements
     case calendar
     case budget
     case organize
@@ -31,7 +31,7 @@ final class OnboardingViewModel {
         self.settingsStore = settingsStore
         #if DEBUG
         // Jump straight to a page for screenshot/UI testing:
-        // SIMCTL_CHILD_ONBOARDING_PAGE=<0-6> simctl launch …
+        // SIMCTL_CHILD_ONBOARDING_PAGE=<0-5> simctl launch …
         if let raw = ProcessInfo.processInfo.environment["ONBOARDING_PAGE"],
            let value = Int(raw),
            let override = OnboardingPage(rawValue: value) {

@@ -23,10 +23,25 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		186144BF2FF765CE006D5545 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		1814E5982F9AEE28004DF657 /* LinguicaSubTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LinguicaSubTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1814E5A52F9AEE29004DF657 /* LinguicaSubTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LinguicaSubTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1814E5AF2F9AEE29004DF657 /* LinguicaSubTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LinguicaSubTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		186144A82FF765CC006D5545 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		186144AA2FF765CC006D5545 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -91,6 +106,7 @@
 				1814E59A2F9AEE28004DF657 /* LinguicaSubTracker */,
 				1814E5A82F9AEE29004DF657 /* LinguicaSubTrackerTests */,
 				1814E5B22F9AEE29004DF657 /* LinguicaSubTrackerUITests */,
+				186144A72FF765CC006D5545 /* Frameworks */,
 				1814E5992F9AEE28004DF657 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -105,6 +121,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		186144A72FF765CC006D5545 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				186144A82FF765CC006D5545 /* WidgetKit.framework */,
+				186144AA2FF765CC006D5545 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -115,6 +140,7 @@
 				1814E5942F9AEE28004DF657 /* Sources */,
 				1814E5952F9AEE28004DF657 /* Frameworks */,
 				1814E5962F9AEE28004DF657 /* Resources */,
+				186144BF2FF765CE006D5545 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -183,7 +209,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2640;
+				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					1814E5972F9AEE28004DF657 = {
