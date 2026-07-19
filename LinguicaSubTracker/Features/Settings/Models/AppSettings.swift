@@ -10,6 +10,8 @@ struct AppSettings: Codable {
     var lists: [ExpenseList]
     // Optional so previously persisted settings decode unchanged (nil → .system).
     var themeMode: ThemeMode? = nil
+    // Optional so previously persisted settings decode unchanged (nil → .rounded).
+    var calendarStyle: CalendarStyle? = nil
 
     static let `default` = AppSettings(
         currencyCode: "CAD",

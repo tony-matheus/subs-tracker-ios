@@ -18,6 +18,11 @@ final class SettingsStore {
         set { settings.themeMode = newValue }
     }
 
+    var calendarStyle: CalendarStyle {
+        get { settings.calendarStyle ?? .rounded }
+        set { settings.calendarStyle = newValue }
+    }
+
 
     func addCategory(_ name: String, colorHex: String) {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
@@ -77,5 +82,11 @@ final class SettingsStore {
         guard !trimmed.isEmpty else { return }
         guard let idx = settings.lists.firstIndex(where: { $0.id == id }) else { return }
         settings.lists[idx].name = trimmed
+    }
+
+    /// Resets currency, categories, payment methods, lists, budget and theme
+    /// back to their defaults.
+    func resetToDefaults() {
+        settings = .default
     }
 }

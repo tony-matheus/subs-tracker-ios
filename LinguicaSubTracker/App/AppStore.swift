@@ -45,4 +45,13 @@ final class AppStore {
         StorageService.save(expenses)
         clearCustomization(id: expense.id)
     }
+
+    /// Wipes all expenses and per-expense logo customizations. Settings
+    /// (currency, categories, payment methods, lists, budget, theme) are untouched.
+    func deleteAllExpenses() {
+        expenses = []
+        logoCustomizations = [:]
+        StorageService.save(expenses)
+        StorageService.saveCustomizations(logoCustomizations)
+    }
 }

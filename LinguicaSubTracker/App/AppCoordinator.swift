@@ -23,6 +23,10 @@ final class AppCoordinator {
     var selectedExpense: Expense?
     var filter: ExpenseFilter = .all
 
+    /// Flipped by Settings' "Reset App" flow after wiping all data;
+    /// the app root observes this to bring back the onboarding flow.
+    var didRequestOnboardingReplay = false
+
     func filtered(_ expenses: [Expense]) -> [Expense] {
         expenses.filter { expense in
             if let list = filter.list, expense.list != list { return false }

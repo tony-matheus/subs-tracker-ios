@@ -9,9 +9,13 @@ struct MonthView: View {
     let expenseCounts: [Int]
     let expenses: [[Expense]]
 
+    var style: CalendarStyle = .rounded
     var height: CGFloat = 370
     var spacing: CGFloat = 4
     let onTap: (Date) -> Void
+    /// Compact-style quick actions, forwarded down to each cell.
+    var onEditExpense: ((Expense) -> Void)? = nil
+    var onDeleteExpense: ((Expense) -> Void)? = nil
 
     @State private var rippleOrigin: CGPoint = .zero
     @State private var rippleTrigger: Int = 0
@@ -50,12 +54,19 @@ struct MonthView: View {
                         status: status(for: value),
                         expenses: expenses[index]
                     ),
+                    style: style,
                     height: cellHeight,
                     onTap: { date in onTap(date) },
-                    onRipple: { center in
-                        rippleOrigin = center
-                        rippleTrigger += 1
-                    }
+                    // Dot styles skip the ripple (and the per-cell geometry
+                    // tracking that feeds its origin).
+                    onRipple: style.usesDots
+                        ? nil
+                        : { center in
+                            rippleOrigin = center
+                            rippleTrigger += 1
+                        },
+                    onEdit: onEditExpense,
+                    onDelete: onDeleteExpense
                 )
             }
         }

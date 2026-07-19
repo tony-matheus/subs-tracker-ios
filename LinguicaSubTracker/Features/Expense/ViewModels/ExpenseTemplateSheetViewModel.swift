@@ -7,6 +7,8 @@ final class ExpenseTemplateSheetViewModel {
     var selectedService: SubscriptionTemplate? = nil
     var searchText: String = ""
     var blankRoute: BlankRoute? = nil
+    /// Pushes the subscription catalog from the add-methods hub.
+    var showCatalog: Bool = false
 
     let date: Date
     let services: [SubscriptionTemplate] = SubscriptionTemplate.mock

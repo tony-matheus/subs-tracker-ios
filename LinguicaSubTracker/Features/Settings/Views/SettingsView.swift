@@ -3,12 +3,18 @@ import SwiftUI
 struct SettingsView: View {
     @State private var viewModel: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var showDeleteDataAlert = false
+    @State private var showResetAppAlert = false
+    // Gates the footer heart's repeating bounce so it only animates while
+    // actually scrolled into view (it lives at the bottom of the scroll).
+    @State private var isFooterVisible = false
 
-    init(settingsStore: SettingsStore, store: AppStore) {
+    init(settingsStore: SettingsStore, store: AppStore, coordinator: AppCoordinator) {
         _viewModel = State(
             initialValue: SettingsViewModel(
                 settingsStore: settingsStore,
-                store: store
+                store: store,
+                coordinator: coordinator
             )
         )
     }
@@ -28,13 +34,16 @@ struct SettingsView: View {
                         )
                     }
                     appearancePreferences(vm: vm)
+                    aboutSection(vm: vm)
+                    dangerZone(vm: vm)
                     VStack(spacing: 8) {
                         HStack {
                             Text("Made with")
                             Image(systemName: "suit.heart.fill")
                                 .symbolEffect(
                                     .bounce.up.byLayer,
-                                    options: .repeat(.periodic(delay: 0.3))
+                                    options: .repeat(.periodic(delay: 0.3)),
+                                    isActive: isFooterVisible
                                 )
                                 .foregroundStyle(.red)
                             Text("by")
@@ -51,6 +60,9 @@ struct SettingsView: View {
                                 .foregroundStyle(Color.secondary)
                         }
                     }
+                    .onScrollVisibilityChange(threshold: 0.2) { visible in
+                        isFooterVisible = visible
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -59,6 +71,18 @@ struct SettingsView: View {
             .appBackground()
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                #if DEBUG
+                // Headless-testing hook (same pattern as ONBOARDING_PAGE):
+                // SIMCTL_CHILD_DEBUG_OPEN_SETTINGS_PAGE=privacy|datainfo|calendarstyle
+                switch ProcessInfo.processInfo.environment["DEBUG_OPEN_SETTINGS_PAGE"] {
+                case "privacy": viewModel.showPrivacy = true
+                case "datainfo": viewModel.showDataInfo = true
+                case "calendarstyle": viewModel.showCalendarStyle = true
+                default: break
+                }
+                #endif
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -90,6 +114,38 @@ struct SettingsView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $vm.showCalendarStyle) {
+            CalendarStyleSheet(settingsStore: vm.settingsStore)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $vm.showPrivacy) {
+            PrivacySheet()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $vm.showDataInfo) {
+            DataInfoSheet()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+        .alert("Delete All Data?", isPresented: $showDeleteDataAlert) {
+            Button("Delete", role: .destructive) {
+                viewModel.deleteAllExpenses()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently deletes all \(viewModel.expensesCount) expenses and their logos. Categories, payment methods, lists, budget and appearance stay as configured. This can't be undone.")
+        }
+        .alert("Reset App Completely?", isPresented: $showResetAppAlert) {
+            Button("Reset", role: .destructive) {
+                viewModel.resetAppCompletely()
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently deletes every expense, category, payment method, list and preference, then restarts onboarding as if freshly installed. This can't be undone.")
+        }
     }
 
     @ViewBuilder
@@ -106,8 +162,35 @@ struct SettingsView: View {
                 }
 
                 AppearanceSelector(selection: vm.themeModeBinding())
+
+                Divider()
+
+                detailRow(
+                    icon: "calendar",
+                    title: "Calendar Style",
+                    detail: vm.calendarStyleName
+                ) { vm.showCalendarStyle = true }
             }
             .padding(.vertical, 8)
+        }
+    }
+
+    @ViewBuilder
+    private func aboutSection(vm: SettingsViewModel) -> some View {
+        GlassSection {
+            detailRow(
+                icon: "hand.raised",
+                title: "Privacy",
+                detail: ""
+            ) { vm.showPrivacy = true }
+
+            Divider()
+
+            detailRow(
+                icon: "internaldrive",
+                title: "How My Data Is Saved",
+                detail: ""
+            ) { vm.showDataInfo = true }
         }
     }
 
@@ -220,10 +303,57 @@ struct SettingsView: View {
         }
     }
 
+    @ViewBuilder
+    private func dangerZone(vm: SettingsViewModel) -> some View {
+        GlassSection {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 10) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .iconStyle(size: 16, weight: .medium, color: .red)
+                        .frame(width: 24)
+                    Text("Danger Zone")
+                        .typography(.bodyLarge)
+                        .foregroundStyle(.primary)
+                }
+
+                AppButton(
+                    title: "Delete All Data",
+                    icon: "trash",
+                    style: .destructive,
+                    appearance: .glassy,
+                    size: .medium,
+                    expands: true,
+                    action: { showDeleteDataAlert = true }
+                )
+
+                AppButton(
+                    title: "Reset App Completely",
+                    icon: "arrow.counterclockwise",
+                    style: .destructive,
+                    appearance: .glassy,
+                    size: .medium,
+                    expands: true,
+                    action: { showResetAppAlert = true }
+                )
+            }
+            .padding(.vertical, 8)
+        }
+    }
+
     private func filterRow(
         icon: String,
         title: String,
         count: Int,
+        action: @escaping () -> Void
+    ) -> some View {
+        detailRow(icon: icon, title: title, detail: "\(count)", action: action)
+    }
+
+    /// Disclosure row: icon + title, optional detail text, chevron.
+    private func detailRow(
+        icon: String,
+        title: String,
+        detail: String,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -235,9 +365,11 @@ struct SettingsView: View {
                     .typography(.bodyLarge)
                     .foregroundStyle(.primary)
                 Spacer()
-                Text("\(count)")
-                    .typography(.bodyMedium)
-                    .foregroundStyle(.secondary)
+                if !detail.isEmpty {
+                    Text(detail)
+                        .typography(.bodyMedium)
+                        .foregroundStyle(.secondary)
+                }
                 Image(systemName: "chevron.right")
                     .iconStyle(size: 12, weight: .semibold, color: .secondary)
             }

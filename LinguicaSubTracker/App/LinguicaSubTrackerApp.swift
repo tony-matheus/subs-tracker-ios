@@ -31,6 +31,11 @@ struct SatoruApp: App {
                     .environment(\.font, Theme.font(size: 16, weight: .regular))
                     .preferredColorScheme(settingsStore.themeMode.colorScheme)
                 }
+                .onChange(of: coordinator.didRequestOnboardingReplay) { _, requested in
+                    guard requested else { return }
+                    coordinator.didRequestOnboardingReplay = false
+                    showOnboarding = true
+                }
         }
     }
 }

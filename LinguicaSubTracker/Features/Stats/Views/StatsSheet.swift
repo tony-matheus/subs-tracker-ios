@@ -3,6 +3,7 @@ import SwiftUI
 struct StatsSheet: View {
     @State private var viewModel: StatsViewModel
     @State private var viewMode: ViewMode = .breakdown
+    @Environment(\.dismiss) private var dismiss
 
     enum ViewMode: Hashable {
         case breakdown, trend
@@ -36,7 +37,27 @@ struct StatsSheet: View {
     var body: some View {
         @Bindable var vm = viewModel
 
-        ScrollView {
+        NavigationStack {
+            statsContent(vm: vm)
+                .appBackground()
+                .navigationTitle("Stats")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                        }
+                    }
+                }
+        }
+    }
+
+    private func statsContent(vm: StatsViewModel) -> some View {
+        @Bindable var vm = vm
+
+        return ScrollView {
             VStack(spacing: 16) {
                 HStack {
                     YearMenu(year: $vm.year, options: viewModel.yearOptions)

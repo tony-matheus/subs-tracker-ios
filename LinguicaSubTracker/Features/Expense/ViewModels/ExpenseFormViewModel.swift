@@ -127,8 +127,8 @@ final class ExpenseFormViewModel {
 
     @discardableResult
     func validate() -> Bool {
-        nameError = name.trimmingCharacters(in: .whitespaces).isEmpty ? "Name is required" : nil
-        priceError = price <= 0 ? "Amount must be greater than zero" : nil
+        nameError = name.trimmingCharacters(in: .whitespaces).isEmpty ? "Give it a name first" : nil
+        priceError = price <= 0 ? "Enter an amount above zero" : nil
         showErrors = nameError != nil || priceError != nil
         return !showErrors
     }
@@ -146,11 +146,16 @@ final class ExpenseFormViewModel {
     }
 
     var primaryButtonTitle: String {
-        isEditMode ? "Save Changes" : "Add Expense"
+        if isEditMode { return "Save Changes" }
+        return type == .subscription ? "Add Subscription" : "Add Expense"
     }
 
     var deleteAlertMessage: String {
-        "\(name) will be permanently removed."
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else {
+            return "This expense will be permanently removed."
+        }
+        return "\(trimmed) will be permanently removed."
     }
 
     var categoryOptions: [(value: String, label: String)] {

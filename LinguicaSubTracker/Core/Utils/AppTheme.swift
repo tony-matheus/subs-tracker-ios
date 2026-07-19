@@ -8,6 +8,15 @@ enum ThemeMode: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// Lenient decoding: an unrecognized stored rawValue falls back to
+    /// `.system` instead of throwing — a throw would fail the whole
+    /// AppSettings decode and silently wipe every user setting via
+    /// StorageService's `.default` fallback.
+    init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = ThemeMode(rawValue: raw) ?? .system
+    }
+
     var label: String {
         switch self {
         case .system: "System"

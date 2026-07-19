@@ -46,7 +46,10 @@ struct HomeView: View {
                 CalendarView(
                     store: vm.store,
                     coordinator: coordinator,
-                    viewModel: vm.calendarViewModel
+                    viewModel: vm.calendarViewModel,
+                    // Read here (not inside CalendarView) so observation
+                    // re-renders the calendar live when the setting changes.
+                    calendarStyle: vm.settingsStore.calendarStyle
                 )
                 .padding(.bottom, 16)
             }
@@ -166,19 +169,14 @@ struct HomeView: View {
                 )
             }
             .sheet(isPresented: $vm.showSettings) {
-                SettingsView(settingsStore: vm.settingsStore, store: vm.store)
+                SettingsView(settingsStore: vm.settingsStore, store: vm.store, coordinator: coordinator)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $vm.showStats) {
                 StatsSheet(store: vm.store, settingsStore: vm.settingsStore)
-                    .presentationDetents([.height(550)])
+                    .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
-                    .presentationBackground {
-                        Rectangle()
-                            .fill(.ultraThickMaterial)
-                            .opacity(0.8)
-                    }
             }
             .fullScreenCover(isPresented: $vm.showSearch) {
                 SearchView(
@@ -218,6 +216,18 @@ struct HomeView: View {
                         coordinator: coordinator
                     )
                 }
+            }
+            .onAppear {
+                #if DEBUG
+                // Headless-testing hook (same pattern as ONBOARDING_PAGE):
+                // SIMCTL_CHILD_DEBUG_OPEN_SHEET=stats|settings|add
+                switch ProcessInfo.processInfo.environment["DEBUG_OPEN_SHEET"] {
+                case "stats": vm.showStats = true
+                case "settings": vm.showSettings = true
+                case "add": vm.showAddSheet = true
+                default: break
+                }
+                #endif
             }
         }
     }

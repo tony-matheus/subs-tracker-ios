@@ -1,8 +1,10 @@
 import SwiftUI
 
+/// Entry point for adding an expense: a 2-column hub of add methods
+/// (scan / custom / subscription catalog / import), each drilling into its
+/// own flow on this sheet's navigation stack.
 struct ExpenseTemplateSheet: View {
     @State private var viewModel: ExpenseTemplateSheetViewModel
-    @State private var isSearchFocused: Bool = false
     @State private var showReceiptScan: Bool = false
     @Environment(\.dismiss) private var dismiss
 
@@ -22,51 +24,39 @@ struct ExpenseTemplateSheet: View {
 
         NavigationStack {
             ScrollView {
-                if vm.showEmptyCTA {
-                    emptyCTA(vm: vm)
-                        .padding()
-                } else {
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible()), GridItem(.flexible()),
-                        ],
-                        spacing: 8
-                    ) {
-                        ForEach(vm.filteredServices) { service in
-                            Button {
-                                vm.selectTemplate(service)
-                            } label: {
-                                VStack(spacing: 8) {
-                                    LogoCircle(
-                                        size: 48,
-                                        customization:
-                                            service.makeCustomization(
-                                                id: service.id
-                                            ),
-                                        logoName: service.logo,
-                                        name: service.name
-                                    )
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 12),
+                        GridItem(.flexible(), spacing: 12),
+                    ],
+                    spacing: 12
+                ) {
+                    AddOptionCard(
+                        icon: "doc.text.viewfinder",
+                        title: "Scan with Camera"
+                    ) { showReceiptScan = true }
 
-                                    Text(service.name)
-                                        .typography(.bodyMedium)
-                                        .foregroundStyle(.primary)
-                                }
-                                .frame(maxWidth: .infinity, minHeight: 120)
-                                .background(Color.gray.opacity(0.15))
-                                .cornerRadius(20)
-                            }
-                        }
-                    }
-                    .padding()
+                    AddOptionCard(
+                        icon: "square.and.pencil",
+                        title: "Add Custom Expense"
+                    ) { vm.createBlank() }
+
+                    AddOptionCard(
+                        icon: "square.grid.2x2",
+                        title: "Add Subscriptions"
+                    ) { vm.showCatalog = true }
+
+                    AddOptionCard(
+                        icon: "square.and.arrow.down",
+                        title: "Import from Sheet, Notion",
+                        badge: "Coming soon",
+                        isEnabled: false
+                    ) {}
                 }
+                .padding()
             }
-            .appSearchable(
-                text: $vm.searchText,
-                isPresented: $isSearchFocused,
-                prompt: "Search"
-            )
             .appBackground()
-            .navigationTitle("Popular subscriptions")
+            .navigationTitle("Add Expense")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -76,22 +66,6 @@ struct ExpenseTemplateSheet: View {
                         Image(systemName: "xmark")
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showReceiptScan = true
-                    } label: {
-                        Image(systemName: "doc.text.viewfinder")
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        vm.createBlank()
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .buttonStyle(.glassProminent)
-                    .tint(Color.green.gradient)
-                }
             }
             .sheet(isPresented: $showReceiptScan) {
                 ReceiptScanSheet(
@@ -100,6 +74,9 @@ struct ExpenseTemplateSheet: View {
                     settingsStore: settingsStore,
                     onSaved: { dismiss() }
                 )
+            }
+            .navigationDestination(isPresented: $vm.showCatalog) {
+                SubscriptionCatalogView(viewModel: viewModel)
             }
             .navigationDestination(item: $vm.selectedService) { service in
                 ExpenseFormView(
@@ -120,36 +97,44 @@ struct ExpenseTemplateSheet: View {
         }
         .presentationDragIndicator(.visible)
     }
+}
 
-    @ViewBuilder
-    private func emptyCTA(vm: ExpenseTemplateSheetViewModel) -> some View {
-        Button {
-            vm.createBlankWithSearch()
-        } label: {
-            VStack(spacing: 16) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 56, weight: .regular))
-                    .foregroundStyle(.primary)
+/// Large tappable hub card: icon + title, optional "Coming soon" badge.
+private struct AddOptionCard: View {
+    let icon: String
+    let title: String
+    var badge: String? = nil
+    var isEnabled: Bool = true
+    let action: () -> Void
 
-                VStack(spacing: 4) {
-                    Text("Create \"\(vm.searchText)\"")
-                        .typography(.titleLarge.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                    Text("Build a custom expense")
-                        .typography(.bodyMedium)
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundStyle(isEnabled ? .primary : .secondary)
+
+                Text(title)
+                    .typography(.bodyMedium)
+                    .foregroundStyle(isEnabled ? .primary : .secondary)
+                    .multilineTextAlignment(.center)
+
+                if let badge {
+                    Text(badge)
+                        .typography(.labelMedium)
                         .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.primary.opacity(0.08)))
                 }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 40)
-            .padding(.horizontal, 24)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.primary.opacity(0.08))
-            )
+            .padding(12)
+            .frame(maxWidth: .infinity, minHeight: 140)
+            .background(Color.gray.opacity(0.15))
+            .cornerRadius(20)
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
     }
 }
 

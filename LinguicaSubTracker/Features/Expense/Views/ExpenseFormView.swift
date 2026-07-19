@@ -241,7 +241,7 @@ struct ExpenseFormView: View {
                                 }
                                 .buttonStyle(.plain)
                             } else {
-                                Button("Set end date") {
+                                Button("Set End Date") {
                                     vm.endDate = Calendar.current.date(
                                         byAdding: .month,
                                         value: 1,
@@ -361,7 +361,7 @@ struct ExpenseFormView: View {
                         Button {
                             vm.dismissNativeKeyboard()
                         } label: {
-                            Text("Close")
+                            Text("Done")
                                 .typography(.bodyMedium.weight(.semibold))
                                 .foregroundStyle(.foreground)
                                 .padding(.horizontal, 18)
