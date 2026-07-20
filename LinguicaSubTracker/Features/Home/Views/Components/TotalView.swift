@@ -2,6 +2,9 @@ import SwiftUI
 
 struct TotalView: View {
     @State private var viewModel: TotalViewModel
+    /// Compact style: tapping the budget progress swaps the big total for a
+    /// small one plus a per-category month breakdown.
+    @State private var showBreakdown = false
     var action: () -> Void
 
     init(
@@ -45,32 +48,144 @@ struct TotalView: View {
                 .allowsHitTesting(false)
             }
 
-            Button(action: action) {
-                VStack(spacing: 8) {
-                    Text(
-                        viewModel.currentMonth.formatted(
-                            .dateTime.month().year()
+            VStack(spacing: 10) {
+                Button(action: action) {
+                    VStack(spacing: 8) {
+                        Text(
+                            viewModel.currentMonth.formatted(
+                                .dateTime.month().year()
+                            )
                         )
-                    )
-                    .typography(.titleLarge)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .id(viewModel.monthKey)
-                    .transition(.monthRipple)
-                    .animation(
-                        .spring(response: 0.42, dampingFraction: 0.82),
-                        value: viewModel.monthKey
-                    )
+                        .typography(.titleLarge)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .id(viewModel.monthKey)
+                        .transition(.monthRipple)
+                        .animation(
+                            .spring(response: 0.42, dampingFraction: 0.82),
+                            value: viewModel.monthKey
+                        )
 
-                    MoneyDisplay(
-                        text: viewModel.formattedTotal,
-                        tint: viewModel.budgetTint
-                    )
+                        if isBreakdownVisible {
+                            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                MoneyDisplay(
+                                    text: viewModel.formattedTotal,
+                                    size: 30,
+                                    tint: viewModel.budgetTint
+                                )
+                                if let budget = viewModel.formattedBudget {
+                                    Text("of \(budget)")
+                                        .typography(.bodyMedium)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        } else {
+                            MoneyDisplay(
+                                text: viewModel.formattedTotal,
+                                tint: viewModel.budgetTint
+                            )
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+                .rippleOnTap()
+
+                if viewModel.isCompactStyle || debugForceBreakdown,
+                   let progress = viewModel.budgetProgress {
+                    Button {
+                        withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) {
+                            showBreakdown.toggle()
+                        }
+                    } label: {
+                        budgetProgressBar(progress)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Budget progress")
+                    .accessibilityHint("Shows this month's spending by category")
+                }
+
+                if isBreakdownVisible {
+                    breakdown
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            .buttonStyle(.plain)
-            .rippleOnTap()
+            // TEMP-DEBUG: screenshot hook
+            .onAppear {
+                if debugForceBreakdown { showBreakdown = true }
+            }
         }
+    }
+
+    private var isBreakdownVisible: Bool {
+        showBreakdown && (viewModel.isCompactStyle || debugForceBreakdown)
+    }
+
+    // TEMP-DEBUG: screenshot hook
+    private var debugForceBreakdown: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.environment["SHOW_BREAKDOWN"] != nil
+        #else
+        false
+        #endif
+    }
+
+    private func budgetProgressBar(_ progress: Double) -> some View {
+        ZStack(alignment: .leading) {
+            Capsule()
+                .fill(Color.primary.opacity(0.12))
+            Capsule()
+                .fill(viewModel.budgetTint.gradient)
+                .frame(width: max(8, 180 * progress))
+        }
+        .frame(width: 180, height: 8)
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: progress)
+    }
+
+    private var breakdown: some View {
+        let spends = viewModel.categorySpends
+        let totalSpent = spends.reduce(0) { $0 + $1.amount }
+
+        return VStack(spacing: 10) {
+            if totalSpent > 0 {
+                // Stacked share bar: each category's slice of the month.
+                GeometryReader { geo in
+                    let spacing: CGFloat = 2
+                    let available = geo.size.width
+                        - spacing * CGFloat(max(0, spends.count - 1))
+                    HStack(spacing: spacing) {
+                        ForEach(spends) { spend in
+                            Capsule()
+                                .fill(spend.color)
+                                .frame(
+                                    width: max(3, available * spend.amount / totalSpent)
+                                )
+                        }
+                    }
+                }
+                .frame(height: 8)
+
+                ForEach(Array(spends.prefix(5))) { spend in
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(spend.color)
+                            .frame(width: 8, height: 8)
+                        Text(spend.name)
+                            .typography(.bodyMedium)
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Text(viewModel.formatted(spend.amount))
+                            .typography(.bodyMedium.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } else {
+                Text("No spending this month yet")
+                    .typography(.bodySmall)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: 320)
+        .padding(.horizontal, 32)
     }
 }
 

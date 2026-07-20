@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Observation
+import UIKit
 
 /// Pure data layer: expenses + logo customizations + CRUD bridge to `StorageService`.
 /// UI/navigation state lives on `AppCoordinator`; feature-scoped state lives on its ViewModel.
@@ -11,6 +12,34 @@ final class AppStore {
     var logoCustomizations: [UUID: LogoCustomization] = [:]
 
     init() {
+        expenses = StorageService.load()
+        logoCustomizations = StorageService.loadCustomizations()
+
+        // Data can change outside the UI (Siri/Shortcuts intent, iCloud
+        // sync). Re-read on foreground so a later in-app save doesn't
+        // clobber those writes with a stale in-memory copy.
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.reloadFromDisk() }
+        }
+        // iCloud KVS observer — disabled until the dev account exists (see
+        // StorageService's iCloud section). Uncomment when re-enabling sync.
+        // NotificationCenter.default.addObserver(
+        //     forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+        //     object: NSUbiquitousKeyValueStore.default,
+        //     queue: .main
+        // ) { [weak self] _ in
+        //     Task { @MainActor in
+        //         StorageService.importFromICloud()
+        //         self?.reloadFromDisk()
+        //     }
+        // }
+    }
+
+    func reloadFromDisk() {
         expenses = StorageService.load()
         logoCustomizations = StorageService.loadCustomizations()
     }

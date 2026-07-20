@@ -220,7 +220,7 @@ struct WaveformLine: View {
                     )
                     canvas.fill(
                         Path(roundedRect: rect, cornerRadius: barWidth / 2),
-                        with: .color(.purple.opacity(0.35 + magnitude * 0.65))
+                        with: .color(Color.appPurple.opacity(0.35 + magnitude * 0.65))
                     )
                 }
             }

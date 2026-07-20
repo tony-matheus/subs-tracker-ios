@@ -50,6 +50,9 @@ extension Color {
     /// and primary action uses this; purple is reserved for voice recording.
     static let appAccent = Color(red: 0.114, green: 0.725, blue: 0.329) // #1DB954
 
+    // Brand purple lives in the Asset Catalog ("AppPurple", #9D00FF) — Xcode
+    // generates `Color.appPurple` from it. Reserved for voice-recording UI.
+
     /// Darker companion for gradients built on `appAccent`.
     static let appAccentDeep = Color(red: 0.043, green: 0.373, blue: 0.176) // #0B5F2D
 

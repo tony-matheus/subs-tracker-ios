@@ -5,6 +5,8 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteDataAlert = false
     @State private var showResetAppAlert = false
+    /// Same key StorageService.iCloudSyncEnabled reads.
+    @AppStorage("icloud_sync_enabled") private var iCloudSyncEnabled = false
     // Gates the footer heart's repeating bounce so it only animates while
     // actually scrolled into view (it lives at the bottom of the scroll).
     @State private var isFooterVisible = false
@@ -187,6 +189,34 @@ struct SettingsView: View {
     @ViewBuilder
     private func aboutSection(vm: SettingsViewModel) -> some View {
         GlassSection {
+            // iCloud sync toggle — hidden until the dev account exists (the
+            // ubiquity entitlement fails signing on a personal team).
+            // Uncomment together with StorageService's iCloud section.
+            // VStack(alignment: .leading, spacing: 4) {
+            //     Toggle(isOn: $iCloudSyncEnabled) {
+            //         HStack(spacing: 10) {
+            //             Image(systemName: "icloud")
+            //                 .iconStyle(size: 16, weight: .medium, color: .secondary)
+            //                 .frame(width: 24)
+            //             VStack(alignment: .leading, spacing: 2) {
+            //                 Text("Sync with iCloud")
+            //                     .typography(.bodyLarge)
+            //                     .foregroundStyle(.primary)
+            //                 Text("Keep expenses and settings on all your devices")
+            //                     .typography(.bodySmall)
+            //                     .foregroundStyle(.secondary)
+            //             }
+            //         }
+            //     }
+            //     .toggleStyle(SwitchToggleStyle(tint: .green))
+            //     .onChange(of: iCloudSyncEnabled) { _, enabled in
+            //         if enabled { StorageService.pushAllToICloud() }
+            //     }
+            // }
+            // .padding(.vertical, 8)
+            //
+            // Divider()
+
             detailRow(
                 icon: "hand.raised",
                 title: "Privacy",

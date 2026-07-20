@@ -35,7 +35,9 @@ struct HomeActionButton: View {
         ZStack {
             HStack(spacing: 8) {
                 Image(systemName: isOnCurrentMonth ? "plus" : "arrow.uturn.left")
-                    .foregroundStyle(Color.appAccent.gradient)
+                    .foregroundStyle(
+                        (isOnCurrentMonth ? Color.appAccent : Color.appPurple).gradient
+                    )
                 Text(isOnCurrentMonth ? "Add expense" : "Back to current")
             }
             .font(.system(size: 16, weight: .semibold))
@@ -56,9 +58,9 @@ struct HomeActionButton: View {
     private var orb: some View {
         ZStack {
             Circle()
-                .fill(Color.purple.gradient)
+                .fill(Color.appPurple.gradient)
                 .frame(width: 64, height: 64)
-                .shadow(color: Color.purple.opacity(0.55), radius: 18, x: 0, y: 4)
+                .shadow(color: Color.appPurple.opacity(0.55), radius: 18, x: 0, y: 4)
 
             if isProcessing {
                 ProgressView()

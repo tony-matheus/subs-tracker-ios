@@ -71,7 +71,7 @@ struct HomeView: View {
             if voiceViewModel.isRecording {
                 // Glowing ring, breathing with the mic level.
                 Circle()
-                    .stroke(Color.purple.opacity(0.7), lineWidth: 3)
+                    .stroke(Color.appPurple.opacity(0.7), lineWidth: 3)
                     .frame(width: 82, height: 82)
                     .blur(radius: 5)
                     .scaleEffect(1 + CGFloat(voiceViewModel.level) * 0.14)
