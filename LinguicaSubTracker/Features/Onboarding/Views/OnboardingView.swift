@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// First-launch tour: four feature highlights followed by a quick multi-add
+/// First-launch tour: five feature highlights followed by a quick multi-add
 /// form. Pages swap with the liquid ripple transition (a paging TabView would
 /// fight the drag-driven ripple shader, so navigation is button-driven).
 struct OnboardingView: View {
@@ -52,31 +52,38 @@ struct OnboardingView: View {
         //     }
         case .calendar:
             OnboardingFeaturePage(
-                title: "Your month at a glance",
-                subtitle: "Every expense lands on its renewal day. Drag a finger across the calendar — go on, make waves."
+                title: "Every dollar has a date",
+                subtitle: "Linguica tracks your expenses and subscriptions, each landing on its renewal day. Drag a finger across the calendar — go on, make waves."
             ) {
                 OnboardingCalendarHero()
             }
         case .budget:
             OnboardingFeaturePage(
-                title: "Set any budget",
-                subtitle: "Pick a monthly limit and watch your spending fill the bar — green to red as it climbs."
+                title: "Draw the line",
+                subtitle: "Pick a monthly limit and watch your spending fill the bar — green while you're cruising, red as it climbs."
             ) {
                 OnboardingBudgetHero()
             }
         case .organize:
             OnboardingFeaturePage(
-                title: "Organize your way",
-                subtitle: "Group spending with lists, categories and payment methods — all customizable."
+                title: "Sort it your way",
+                subtitle: "Lists, categories, payment methods — group your spending however your brain files things. All of it customizable."
             ) {
                 OnboardingOrganizeHero()
             }
         case .stats:
             OnboardingFeaturePage(
                 title: "See where it all goes",
-                subtitle: "Charts and forecasts turn your expenses into a clear monthly picture."
+                subtitle: "Charts and forecasts turn a month of spending into one clear picture — what's gone, and what's coming."
             ) {
                 OnboardingStatsHero()
+            }
+        case .voice:
+            OnboardingFeaturePage(
+                title: "Just say it",
+                subtitle: "Hold the + button and rattle off expenses in one breath. Linguica listens, transcribes, and files each one for you."
+            ) {
+                OnboardingVoiceHero()
             }
         case .choosePath:
             OnboardingChoosePage(viewModel: viewModel, onFinish: onFinish)

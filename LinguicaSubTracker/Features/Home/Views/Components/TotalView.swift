@@ -90,8 +90,7 @@ struct TotalView: View {
                 .buttonStyle(.plain)
                 .rippleOnTap()
 
-                if viewModel.isCompactStyle || debugForceBreakdown,
-                   let progress = viewModel.budgetProgress {
+                if viewModel.isCompactStyle, let progress = viewModel.budgetProgress {
                     Button {
                         withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) {
                             showBreakdown.toggle()
@@ -109,24 +108,11 @@ struct TotalView: View {
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            // TEMP-DEBUG: screenshot hook
-            .onAppear {
-                if debugForceBreakdown { showBreakdown = true }
-            }
         }
     }
 
     private var isBreakdownVisible: Bool {
-        showBreakdown && (viewModel.isCompactStyle || debugForceBreakdown)
-    }
-
-    // TEMP-DEBUG: screenshot hook
-    private var debugForceBreakdown: Bool {
-        #if DEBUG
-        ProcessInfo.processInfo.environment["SHOW_BREAKDOWN"] != nil
-        #else
-        false
-        #endif
+        showBreakdown && viewModel.isCompactStyle
     }
 
     private func budgetProgressBar(_ progress: Double) -> some View {

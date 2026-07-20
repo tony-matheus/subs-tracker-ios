@@ -22,7 +22,7 @@ struct OnboardingChoosePage: View {
                     .typography(.displaySmall)
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
-                Text("Tap an expense to tweak its price, schedule or logo. Add a few now, or jump straight in and add them whenever you like.")
+                Text("Tap an expense to tweak its price, schedule, or logo. Add a few now, or jump straight in and add them as life happens.")
                     .typography(.bodyLarge)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
