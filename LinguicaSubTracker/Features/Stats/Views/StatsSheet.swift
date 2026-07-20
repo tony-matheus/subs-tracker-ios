@@ -54,33 +54,61 @@ struct StatsSheet: View {
         }
     }
 
+    /// Future home-screen chart widget — visible but not yet actionable.
+    private var createWidgetCard: some View {
+        GlassSection {
+            HStack(spacing: 12) {
+                Image(systemName: "chart.bar.doc.horizontal")
+                    .iconStyle(size: 18, weight: .medium, color: .secondary)
+                    .frame(width: 28)
+
+                Text("Create Chart Widget")
+                    .typography(.bodyLarge)
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Text("Coming soon")
+                    .typography(.labelMedium)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(Color.primary.opacity(0.08)))
+            }
+        }
+    }
+
     private func statsContent(vm: StatsViewModel) -> some View {
         @Bindable var vm = vm
 
         return ScrollView {
-            VStack(spacing: 16) {
-                HStack {
-                    YearMenu(year: $vm.year, options: viewModel.yearOptions)
-                    Spacer()
-                    DimensionMenu(dimension: $vm.dimension)
+            VStack(spacing: 20) {
+                // Controls cluster: filters + mode + count read as one unit.
+                VStack(spacing: 10) {
+                    HStack {
+                        YearMenu(year: $vm.year, options: viewModel.yearOptions)
+                        Spacer()
+                        DimensionMenu(dimension: $vm.dimension)
+                    }
+
+                    CustomSegmentedPicker(
+                        selection: $viewMode,
+                        segments: [
+                            .init(value: .breakdown,
+                                  leading: { Image(systemName: "chart.pie.fill").iconStyle(size: 14, weight: .semibold, color: .secondary) },
+                                  center: { Text("Breakdown").typography(.bodyMedium.weight(.semibold)) }),
+                            .init(value: .trend,
+                                  leading: { Image(systemName: "chart.bar.fill").iconStyle(size: 14, weight: .semibold, color: .secondary) },
+                                  center: { Text("Trend").typography(.bodyMedium.weight(.semibold)) }),
+                        ]
+                    )
+
+                    Text(viewModel.activeCountLabel)
+                        .typography(.bodyMedium)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 4)
                 }
-
-                CustomSegmentedPicker(
-                    selection: $viewMode,
-                    segments: [
-                        .init(value: .breakdown,
-                              leading: { Image(systemName: "chart.pie.fill").iconStyle(size: 14, weight: .semibold, color: .secondary) },
-                              center: { Text("Breakdown").typography(.bodyMedium.weight(.semibold)) }),
-                        .init(value: .trend,
-                              leading: { Image(systemName: "chart.bar.fill").iconStyle(size: 14, weight: .semibold, color: .secondary) },
-                              center: { Text("Trend").typography(.bodyMedium.weight(.semibold)) }),
-                    ]
-                )
-
-                Text(viewModel.activeCountLabel)
-                    .typography(.bodyMedium)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 switch viewMode {
                 case .breakdown:
@@ -157,8 +185,12 @@ struct StatsSheet: View {
                         value: viewModel.averageMonthlyLabel
                     )
                 }
+
+                createWidgetCard
             }
-            .padding(20)
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 28)
         }
         .animation(.spring(response: 0.45, dampingFraction: 0.85), value: viewMode)
         .animation(.spring(response: 0.45, dampingFraction: 0.85), value: vm.scale)

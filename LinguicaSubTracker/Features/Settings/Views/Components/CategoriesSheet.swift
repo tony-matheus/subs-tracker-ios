@@ -75,7 +75,7 @@ struct CategoriesSheet: View {
                         ? "checkmark.circle.fill" : "circle"
                 )
                 .foregroundStyle(
-                    vm.isSelectable(cat) ? Color.purple : Color.secondary.opacity(0.4)
+                    vm.isSelectable(cat) ? Color.appAccent : Color.secondary.opacity(0.4)
                 )
             }
             Text(cat.name)

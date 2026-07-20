@@ -44,8 +44,15 @@ enum ThemeMode: String, Codable, CaseIterable, Identifiable {
 }
 
 /// Metal-grey adaptive palette. Cool, slightly blue-tinted greys so the
-/// purple/green/red accents stay vivid in both modes.
+/// green/red accents stay vivid in both modes.
 extension Color {
+    /// Default brand accent — Spotify-inspired green. Every logo, accent,
+    /// and primary action uses this; purple is reserved for voice recording.
+    static let appAccent = Color(red: 0.114, green: 0.725, blue: 0.329) // #1DB954
+
+    /// Darker companion for gradients built on `appAccent`.
+    static let appAccentDeep = Color(red: 0.043, green: 0.373, blue: 0.176) // #0B5F2D
+
     /// Flat surface for menus, pickers and sheet chrome (replaces hardcoded black).
     static let appSurface = Color(UIColor { traits in
         traits.userInterfaceStyle == .dark

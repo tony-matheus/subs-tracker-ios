@@ -7,6 +7,9 @@ struct LogoCircle: View {
     var logoName: String? = nil
     let name: String
     var imageScale: CGFloat = 0.6
+    /// When no explicit symbol/asset exists, show the name's initials
+    /// instead of the generic credit-card placeholder.
+    var preferInitials: Bool = false
 
     var body: some View {
         ZStack {
@@ -68,6 +71,10 @@ struct LogoCircle: View {
                 .scaledToFit()
                 .frame(width: size * imageScale, height: size * imageScale)
                 .clipShape(Circle())
+        } else if preferInitials {
+            // Wins over generated symbols (voice rows show "SA" for Safeway);
+            // real brand assets above still take precedence.
+            fallbackInitials
         } else {
             symbolImage
         }

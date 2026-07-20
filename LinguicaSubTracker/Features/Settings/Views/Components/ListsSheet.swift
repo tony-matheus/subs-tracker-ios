@@ -67,7 +67,7 @@ struct ListsSheet: View {
                         ? "checkmark.circle.fill" : "circle"
                 )
                 .foregroundStyle(
-                    Color.purple.gradient
+                    Color.appAccent.gradient
                 )
             }
             Text(list.name)

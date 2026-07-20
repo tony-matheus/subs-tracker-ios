@@ -6,6 +6,8 @@ import SwiftUI
 struct ExpenseTemplateSheet: View {
     @State private var viewModel: ExpenseTemplateSheetViewModel
     @State private var showReceiptScan: Bool = false
+    @State private var showBatchAdd: Bool = false
+    @State private var showVoiceAdd: Bool = false
     @Environment(\.dismiss) private var dismiss
 
     let store: AppStore
@@ -24,34 +26,54 @@ struct ExpenseTemplateSheet: View {
 
         NavigationStack {
             ScrollView {
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(), spacing: 12),
-                        GridItem(.flexible(), spacing: 12),
-                    ],
-                    spacing: 12
-                ) {
-                    AddOptionCard(
-                        icon: "doc.text.viewfinder",
-                        title: "Scan with Camera"
-                    ) { showReceiptScan = true }
+                // Bento layout: hero scan tile, compact utility tiles, and a
+                // full-width voice CTA anchoring the bottom.
+                VStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        AddOptionCard(
+                            icon: "doc.text.viewfinder",
+                            title: "Scan with Camera",
+                            minHeight: 172
+                        ) { showReceiptScan = true }
+
+                        VStack(spacing: 12) {
+                            AddOptionCard(
+                                icon: "square.and.pencil",
+                                title: "Add Custom",
+                                minHeight: 80
+                            ) { vm.createBlank() }
+
+                            AddOptionCard(
+                                icon: "list.bullet.rectangle",
+                                title: "Add Multiple",
+                                minHeight: 80
+                            ) { showBatchAdd = true }
+                        }
+                    }
+
+                    HStack(spacing: 12) {
+                        AddOptionCard(
+                            icon: "square.grid.2x2",
+                            title: "Add Subscriptions",
+                            minHeight: 110
+                        ) { vm.showCatalog = true }
+
+                        AddOptionCard(
+                            icon: "square.and.arrow.down",
+                            title: "Import from Sheet, Notion",
+                            badge: "Coming soon",
+                            isEnabled: false,
+                            minHeight: 110
+                        ) {}
+                    }
 
                     AddOptionCard(
-                        icon: "square.and.pencil",
-                        title: "Add Custom Expense"
-                    ) { vm.createBlank() }
-
-                    AddOptionCard(
-                        icon: "square.grid.2x2",
-                        title: "Add Subscriptions"
-                    ) { vm.showCatalog = true }
-
-                    AddOptionCard(
-                        icon: "square.and.arrow.down",
-                        title: "Import from Sheet, Notion",
-                        badge: "Coming soon",
-                        isEnabled: false
-                    ) {}
+                        icon: "mic.fill",
+                        title: "Speak Your Expenses",
+                        minHeight: 76,
+                        layout: .horizontal,
+                        tint: .purple
+                    ) { showVoiceAdd = true }
                 }
                 .padding()
             }
@@ -75,8 +97,24 @@ struct ExpenseTemplateSheet: View {
                     onSaved: { dismiss() }
                 )
             }
+            .sheet(isPresented: $showVoiceAdd) {
+                VoiceAddSheet(
+                    date: vm.date,
+                    store: store,
+                    settingsStore: settingsStore,
+                    onSaved: { dismiss() }
+                )
+            }
             .navigationDestination(isPresented: $vm.showCatalog) {
                 SubscriptionCatalogView(viewModel: viewModel)
+            }
+            .navigationDestination(isPresented: $showBatchAdd) {
+                BatchAddView(
+                    date: vm.date,
+                    store: store,
+                    settingsStore: settingsStore,
+                    onDone: { dismiss() }
+                )
             }
             .navigationDestination(item: $vm.selectedService) { service in
                 ExpenseFormView(
@@ -99,42 +137,64 @@ struct ExpenseTemplateSheet: View {
     }
 }
 
-/// Large tappable hub card: icon + title, optional "Coming soon" badge.
+/// Tappable bento tile: icon + title, optional "Coming soon" badge. Vertical
+/// by default; `.horizontal` for full-width rows. `tint` fills the tile with
+/// a vivid accent (used by the voice CTA).
 private struct AddOptionCard: View {
+    enum CardLayout { case vertical, horizontal }
+
     let icon: String
     let title: String
     var badge: String? = nil
     var isEnabled: Bool = true
+    var minHeight: CGFloat = 140
+    var layout: CardLayout = .vertical
+    var tint: Color? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 30, weight: .medium))
-                    .foregroundStyle(isEnabled ? .primary : .secondary)
-
-                Text(title)
-                    .typography(.bodyMedium)
-                    .foregroundStyle(isEnabled ? .primary : .secondary)
-                    .multilineTextAlignment(.center)
-
-                if let badge {
-                    Text(badge)
-                        .typography(.labelMedium)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(Color.primary.opacity(0.08)))
+            Group {
+                switch layout {
+                case .vertical:
+                    VStack(spacing: 10) { labelContent }
+                case .horizontal:
+                    HStack(spacing: 12) { labelContent }
                 }
             }
             .padding(12)
-            .frame(maxWidth: .infinity, minHeight: 140)
-            .background(Color.gray.opacity(0.15))
+            .frame(maxWidth: .infinity, minHeight: minHeight)
+            .background(tint.map { AnyShapeStyle($0.gradient) } ?? AnyShapeStyle(Color.gray.opacity(0.15)))
             .cornerRadius(20)
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled)
+    }
+
+    private var foreground: Color {
+        if tint != nil { return .white }
+        return isEnabled ? .primary : .secondary
+    }
+
+    @ViewBuilder
+    private var labelContent: some View {
+        Image(systemName: icon)
+            .font(.system(size: layout == .horizontal ? 22 : 30, weight: .medium))
+            .foregroundStyle(foreground)
+
+        Text(title)
+            .typography(layout == .horizontal ? .titleSmall : .bodyMedium)
+            .foregroundStyle(foreground)
+            .multilineTextAlignment(.center)
+
+        if let badge {
+            Text(badge)
+                .typography(.labelMedium)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Capsule().fill(Color.primary.opacity(0.08)))
+        }
     }
 }
 

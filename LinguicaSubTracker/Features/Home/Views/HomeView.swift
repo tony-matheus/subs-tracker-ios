@@ -4,6 +4,10 @@ struct HomeView: View {
     private let store: AppStore
     private let coordinator: AppCoordinator
     @State private var viewModel: HomeViewModel
+    @State private var voiceViewModel: VoiceCaptureViewModel
+    /// Hold-to-speak arming (WhatsApp-style press & hold on the pill).
+    @State private var holdTask: Task<Void, Never>?
+    @State private var holdDidBegin = false
 
     init(
         store: AppStore,
@@ -19,10 +23,15 @@ struct HomeView: View {
                 coordinator: coordinator
             )
         )
+        _voiceViewModel = State(
+            initialValue: VoiceCaptureViewModel(
+                store: store,
+                settingsStore: settingsStore
+            )
+        )
     }
 
     var body: some View {
-        @Bindable var vm = viewModel
         // Explicit reads: registers direct observation on store + coordinator
         // so HomeView re-evaluates on expense add/update/delete and
         // selection changes (computed-prop chains through the VM aren't
@@ -31,7 +40,89 @@ struct HomeView: View {
         let _ = coordinator.selectedDay
         let _ = coordinator.selectedExpense
 
-        NavigationStack {
+        ZStack(alignment: .bottom) {
+            homeContent
+
+            if voiceViewModel.isActive {
+                VoiceCaptureOverlay(viewModel: voiceViewModel)
+                    .transition(.opacity)
+            }
+
+            // Negative padding drops the pill onto the bottom-bar line so it
+            // sits exactly where the original toolbar button did.
+            VStack(spacing: 16) {
+                if voiceViewModel.isRecording {
+                    WaveformLine(level: voiceViewModel.level)
+                        .frame(height: 40)
+                        .padding(.horizontal, 16)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+                actionButton
+            }
+            .padding(.bottom, -4)
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: voiceViewModel.isActive)
+    }
+
+    // MARK: - Floating action button (tap = add, hold = speak)
+
+    private var actionButton: some View {
+        ZStack {
+            if voiceViewModel.isRecording {
+                // Glowing ring, breathing with the mic level.
+                Circle()
+                    .stroke(Color.purple.opacity(0.7), lineWidth: 3)
+                    .frame(width: 82, height: 82)
+                    .blur(radius: 5)
+                    .scaleEffect(1 + CGFloat(voiceViewModel.level) * 0.14)
+                    .animation(.spring(response: 0.22, dampingFraction: 0.6), value: voiceViewModel.level)
+                    .transition(.opacity.combined(with: .scale(scale: 0.7)))
+            }
+
+            HomeActionButton(
+                isOnCurrentMonth: viewModel.isOnCurrentMonth,
+                isRecording: voiceViewModel.isRecording,
+                isProcessing: voiceViewModel.isProcessing
+            )
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: voiceViewModel.isRecording)
+        // WhatsApp-style hold: touch-down arms a short timer; finger movement
+        // never cancels it (unlike LongPressGesture's 10pt limit, which made
+        // holds silently fail). Release before the timer = plain tap.
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    guard holdTask == nil else { return }
+                    holdTask = Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(250))
+                        guard !Task.isCancelled else { return }
+                        holdDidBegin = true
+                        voiceViewModel.beginHold()
+                    }
+                }
+                .onEnded { _ in
+                    holdTask?.cancel()
+                    holdTask = nil
+                    // MainActor serialization: after cancel() the pending
+                    // timer body can no longer flip holdDidBegin.
+                    if holdDidBegin {
+                        holdDidBegin = false
+                        voiceViewModel.endHold()
+                    } else if !voiceViewModel.isActive {
+                        if viewModel.isOnCurrentMonth {
+                            viewModel.didTapAdd()
+                        } else {
+                            viewModel.jumpToCurrentMonth()
+                        }
+                    }
+                }
+        )
+    }
+
+    private var homeContent: some View {
+        @Bindable var vm = viewModel
+
+        return NavigationStack {
             VStack {
                 TotalView(
                     store: vm.store,
@@ -139,14 +230,6 @@ struct HomeView: View {
 
                     Spacer()
 
-                    HomeActionButton(
-                        isOnCurrentMonth: vm.isOnCurrentMonth,
-                        onAdd: { vm.didTapAdd() },
-                        onBackToCurrent: { vm.jumpToCurrentMonth() }
-                    )
-
-                    Spacer()
-
                     Button {
                         vm.showSearch = true
                     } label: {
@@ -225,6 +308,7 @@ struct HomeView: View {
                 case "stats": vm.showStats = true
                 case "settings": vm.showSettings = true
                 case "add": vm.showAddSheet = true
+                case "voice": voiceViewModel.isActive = true
                 default: break
                 }
                 #endif

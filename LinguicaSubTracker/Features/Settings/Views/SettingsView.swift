@@ -24,18 +24,22 @@ struct SettingsView: View {
 
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    numberPreferences(vm: vm)
-                    filtersPreferences(vm: vm)
-                    GlassSection {
-                        BudgetEditor(
-                            settingsStore: vm.settingsStore,
-                            store: vm.store
-                        )
+                // Grouped by task, most-used first (budget), destructive
+                // actions last — one labeled section per concern.
+                VStack(spacing: 24) {
+                    section("Budget") {
+                        GlassSection {
+                            BudgetEditor(
+                                settingsStore: vm.settingsStore,
+                                store: vm.store
+                            )
+                        }
                     }
-                    appearancePreferences(vm: vm)
-                    aboutSection(vm: vm)
-                    dangerZone(vm: vm)
+                    section("Money & Display") { numberPreferences(vm: vm) }
+                    section("Organize") { filtersPreferences(vm: vm) }
+                    section("Appearance") { appearancePreferences(vm: vm) }
+                    section("Privacy & Data") { aboutSection(vm: vm) }
+                    section("Danger Zone") { dangerZone(vm: vm) }
                     VStack(spacing: 8) {
                         HStack {
                             Text("Made with")
@@ -148,19 +152,24 @@ struct SettingsView: View {
         }
     }
 
+    /// Section title + content, spaced per the app's settings grouping style.
+    private func section(
+        _ title: String,
+        @ViewBuilder content: () -> some View
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .typography(.labelLarge)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+            content()
+        }
+    }
+
     @ViewBuilder
     private func appearancePreferences(vm: SettingsViewModel) -> some View {
         GlassSection {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 10) {
-                    Image(systemName: "paintbrush.fill")
-                        .iconStyle(size: 16, weight: .medium, color: .secondary)
-                        .frame(width: 24)
-                    Text("Appearance")
-                        .typography(.bodyLarge)
-                        .foregroundStyle(.primary)
-                }
-
                 AppearanceSelector(selection: vm.themeModeBinding())
 
                 Divider()
@@ -307,15 +316,6 @@ struct SettingsView: View {
     private func dangerZone(vm: SettingsViewModel) -> some View {
         GlassSection {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 10) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .iconStyle(size: 16, weight: .medium, color: .red)
-                        .frame(width: 24)
-                    Text("Danger Zone")
-                        .typography(.bodyLarge)
-                        .foregroundStyle(.primary)
-                }
-
                 AppButton(
                     title: "Delete All Data",
                     icon: "trash",

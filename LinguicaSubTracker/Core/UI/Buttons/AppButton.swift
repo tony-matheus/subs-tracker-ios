@@ -195,8 +195,8 @@ struct AppButton: View {
         switch appearance {
         case .solid:
             switch style {
-            case .primary: return .green
-            case .secondary: return .purple
+            case .primary: return .appAccent
+            case .secondary: return .appAccent
             case .neutral: return .white
             case .destructive: return .red
             }
@@ -209,8 +209,8 @@ struct AppButton: View {
         switch style {
         case .destructive: .red
         case .neutral: colorScheme == .dark ? .white : .black
-        case .primary: .green
-        case .secondary: .purple
+        case .primary: .appAccent
+        case .secondary: .appAccent
         }
     }
 
@@ -220,8 +220,8 @@ struct AppButton: View {
             switch style {
             case .neutral: return .white
             case .destructive: return .red
-            case .primary: return .green
-            case .secondary: return .purple
+            case .primary: return .appAccent
+            case .secondary: return .appAccent
             }
         case .solid:
             switch style {
@@ -246,8 +246,8 @@ struct AppButton: View {
         switch style {
         case .destructive: Color.red
         case .neutral: Color.white
-        case .primary: Color.green
-        case .secondary: Color.purple
+        case .primary: Color.appAccent
+        case .secondary: Color.appAccent
         }
     }
 

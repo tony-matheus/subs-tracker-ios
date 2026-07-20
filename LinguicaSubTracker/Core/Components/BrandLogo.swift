@@ -81,8 +81,8 @@ struct BrandLogoShape: Shape {
     }
 }
 
-/// Brand accent gradients — green matches the LogoSheet tab gradient, purple
-/// mirrors it in the app's secondary accent.
+/// Brand accent gradients — two tones of the Spotify-inspired app green.
+/// (Purple is reserved for voice recording mode.)
 enum BrandLogoStyle {
     static let green = LinearGradient(
         colors: [Color(red: 0.30, green: 0.85, blue: 0.45), Color(red: 0.05, green: 0.40, blue: 0.20)],
@@ -90,8 +90,8 @@ enum BrandLogoStyle {
         endPoint: .bottomTrailing
     )
 
-    static let purple = LinearGradient(
-        colors: [Color(red: 0.72, green: 0.46, blue: 0.98), Color(red: 0.36, green: 0.16, blue: 0.58)],
+    static let deepGreen = LinearGradient(
+        colors: [Color.appAccent, Color.appAccentDeep],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
@@ -106,8 +106,8 @@ private struct BrandLogoHalf: View {
         ZStack {
             switch half {
             case .top:
-                BrandLogoShape(layer: .topSwoosh).fill(BrandLogoStyle.purple)
-                BrandLogoShape(layer: .topDot).fill(BrandLogoStyle.purple)
+                BrandLogoShape(layer: .topSwoosh).fill(BrandLogoStyle.deepGreen)
+                BrandLogoShape(layer: .topDot).fill(BrandLogoStyle.deepGreen)
             case .bottom:
                 BrandLogoShape(layer: .bottomSwoosh).fill(BrandLogoStyle.green)
                 BrandLogoShape(layer: .bottomDot).fill(BrandLogoStyle.green)

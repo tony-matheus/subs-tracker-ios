@@ -372,17 +372,35 @@ struct ExpenseFormView: View {
                         .padding()
                     }
                 } else {
-                    AppButton(
-                        title: vm.primaryButtonTitle,
-                        icon: "plus",
-                        style: .neutral,
-                        appearance: .solid,
-                        size: .large,
-                        expands: true,
-                        action: {
-                            if vm.commit() != nil { dismiss() }
+                    VStack(spacing: 8) {
+                        AppButton(
+                            title: vm.primaryButtonTitle,
+                            icon: "plus",
+                            style: .neutral,
+                            appearance: .solid,
+                            size: .large,
+                            expands: true,
+                            action: {
+                                if vm.commit() != nil { dismiss() }
+                            }
+                        )
+
+                        if !vm.isEditMode {
+                            AppButton(
+                                title: "Save & Add another",
+                                icon: "plus.square.on.square",
+                                style: .secondary,
+                                appearance: .outline,
+                                size: .large,
+                                expands: true,
+                                action: {
+                                    if vm.commitStayingOpen() {
+                                        nameFocused = true
+                                    }
+                                }
+                            )
                         }
-                    )
+                    }
                     .padding(.horizontal, 16)
                 }
             }

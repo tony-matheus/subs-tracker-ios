@@ -206,6 +206,40 @@ final class ExpenseFormViewModel {
     }
 
     func commit() -> Expense? {
+        guard let expense = persist() else { return nil }
+        onCommit(expense)
+        return expense
+    }
+
+    /// "Save & Add another": persists without triggering `onCommit` (which the
+    /// hub wires to dismiss), then resets the form for the next entry.
+    func commitStayingOpen() -> Bool {
+        guard persist() != nil else { return false }
+        reset()
+        return true
+    }
+
+    /// Re-applies `.createBlank` defaults for the next entry in a burst.
+    /// Keeps `startDate` (same-day spending) and only runs in create mode.
+    private func reset() {
+        guard !isEditMode else { return }
+        let newID = UUID()
+        customization = LogoCustomization.resolved(for: newID, name: "", in: store)
+        name = ""
+        price = 0
+        billingCycle = .monthly
+        type = .expense
+        endDate = nil
+        category = "Entertainment"
+        paymentMethod = "None"
+        notes = ""
+        list = "Personal"
+        nameError = nil
+        priceError = nil
+        showErrors = false
+    }
+
+    private func persist() -> Expense? {
         guard validate() else { return nil }
 
         let resolvedID = originalID ?? customization.id
@@ -240,7 +274,6 @@ final class ExpenseFormViewModel {
         saved.id = resolvedID
         store.setCustomization(saved)
 
-        onCommit(expense)
         return expense
     }
 
