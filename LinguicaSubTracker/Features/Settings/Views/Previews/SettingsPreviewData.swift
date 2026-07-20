@@ -3,11 +3,11 @@ import Foundation
 enum SettingsPreviewData {
     static func makeStore() -> AppStore {
         let s = AppStore()
-        s.subscriptions = [
-            Subscription(
+        s.expenses = [
+            Expense(
                 name: "Netflix",
                 price: 15.99,
-                schedule: .monthly,
+                billingCycle: .monthly,
                 startDate: Date(),
                 category: "Entertainment",
                 list: "Personal"

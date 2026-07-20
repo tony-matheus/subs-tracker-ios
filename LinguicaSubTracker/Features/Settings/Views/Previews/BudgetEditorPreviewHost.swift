@@ -60,17 +60,17 @@ struct BudgetEditorPreviewHost: View {
 
     private func makeStore(spent: Double) -> AppStore {
         // Anchor to midnight on the 1st of the current month so totalForMonth
-        // always counts the subscription regardless of what time the preview runs.
+        // always counts the expense regardless of what time the preview runs.
         let startOfMonth = Calendar.current.date(
             from: Calendar.current.dateComponents([.year, .month], from: Date())
         ) ?? Date()
 
         let s = AppStore()
-        s.subscriptions = [
-            Subscription(
+        s.expenses = [
+            Expense(
                 name: "Netflix",
                 price: spent,
-                schedule: .monthly,
+                billingCycle: .monthly,
                 startDate: startOfMonth,
                 category: "Entertainment",
                 list: "Personal"

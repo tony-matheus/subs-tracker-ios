@@ -5,6 +5,7 @@ struct CalendarRewindOverlay: View {
     let source: MonthData
     let target: MonthData
     let height: CGFloat
+    var style: CalendarStyle = .rounded
     let onComplete: () -> Void
 
     @Namespace private var ns
@@ -54,8 +55,9 @@ struct CalendarRewindOverlay: View {
                                 store: store,
                                 date: date,
                                 status: status(for: date),
-                                subscriptions: month.subscriptions[index]
+                                expenses: month.expenses[index]
                             ),
+                            style: style,
                             height: cellHeight,
                             onTap: { _ in }
                         )

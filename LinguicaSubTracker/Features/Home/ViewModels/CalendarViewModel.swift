@@ -56,7 +56,7 @@ final class CalendarViewModel {
         syncDisplayedMonth()
     }
 
-    func onSubscriptionsChange() {
+    func onExpensesChange() {
         refreshMonths()
         syncDisplayedMonth()
     }
@@ -96,7 +96,7 @@ final class CalendarViewModel {
     }
 
     private func refreshMonths() {
-        months = CalendarCache.shared.generateMonths(subs: coordinator.filtered(store.subscriptions))
+        months = CalendarCache.shared.generateMonths(expenses: coordinator.filtered(store.expenses))
     }
 
     private func syncToCurrentMonth() {

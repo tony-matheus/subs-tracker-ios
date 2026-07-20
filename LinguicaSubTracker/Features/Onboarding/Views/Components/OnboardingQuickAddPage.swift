@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Final onboarding step: a super-simplified form to add any number of
-/// subscriptions (name, amount, start date). Commits through the existing
+/// expenses (name, amount, start date). Commits through the existing
 /// `AppStore.add` pipeline on finish.
 struct OnboardingQuickAddPage: View {
     @Bindable var viewModel: OnboardingViewModel
@@ -13,7 +13,7 @@ struct OnboardingQuickAddPage: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 8) {
-                Text("Add your subscriptions")
+                Text("Add your expenses")
                     .typography(.displaySmall)
                     .foregroundStyle(.primary)
                 Text("Just the basics — you can fine-tune them later.")
@@ -76,7 +76,7 @@ struct OnboardingQuickAddPage: View {
         GlassSection {
             VStack(spacing: 12) {
                 HStack {
-                    TextField("Netflix, Spotify…", text: draft.name)
+                    TextField("Netflix, Rent, Ensurance…", text: draft.name)
                         .typography(.titleMedium)
                         .foregroundStyle(.primary)
                         .submitLabel(.done)
@@ -150,8 +150,8 @@ struct OnboardingQuickAddPage: View {
         let count = viewModel.validDrafts.count
         switch count {
         case 0: return "Start without adding"
-        case 1: return "Add 1 subscription & start"
-        default: return "Add \(count) subscriptions & start"
+        case 1: return "Add 1 expense & start"
+        default: return "Add \(count) expenses & start"
         }
     }
 

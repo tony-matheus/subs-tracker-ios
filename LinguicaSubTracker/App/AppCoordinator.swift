@@ -2,12 +2,12 @@ import Foundation
 import SwiftUI
 import Observation
 
-struct SubscriptionFilter: Equatable {
+struct ExpenseFilter: Equatable {
     var list: String?
     var category: String?
     var paymentMethod: String?
 
-    static let all = SubscriptionFilter()
+    static let all = ExpenseFilter()
 
     var isActive: Bool { list != nil || category != nil || paymentMethod != nil }
 
@@ -20,14 +20,18 @@ struct SubscriptionFilter: Equatable {
 @MainActor
 final class AppCoordinator {
     var selectedDay: Date?
-    var selectedSubscription: Subscription?
-    var filter: SubscriptionFilter = .all
+    var selectedExpense: Expense?
+    var filter: ExpenseFilter = .all
 
-    func filtered(_ subs: [Subscription]) -> [Subscription] {
-        subs.filter { sub in
-            if let list = filter.list, sub.list != list { return false }
-            if let category = filter.category, sub.category != category { return false }
-            if let payment = filter.paymentMethod, sub.paymentMethod != payment { return false }
+    /// Flipped by Settings' "Reset App" flow after wiping all data;
+    /// the app root observes this to bring back the onboarding flow.
+    var didRequestOnboardingReplay = false
+
+    func filtered(_ expenses: [Expense]) -> [Expense] {
+        expenses.filter { expense in
+            if let list = filter.list, expense.list != list { return false }
+            if let category = filter.category, expense.category != category { return false }
+            if let payment = filter.paymentMethod, expense.paymentMethod != payment { return false }
             return true
         }
     }
@@ -39,10 +43,10 @@ final class AppCoordinator {
         )
     }
 
-    func selectedSubscriptionBinding() -> Binding<Bool> {
+    func selectedExpenseBinding() -> Binding<Bool> {
         Binding(
-            get: { self.selectedSubscription != nil },
-            set: { if !$0 { self.selectedSubscription = nil } }
+            get: { self.selectedExpense != nil },
+            set: { if !$0 { self.selectedExpense = nil } }
         )
     }
 }

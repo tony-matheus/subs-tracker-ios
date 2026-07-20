@@ -9,13 +9,18 @@ final class SettingsViewModel {
     var showCategories = false
     var showPaymentMethods = false
     var showLists = false
+    var showCalendarStyle = false
+    var showPrivacy = false
+    var showDataInfo = false
 
     let settingsStore: SettingsStore
     let store: AppStore
+    let coordinator: AppCoordinator
 
-    init(settingsStore: SettingsStore, store: AppStore) {
+    init(settingsStore: SettingsStore, store: AppStore, coordinator: AppCoordinator) {
         self.settingsStore = settingsStore
         self.store = store
+        self.coordinator = coordinator
     }
 
     var settings: AppSettings { settingsStore.settings }
@@ -31,6 +36,15 @@ final class SettingsViewModel {
         )
     }
 
+    var calendarStyleName: String { settingsStore.calendarStyle.displayName }
+
+    func calendarStyleBinding() -> Binding<CalendarStyle> {
+        Binding(
+            get: { self.settingsStore.calendarStyle },
+            set: { self.settingsStore.calendarStyle = $0 }
+        )
+    }
+
     func roundAmountsBinding() -> Binding<Bool> {
         Binding(
             get: { self.settingsStore.settings.roundAmounts },
@@ -43,5 +57,22 @@ final class SettingsViewModel {
             get: { self.settingsStore.settings.abbreviateLargeNumbers },
             set: { self.settingsStore.settings.abbreviateLargeNumbers = $0 }
         )
+    }
+
+    var expensesCount: Int { store.expenses.count }
+
+    /// Wipes expenses and per-expense customizations only; categories,
+    /// payment methods, lists, budget and theme are left as configured.
+    func deleteAllExpenses() {
+        store.deleteAllExpenses()
+    }
+
+    /// Wipes everything — expenses, customizations, settings — and sends the
+    /// user back through onboarding, matching a fresh install.
+    func resetAppCompletely() {
+        store.deleteAllExpenses()
+        settingsStore.resetToDefaults()
+        StorageService.hasCompletedOnboarding = false
+        coordinator.didRequestOnboardingReplay = true
     }
 }

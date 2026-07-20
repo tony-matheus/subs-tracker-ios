@@ -9,27 +9,78 @@ enum DayStatus {
 
 struct DayCell: View {
     let viewModel: DayCellViewModel
+    var style: CalendarStyle = .rounded
     var height: CGFloat = 68
     var onTap: (Date) -> Void
     /// Reports the cell's center (in `MonthView.rippleSpace`) so the parent can
-    /// originate a ripple from the tapped day.
+    /// originate a ripple from the tapped day. Nil skips the geometry tracking
+    /// entirely — the dot styles don't ripple.
     var onRipple: ((CGPoint) -> Void)?
+    /// Compact-style quick actions; operate on the day's primary expense.
+    var onEdit: ((Expense) -> Void)? = nil
+    var onDelete: ((Expense) -> Void)? = nil
 
     @State private var center: CGPoint = .zero
+    /// Set by the compact context menu's Delete; drives the confirmation alert.
+    @State private var pendingDelete: Expense? = nil
 
-    private let logoSize: CGFloat = 26
-    private let cornerRadius: CGFloat = 20
-    private let subscriptionInset: CGFloat = 4
-    private let dayLabelInset: CGFloat = 8
+    private var logoSize: CGFloat { style.logoSize }
+    private var cornerRadius: CGFloat { style.cornerRadius }
+    private var expenseInset: CGFloat { style == .bigger ? 6 : 4 }
+    private var dayLabelInset: CGFloat { style == .compact ? 5 : 8 }
 
     var body: some View {
+        if style.hasQuickActions, let primary = viewModel.primaryExpense {
+            cellButton
+                .contextMenu {
+                    Button {
+                        if let date = viewModel.date { onTap(date) }
+                    } label: {
+                        Label("View", systemImage: "eye")
+                    }
+                    Button {
+                        onEdit?(primary)
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    Button(role: .destructive) {
+                        pendingDelete = primary
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+                // Deleting removes the whole expense (every recurrence), so it
+                // confirms first — same convention as the form's delete flow.
+                .alert(
+                    "Delete Expense",
+                    isPresented: Binding(
+                        get: { pendingDelete != nil },
+                        set: { if !$0 { pendingDelete = nil } }
+                    ),
+                    presenting: pendingDelete
+                ) { expense in
+                    Button("Delete", role: .destructive) {
+                        onDelete?(expense)
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: { expense in
+                    Text("\(expense.name) will be permanently removed.")
+                }
+        } else {
+            cellButton
+        }
+    }
+
+    private var cellButton: some View {
         Button(action: handleTap) {
             ZStack {
                 cellBackground
             }
             .frame(maxWidth: .infinity)
             .frame(height: height)
-            .background(centerReader)
+            .background {
+                if onRipple != nil { centerReader }
+            }
             .overlay(alignment: .topLeading) {
                 if viewModel.displayDay, let dayNumber = viewModel.dayNumber {
                     Text("\(dayNumber)")
@@ -42,8 +93,12 @@ struct DayCell: View {
                 }
             }
             .overlay {
-                if let primary = viewModel.primarySub {
-                    subscriptionFloatingLayer(primary: primary)
+                if let primary = viewModel.primaryExpense {
+                    if style.usesDots {
+                        dotsLayer
+                    } else {
+                        expenseFloatingLayer(primary: primary)
+                    }
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
@@ -74,22 +129,50 @@ struct DayCell: View {
         }
     }
 
-    private func subscriptionFloatingLayer(primary: Subscription) -> some View {
+    private func expenseFloatingLayer(primary: Expense) -> some View {
         HStack(spacing: -10) {
             if viewModel.overflowCount > 0 {
                 overflowBadge(remaining: viewModel.overflowCount)
             }
-            if viewModel.subscriptions.count >= 2 {
-                logoCircle(sub: viewModel.subscriptions[1])
+            if viewModel.expenses.count >= 2 {
+                logoCircle(expense: viewModel.expenses[1])
             }
-            logoCircle(sub: primary)
+            logoCircle(expense: primary)
         }
         .frame(
             maxWidth: .infinity,
             maxHeight: .infinity,
             alignment: .bottomTrailing
         )
-        .padding(subscriptionInset)
+        .padding(expenseInset)
+        .allowsHitTesting(false)
+    }
+
+    private var maxDots: Int { style == .compact ? 3 : 4 }
+
+    /// Apple-Calendar-like indicator row: one dot per expense in its brand
+    /// color, with a tiny "+n" when the day has more than fit.
+    private var dotsLayer: some View {
+        let dotSize: CGFloat = style == .compact ? 5 : 6
+        let colors = viewModel.expenses.prefix(maxDots).map {
+            $0.logoCustomization(in: viewModel.store).resolvedBackground
+        }
+        let overflow = viewModel.expenses.count - maxDots
+
+        return HStack(spacing: 3) {
+            ForEach(Array(colors.enumerated()), id: \.offset) { _, color in
+                Circle()
+                    .fill(color)
+                    .frame(width: dotSize, height: dotSize)
+            }
+            if overflow > 0 {
+                Text("+\(overflow)")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .padding(.bottom, style == .compact ? 4 : 6)
         .allowsHitTesting(false)
     }
 
@@ -107,12 +190,12 @@ struct DayCell: View {
         }
     }
 
-    private func logoCircle(sub: Subscription) -> some View {
-        SubscriptionLogoCircle(
+    private func logoCircle(expense: Expense) -> some View {
+        LogoCircle(
             size: logoSize,
-            customization: sub.logoCustomization(in: viewModel.store),
-            logoName: sub.logoName,
-            name: sub.name
+            customization: expense.logoCustomization(in: viewModel.store),
+            logoName: expense.logoName,
+            name: expense.name
         )
     }
 
@@ -122,7 +205,8 @@ struct DayCell: View {
             .fill(baseBackgroundColor)
             .overlay(
                 Group {
-                    if let color = viewModel.primaryColor,
+                    if style.showsGradientTint,
+                        let color = viewModel.primaryColor,
                         viewModel.status != .none
                     {
                         LinearGradient(
@@ -137,9 +221,18 @@ struct DayCell: View {
     }
 
     private var baseBackgroundColor: Color {
-        switch viewModel.status {
-        case .current, .normal: Color.gray.opacity(0.2)
-        case .none: Color.gray.opacity(0.1)
+        switch (style, viewModel.status) {
+        case (.compact, .current), (.compact, .normal): Color.gray.opacity(0.15)
+        case (.compact, .none): Color.gray.opacity(0.08)
+        case (_, .current), (_, .normal): Color.gray.opacity(0.2)
+        case (_, .none): Color.gray.opacity(0.1)
+        }
+    }
+
+    /// Brand colors of the day's expenses (up to 3) for the contrast border.
+    private var brandBorderColors: [Color] {
+        viewModel.expenses.prefix(3).map {
+            $0.logoCustomization(in: viewModel.store).resolvedBackground
         }
     }
 
@@ -170,9 +263,34 @@ struct DayCell: View {
                     .stroke(Color.primary.opacity(0.6), lineWidth: 2)
             }
             .allowsHitTesting(false)
-        default:
+        case .normal:
+            if style.hasBrandBorder, !brandBorderColors.isEmpty {
+                brandBorder
+            }
+        case .none:
             EmptyView()
         }
+    }
+
+    /// Contrast-style stroke: a gradient built from the day's expense brand
+    /// colors (a single expense fades its own color instead).
+    private var brandBorder: some View {
+        let colors = brandBorderColors
+        let gradientColors = colors.count == 1
+            ? [colors[0].opacity(0.9), colors[0].opacity(0.3)]
+            : colors
+
+        return RoundedRectangle(cornerRadius: cornerRadius)
+            .inset(by: 0.75)
+            .stroke(
+                LinearGradient(
+                    colors: gradientColors,
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                lineWidth: 1.5
+            )
+            .allowsHitTesting(false)
     }
 }
 

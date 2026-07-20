@@ -15,23 +15,23 @@ final class CalendarCache {
         return grid
     }
 
-    func monthData(for date: Date, subs: [Subscription]) -> MonthData {
+    func monthData(for date: Date, expenses: [Expense]) -> MonthData {
         let key = normalize(date)
         let grid = grid(for: key)
-        let perCell = grid.map { day -> [Subscription] in
+        let perCell = grid.map { day -> [Expense] in
             guard let day else { return [] }
-            return SubscriptionService.subscriptions(for: day, subs: subs)
+            return ExpenseService.expenses(for: day, expenses: expenses)
         }
         return MonthData(
             date: key,
             grid: grid,
-            subscriptionCounts: perCell.map(\.count),
-            subscriptions: perCell
+            expenseCounts: perCell.map(\.count),
+            expenses: perCell
         )
     }
 
-    func generateMonths(subs: [Subscription]) -> [MonthData] {
-        CalendarService.generateMonths().map { monthData(for: $0, subs: subs) }
+    func generateMonths(expenses: [Expense]) -> [MonthData] {
+        CalendarService.generateMonths().map { monthData(for: $0, expenses: expenses) }
     }
 
 

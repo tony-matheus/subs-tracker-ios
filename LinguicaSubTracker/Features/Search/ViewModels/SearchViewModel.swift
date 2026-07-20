@@ -2,18 +2,18 @@ import Foundation
 import Observation
 import SwiftUI
 
-/// Single VM merging the previous SearchViewModel + AllSubscriptionsViewModel.
+/// Single VM merging the previous SearchViewModel + AllExpensesViewModel.
 /// Owns search text, sort + direction, selection mode, bulk delete state, and
 /// the add-sheet flag.
 ///
-/// `displayedSubscriptions` always returns the sorted full list, filtered by
+/// `displayedExpenses` always returns the sorted full list, filtered by
 /// `searchText` when a query is present.
 @Observable
 @MainActor
 final class SearchViewModel {
     // MARK: - State
     var searchText: String = ""
-    var sort: SubscriptionSortType = .price
+    var sort: ExpenseSortType = .price
     var direction: SortDirection = .descending
 
     var isSelectionMode: Bool = false
@@ -34,22 +34,22 @@ final class SearchViewModel {
         !searchText.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
-    var storeIsEmpty: Bool { store.subscriptions.isEmpty }
+    var storeIsEmpty: Bool { store.expenses.isEmpty }
 
     var selectionCount: Int { selectedIDs.count }
     var hasSelection: Bool { !selectedIDs.isEmpty }
 
     /// Sorted then optionally filtered list — what the view renders.
-    var displayedSubscriptions: [Subscription] {
-        let base = sortedSubscriptions
+    var displayedExpenses: [Expense] {
+        let base = sortedExpenses
         guard hasQuery else { return base }
         let q = searchText.trimmingCharacters(in: .whitespaces)
-        return base.compactMap { sub -> (Subscription, Int)? in
-            if let score = sub.name.smartMatchScore(for: q) {
-                return (sub, score)
+        return base.compactMap { expense -> (Expense, Int)? in
+            if let score = expense.name.smartMatchScore(for: q) {
+                return (expense, score)
             }
-            if matchesKeyword(sub, query: q) {
-                return (sub, 5)
+            if matchesKeyword(expense, query: q) {
+                return (expense, 5)
             }
             return nil
         }
@@ -68,44 +68,44 @@ final class SearchViewModel {
         selectedIDs.removeAll()
     }
 
-    func toggleSelection(_ subscription: Subscription) {
-        if selectedIDs.contains(subscription.id) {
-            selectedIDs.remove(subscription.id)
+    func toggleSelection(_ expense: Expense) {
+        if selectedIDs.contains(expense.id) {
+            selectedIDs.remove(expense.id)
         } else {
-            selectedIDs.insert(subscription.id)
+            selectedIDs.insert(expense.id)
         }
     }
 
-    func isSelected(_ subscription: Subscription) -> Bool {
-        selectedIDs.contains(subscription.id)
+    func isSelected(_ expense: Expense) -> Bool {
+        selectedIDs.contains(expense.id)
     }
 
     func selectAll() {
-        selectedIDs = Set(displayedSubscriptions.map { $0.id })
+        selectedIDs = Set(displayedExpenses.map { $0.id })
     }
 
     func deleteSelected() {
-        let toDelete = store.subscriptions.filter { selectedIDs.contains($0.id) }
+        let toDelete = store.expenses.filter { selectedIDs.contains($0.id) }
         toDelete.forEach { store.delete($0) }
         exitSelectionMode()
     }
 
     // MARK: - Detail push (coordinator-mediated)
-    var selectedSubscription: Subscription? { coordinator.selectedSubscription }
+    var selectedExpense: Expense? { coordinator.selectedExpense }
 
-    func selectSubscription(_ subscription: Subscription) {
-        coordinator.selectedSubscription = subscription
+    func selectExpense(_ expense: Expense) {
+        coordinator.selectedExpense = expense
     }
 
-    func selectedSubscriptionBinding() -> Binding<Bool> {
+    func selectedExpenseBinding() -> Binding<Bool> {
         Binding(
-            get: { self.coordinator.selectedSubscription != nil },
-            set: { if !$0 { self.coordinator.selectedSubscription = nil } }
+            get: { self.coordinator.selectedExpense != nil },
+            set: { if !$0 { self.coordinator.selectedExpense = nil } }
         )
     }
 
     // MARK: - Sort
-    func handleSortPick(_ type: SubscriptionSortType) {
+    func handleSortPick(_ type: ExpenseSortType) {
         if sort == type {
             direction.toggle()
         } else {
@@ -115,37 +115,37 @@ final class SearchViewModel {
     }
 
     // MARK: - Delete (single)
-    func delete(_ subscription: Subscription) {
-        store.delete(subscription)
+    func delete(_ expense: Expense) {
+        store.delete(expense)
     }
 
     // MARK: - Private
-    private var sortedSubscriptions: [Subscription] {
-        let subs = store.subscriptions
+    private var sortedExpenses: [Expense] {
+        let expenses = store.expenses
         let asc = direction == .ascending
         switch sort {
         case .status:
-            return subs.sorted { lhs, rhs in
+            return expenses.sorted { lhs, rhs in
                 if lhs.isActive == rhs.isActive {
                     return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
                 }
                 return asc ? (!lhs.isActive && rhs.isActive) : (lhs.isActive && !rhs.isActive)
             }
         case .name:
-            return subs.sorted {
+            return expenses.sorted {
                 let result = $0.name.localizedCaseInsensitiveCompare($1.name)
                 return asc ? result == .orderedAscending : result == .orderedDescending
             }
         case .price:
-            return subs.sorted { asc ? $0.price < $1.price : $0.price > $1.price }
+            return expenses.sorted { asc ? $0.price < $1.price : $0.price > $1.price }
         case .renewal:
-            return subs.sorted { lhs, rhs in
-                let l = SubscriptionService.nextPayment(for: lhs) ?? .distantFuture
-                let r = SubscriptionService.nextPayment(for: rhs) ?? .distantFuture
+            return expenses.sorted { lhs, rhs in
+                let l = ExpenseService.nextPayment(for: lhs) ?? .distantFuture
+                let r = ExpenseService.nextPayment(for: rhs) ?? .distantFuture
                 return asc ? l < r : l > r
             }
         case .paymentMethod:
-            return subs.sorted {
+            return expenses.sorted {
                 let l = $0.paymentMethod ?? ""
                 let r = $1.paymentMethod ?? ""
                 let result = l.localizedCaseInsensitiveCompare(r)
@@ -154,14 +154,16 @@ final class SearchViewModel {
         }
     }
 
-    private func matchesKeyword(_ sub: Subscription, query: String) -> Bool {
+    private func matchesKeyword(_ expense: Expense, query: String) -> Bool {
         let q = query.lowercased()
-        let schedule = sub.schedule == .monthly ? "monthly" : "yearly"
+        let schedule = expense.billingCycle.displayName.lowercased()
         if schedule.hasPrefix(q)                                          { return true }
-        let status = sub.isActive ? "active" : "inactive"
+        let type = expense.type.displayName.lowercased()
+        if type.hasPrefix(q)                                              { return true }
+        let status = expense.isActive ? "active" : "inactive"
         if status.hasPrefix(q)                                            { return true }
-        if let pm = sub.paymentMethod, pm.isSmartMatch(for: query)        { return true }
-        if sub.category.isSmartMatch(for: query)                          { return true }
+        if let pm = expense.paymentMethod, pm.isSmartMatch(for: query)        { return true }
+        if expense.category.isSmartMatch(for: query)                          { return true }
         return false
     }
 }

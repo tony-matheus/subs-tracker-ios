@@ -4,6 +4,8 @@ struct BudgetEditor: View {
     private let settingsStore: SettingsStore
     private let store: AppStore
     @State private var viewModel: BudgetEditorViewModel
+    @State private var confirmingClear = false
+    @State private var revertTask: Task<Void, Never>?
 
     init(settingsStore: SettingsStore, store: AppStore) {
         self.settingsStore = settingsStore
@@ -28,31 +30,63 @@ struct BudgetEditor: View {
         )
     }
 
-    /// Label tint matching the trailing end of the active gradient tier.
+    /// Label tint matching the bar's active gradient tier.
     private var progressColor: Color {
-        return Color(white: 0.9)  // Default color
-
-        //        switch viewModel.ratio {
-        //        case ..<0.5: return Color(white: 0.9)
-        //        case 0.5..<0.75: return .purple
-        //        default: return .red
-        //        }
+        BudgetColor.color(
+            spent: viewModel.monthlyTotal,
+            budget: settingsStore.settings.monthlyBudget
+        )
     }
 
+    @ViewBuilder
     private func clearButton(vm: BudgetEditorViewModel) -> some View {
-        AppButton(
-            icon: "eraser.fill",
-            accessibilityTitle: "Clear",
-            style: .secondary,
-            appearance: .ghost,
-            action: {
-                withAnimation(
-                    .spring(response: 0.3, dampingFraction: 0.8)
-                ) {
+        if confirmingClear {
+            Button {
+                revertTask?.cancel()
+                revertTask = nil
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    confirmingClear = false
                     vm.clearBudget()
                 }
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 13, weight: .semibold))
+                        .contentTransition(.symbolEffect(.replace))
+                    Text("Clear?")
+                        .typography(.bodySmall)
+                }
+                .foregroundStyle(.red)
+                .padding(.vertical, 6)
+                .padding(.horizontal, 10)
             }
-        )
+            .buttonStyle(.plain)
+            .glassEffect(.regular.tint(.red.opacity(0.15)).interactive(), in: Capsule())
+            .transition(.scale(scale: 0.85).combined(with: .opacity))
+        } else {
+            AppButton(
+                icon: "eraser.fill",
+                accessibilityTitle: "Clear budget",
+                style: .secondary,
+                appearance: .ghost,
+                action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        confirmingClear = true
+                    }
+                    revertTask?.cancel()
+                    revertTask = Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(2))
+                        guard !Task.isCancelled else { return }
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            confirmingClear = false
+                        }
+                    }
+                }
+            )
+            .transition(.scale(scale: 0.85).combined(with: .opacity))
+        }
     }
 
     private func bugdetIndicator(
@@ -84,35 +118,60 @@ struct BudgetEditor: View {
             .frame(height: height)
             .background(Color.appSurface)
 
-            HStack {
+            HStack(alignment: .top) {
+                statColumn(
+                    label: "Spent",
+                    value: vm.formattedTotal,
+                    color: progressColor,
+                    alignment: .leading
+                )
+
+                Spacer()
+
                 if vm.overSpent {
-                    HStack(spacing: 8) {
-                        Text("Over spending")
-                            .typography(.bodyMedium)
-                            .foregroundStyle(.secondary)
-                        Text(vm.overSpentAmount)
-                            .typography(.bodyMedium)
-                            .foregroundStyle(.red)
-                    }
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 4)
-                    .clipShape(Capsule())
-                    .glassEffect()
-                    .animation(
-                        .easeInOut(duration: 0.4),
-                        value: vm.overSpent
+                    statColumn(
+                        label: "Over by",
+                        value: vm.overSpentAmount,
+                        color: .red,
+                        alignment: .center
+                    )
+                } else {
+                    statColumn(
+                        label: "Remaining",
+                        value: vm.formattedRemaining,
+                        color: .primary,
+                        alignment: .center
                     )
                 }
-                Spacer()
-                Text(vm.formattedTotal)
-                    .typography(.bodyMedium)
-                    .foregroundStyle(progressColor)
-                    .animation(
-                        .easeInOut(duration: 0.4),
-                        value: progressColor
-                    )
-            }
 
+                Spacer()
+
+                statColumn(
+                    label: "Budget",
+                    value: vm.formattedBudget,
+                    color: .secondary,
+                    alignment: .trailing
+                )
+            }
+            .animation(.easeInOut(duration: 0.4), value: vm.overSpent)
+
+        }
+    }
+
+    private func statColumn(
+        label: String,
+        value: String,
+        color: Color,
+        alignment: HorizontalAlignment
+    ) -> some View {
+        VStack(alignment: alignment, spacing: 2) {
+            Text(label)
+                .typography(.labelMedium)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .typography(.bodyMedium.weight(.semibold))
+                .foregroundStyle(color)
+                .contentTransition(.numericText())
         }
     }
 
@@ -121,7 +180,7 @@ struct BudgetEditor: View {
 
         let _ = settingsStore.settings.monthlyBudget
         let _ = settingsStore.settings.currencyCode
-        let _ = store.subscriptions
+        let _ = store.expenses
 
         VStack(spacing: 14) {
             HStack {
@@ -146,29 +205,45 @@ struct BudgetEditor: View {
                             clearButton(vm: vm)
                         }
                     }
-                    Button {
-                        vm.prepareEdit()
-                    } label: {
-                        Text(vm.formattedBudget)
-                            .typography(.headlineSmall)
-                            .foregroundStyle(
-                                vm.hasBudget ? .primary : .secondary
-                            )
-                            .contentTransition(.numericText())
-                            .animation(
-                                .spring(response: 0.35, dampingFraction: 0.8),
-                                value: vm.formattedBudget
-                            )
+                    if vm.hasBudget {
+                        Button {
+                            vm.prepareEdit()
+                        } label: {
+                            Text(vm.formattedBudget)
+                                .typography(.headlineSmall)
+                                .foregroundStyle(.primary)
+                                .contentTransition(.numericText())
+                                .animation(
+                                    .spring(response: 0.35, dampingFraction: 0.8),
+                                    value: vm.formattedBudget
+                                )
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
 
             }
 
             if vm.hasBudget {
                 bugdetIndicator(vm: vm)
+                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
+            } else {
+                AppButton(
+                    title: "Set a monthly budget",
+                    icon: "plus",
+                    style: .neutral,
+                    appearance: .glassy,
+                    size: .medium,
+                    expands: true,
+                    action: { vm.prepareEdit() }
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
         }
+        .animation(
+            .spring(response: 0.35, dampingFraction: 0.85),
+            value: vm.hasBudget
+        )
         .sheet(isPresented: $vm.showKeypad) {
             NumKeyPadSheet(
                 amount: $vm.budgetAmount,

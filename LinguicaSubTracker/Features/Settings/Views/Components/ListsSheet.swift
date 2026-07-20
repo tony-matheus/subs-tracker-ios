@@ -57,7 +57,7 @@ struct ListsSheet: View {
     }
 
     @ViewBuilder
-    private func row(for list: SubscriptionList, vm: ListsViewModel)
+    private func row(for list: ExpenseList, vm: ListsViewModel)
         -> some View
     {
         HStack {
@@ -67,7 +67,7 @@ struct ListsSheet: View {
                         ? "checkmark.circle.fill" : "circle"
                 )
                 .foregroundStyle(
-                    Color.purple.gradient
+                    Color.appAccent.gradient
                 )
             }
             Text(list.name)

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Mock subscription card built from the real Netflix `SubscriptionTemplate`
+/// Mock expense card built from the real Netflix `SubscriptionTemplate`
 /// (logo + brand colors) — taps send a water-drop ripple through it.
 struct OnboardingEditingHero: View {
     /// Netflix from the shared template catalog; falls back to a plain
@@ -11,7 +11,7 @@ struct OnboardingEditingHero: View {
         Group {
             HStack(spacing: 16) {
                 if let template {
-                    SubscriptionLogoCircle(
+                    LogoCircle(
                         size: 48,
                         customization: template.makeCustomization(id: template.id),
                         logoName: template.logo,

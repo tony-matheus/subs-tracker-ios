@@ -58,7 +58,7 @@ struct PaymentMethodsSheet: View {
                         ? "checkmark.circle.fill" : "circle"
                 )
                 .foregroundStyle(
-                    vm.isSelectable(method) ? Color.purple : Color.secondary.opacity(0.4)
+                    vm.isSelectable(method) ? Color.appAccent : Color.secondary.opacity(0.4)
                 )
             }
             Text(method.name)

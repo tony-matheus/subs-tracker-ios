@@ -24,7 +24,7 @@ final class BudgetEditorViewModel {
         let startOfMonth = Calendar.current.date(
             from: Calendar.current.dateComponents([.year, .month], from: Date())
         ) ?? Date()
-        return SubscriptionService.totalForMonth(store.subscriptions, month: startOfMonth)
+        return ExpenseService.totalForMonth(store.expenses, month: startOfMonth)
     }
 
     /// Spending ratio clamped to [0, 1]. Zero when no budget is set.
@@ -43,10 +43,21 @@ final class BudgetEditorViewModel {
     }
 
     var overSpent: Bool {
-        (monthlyTotal > (settings.monthlyBudget ?? 0)) ?? false
+        guard let budget = settings.monthlyBudget else { return false }
+        return monthlyTotal > budget
     }
     var overSpentAmount: String {
         MoneyFormatter.format((monthlyTotal - (settings.monthlyBudget ?? 0)), settings: settings)
+    }
+
+    /// Budget minus spent; zero-floored for display.
+    var remaining: Double {
+        guard let budget = settings.monthlyBudget else { return 0 }
+        return budget - monthlyTotal
+    }
+
+    var formattedRemaining: String {
+        MoneyFormatter.format(max(remaining, 0), settings: settings)
     }
 
     var formattedBudgetSecondary: String? {

@@ -6,24 +6,24 @@ import SwiftUI
 @MainActor
 final class DayCellViewModel {
     let store: AppStore
-    var subscriptions: [Subscription]
+    var expenses: [Expense]
     var status: DayStatus
     var date: Date?
 
-    init(store: AppStore, date: Date?, status: DayStatus, subscriptions: [Subscription]) {
+    init(store: AppStore, date: Date?, status: DayStatus, expenses: [Expense]) {
         self.store = store
         self.date = date
         self.status = status
-        self.subscriptions = subscriptions
+        self.expenses = expenses
     }
 
-    var primarySub: Subscription? { subscriptions.first }
-    var secondarySub: Subscription? { subscriptions.last }
+    var primaryExpense: Expense? { expenses.first }
+    var secondaryExpense: Expense? { expenses.last }
     var primaryCustomization: LogoCustomization? {
-        primarySub?.logoCustomization(in: store)
+        primaryExpense?.logoCustomization(in: store)
     }
     var primaryColor: Color? { primaryCustomization?.resolvedBackground }
-    var overflowCount: Int { max(0, subscriptions.count - 2) }
+    var overflowCount: Int { max(0, expenses.count - 2) }
     var displayDay: Bool { status != .none }
     var dayNumber: Int? {
         guard let date else { return nil }

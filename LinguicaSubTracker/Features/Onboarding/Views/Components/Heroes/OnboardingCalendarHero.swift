@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Calendar hero — the real `MonthView` from the Home feature, seeded with
-/// mock brand subscriptions so renewal days show actual logos. `MonthView`
+/// mock brand expenses so renewal days show actual logos. `MonthView`
 /// brings its own tap-driven ripple, so no `rippleOnDrag` here (it would
 /// fight the onboarding swipe-to-page gesture).
 struct OnboardingCalendarHero: View {
@@ -11,14 +11,14 @@ struct OnboardingCalendarHero: View {
         let month = Calendar.current.date(
             from: Calendar.current.dateComponents([.year, .month], from: Date())
         ) ?? Date()
-        let data = CalendarCache.shared.monthData(for: month, subs: store.subscriptions)
+        let data = CalendarCache.shared.monthData(for: month, expenses: store.expenses)
 
         MonthView(
             store: store,
             month: data.date,
             grid: data.grid,
-            subscriptionCounts: data.subscriptionCounts,
-            subscriptions: data.subscriptions,
+            expenseCounts: data.expenseCounts,
+            expenses: data.expenses,
             height: 300,
             onTap: { _ in }
         )

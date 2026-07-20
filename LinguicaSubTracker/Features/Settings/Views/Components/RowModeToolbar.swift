@@ -41,7 +41,7 @@ struct RowModeToolbar: ToolbarContent {
                 } label: {
                     Image(systemName: "checkmark.circle")
                 }
-                .tint(.purple)
+                .tint(.appAccent)
             }
 
         case .editing:
