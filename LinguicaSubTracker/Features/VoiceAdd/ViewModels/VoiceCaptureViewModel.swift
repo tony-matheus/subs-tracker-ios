@@ -148,6 +148,8 @@ final class VoiceCaptureViewModel {
         while frozenCount < completeCount {
             emit(parsed[frozenCount], freeze: true)
             frozenCount += 1
+            // One pulse the moment an item is fully recognized.
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
 
         if !isFinal, parsed.count > frozenCount, let last = parsed.last {

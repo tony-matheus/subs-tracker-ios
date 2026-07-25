@@ -71,12 +71,47 @@ enum VoiceExpenseParser {
     /// ponytail: handles digits + number words 0-999 and today/yesterday/weekday
     /// dates; upgrade to the AI path is automatic on eligible hardware.
     static func regexParse(_ transcript: String, categories: [String]) -> [ParsedExpense] {
+        // First split on explicit connectors (comma / "and" / "then"), then
+        // split each piece before every *subsequent* money-amount. Dictation
+        // drops the commas people say in their head, so a fresh amount is the
+        // real "next item" signal — but a lead-in ("yesterday I spent 20…")
+        // must stay attached to its amount, so the first amount never splits.
         let segments = transcript
             .replacingOccurrences(of: #"(?i)\s*,\s*(?:and\s+)?|\s+and\s+|\s+then\s+"#,
                                   with: "\n",
                                   options: .regularExpression)
             .components(separatedBy: "\n")
+            .flatMap(splitOnAmounts)
         return segments.compactMap { parseSegment($0, categories: categories) }
+    }
+
+    /// A number counts as a new amount only when it carries a money cue —
+    /// currency word, merchant preposition, or a leading "$" — so "7 eleven"
+    /// or "2 coffees" don't false-split.
+    private static let amountCue =
+        #"(?i)\$\d[\d.,]*|\d[\d.,]*\s+(?:dollars?|bucks?|cents?|euros?|euro|pounds?|pound|on|at|for|from|in)\b"#
+
+    /// Breaks a line before each money-amount after the first, keeping any
+    /// lead-in (dates, "I spent") with the first amount.
+    private static func splitOnAmounts(_ line: String) -> [String] {
+        var starts: [String.Index] = []
+        var searchStart = line.startIndex
+        while let range = line.range(
+            of: amountCue, options: .regularExpression, range: searchStart..<line.endIndex
+        ) {
+            starts.append(range.lowerBound)
+            searchStart = range.upperBound
+        }
+        guard starts.count > 1 else { return [line] }
+
+        var segments: [String] = []
+        var prev = line.startIndex
+        for boundary in starts.dropFirst() {
+            segments.append(String(line[prev..<boundary]))
+            prev = boundary
+        }
+        segments.append(String(line[prev..<line.endIndex]))
+        return segments
     }
 
     private static func parseSegment(_ raw: String, categories: [String]) -> ParsedExpense? {
@@ -192,17 +227,17 @@ enum VoiceExpenseParser {
     private static func extractName(from text: String) -> String {
         var candidate = text
         if let match = text.range(
-            of: #"(?:^|\s)(?:on|at|for|from)\s+(.+)$"#,
+            of: #"(?:^|\s)(?:on|at|for|from|in)\s+(.+)$"#,
             options: .regularExpression
         ) {
             candidate = String(text[match])
-                .replacingOccurrences(of: #"^\s*(?:on|at|for|from)\s+"#,
+                .replacingOccurrences(of: #"^\s*(?:on|at|for|from|in)\s+"#,
                                       with: "",
                                       options: .regularExpression)
         }
         let words = candidate
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
-            .filter { !$0.isEmpty && !stopWords.contains($0) && !["on", "at", "for", "from"].contains($0) }
+            .filter { !$0.isEmpty && !stopWords.contains($0) && !["on", "at", "for", "from", "in"].contains($0) }
         return words.joined(separator: " ").capitalized
     }
 }

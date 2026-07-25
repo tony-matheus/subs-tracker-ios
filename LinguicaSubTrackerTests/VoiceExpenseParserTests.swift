@@ -52,6 +52,27 @@ struct VoiceExpenseParserTests {
         #expect(items.last?.name == "Starbucks")
     }
 
+    @Test("multiple expenses with no comma — split on amount boundary")
+    func multipleNoComma() {
+        // Dictation drops the comma the user says in their head.
+        let items = VoiceExpenseParser.regexParse(
+            "100 dollars on Safeway 11 dollars in medicine", categories: categories)
+        #expect(items.count == 2)
+        #expect(items.first?.amount == 100)
+        #expect(items.first?.name == "Safeway")
+        #expect(items.last?.amount == 11)
+        #expect(items.last?.name == "Medicine")
+    }
+
+    @Test("multiple expenses, second amount has only a preposition cue")
+    func multipleNoCommaPrepositionCue() {
+        let items = VoiceExpenseParser.regexParse(
+            "50 dollars on Safeway 20 at Starbucks", categories: categories)
+        #expect(items.count == 2)
+        #expect(items.last?.amount == 20)
+        #expect(items.last?.name == "Starbucks")
+    }
+
     @Test("decimal amount with currency symbol")
     func decimalWithSymbol() {
         let items = VoiceExpenseParser.regexParse("$9.99 for lunch", categories: categories)
