@@ -1,16 +1,22 @@
 import SwiftUI
 
-/// Searchable catalog of popular subscription templates, pushed from the
-/// add-expense hub. Selecting a template (or the empty-state CTA) sets a
-/// route on the shared view model; the hub's `navigationDestination`s
-/// push the expense form from there.
+/// Searchable grid of popular subscription templates. UI-agnostic: it owns no
+/// store and no view model — callers pass the already-filtered templates and
+/// handle selection however their flow needs (push a form, fill one in place).
 struct SubscriptionCatalogView: View {
-    @Bindable var viewModel: ExpenseTemplateSheetViewModel
+    let templates: [SubscriptionTemplate]
+    @Binding var searchText: String
+    let showEmptyCTA: Bool
+    var onSelect: (SubscriptionTemplate) -> Void
+    var onCreateBlank: (String) -> Void
+
     @State private var isSearchFocused: Bool = false
+
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ScrollView {
-            if viewModel.showEmptyCTA {
+            if showEmptyCTA {
                 emptyCTA
                     .padding()
             } else {
@@ -20,9 +26,9 @@ struct SubscriptionCatalogView: View {
                     ],
                     spacing: 8
                 ) {
-                    ForEach(viewModel.filteredServices) { service in
+                    ForEach(templates) { service in
                         Button {
-                            viewModel.selectTemplate(service)
+                            onSelect(service)
                         } label: {
                             VStack(spacing: 8) {
                                 LogoCircle(
@@ -37,7 +43,7 @@ struct SubscriptionCatalogView: View {
 
                                 Text(service.name)
                                     .typography(.bodyMedium)
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(colorScheme == .dark ? .white : .black)
                             }
                             .frame(maxWidth: .infinity, minHeight: 120)
                             .background(Color.gray.opacity(0.15))
@@ -49,7 +55,7 @@ struct SubscriptionCatalogView: View {
             }
         }
         .appSearchable(
-            text: $viewModel.searchText,
+            text: $searchText,
             isPresented: $isSearchFocused,
             prompt: "Search subscriptions"
         )
@@ -61,7 +67,7 @@ struct SubscriptionCatalogView: View {
     @ViewBuilder
     private var emptyCTA: some View {
         Button {
-            viewModel.createBlankWithSearch()
+            onCreateBlank(searchText)
         } label: {
             VStack(spacing: 16) {
                 Image(systemName: "plus.circle.fill")
@@ -69,7 +75,7 @@ struct SubscriptionCatalogView: View {
                     .foregroundStyle(.primary)
 
                 VStack(spacing: 4) {
-                    Text("Create \"\(viewModel.searchText)\"")
+                    Text("Create \"\(searchText)\"")
                         .typography(.titleLarge.weight(.semibold))
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
@@ -87,5 +93,31 @@ struct SubscriptionCatalogView: View {
             )
         }
         .buttonStyle(.plain)
+    }
+}
+
+#Preview("Catalog") {
+    @Previewable @State var search = ""
+    NavigationStack {
+        SubscriptionCatalogView(
+            templates: SubscriptionTemplate.mock,
+            searchText: $search,
+            showEmptyCTA: false,
+            onSelect: { _ in },
+            onCreateBlank: { _ in }
+        )
+    }
+}
+
+#Preview("Empty CTA") {
+    @Previewable @State var search = "Figma"
+    NavigationStack {
+        SubscriptionCatalogView(
+            templates: [],
+            searchText: $search,
+            showEmptyCTA: true,
+            onSelect: { _ in },
+            onCreateBlank: { _ in }
+        )
     }
 }

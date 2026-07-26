@@ -49,7 +49,7 @@ struct ExpensesInDay: View {
         .presentationDetents([.height(viewModel.compactHeight)])
         .presentationDragIndicator(.hidden)
         .sheet(isPresented: $vm.showAddSheet) {
-            ExpenseTemplateSheet(
+            SimplifiedAddExpenseView(
                 date: vm.date,
                 store: vm.store,
                 settingsStore: settingsStore

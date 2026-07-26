@@ -5,6 +5,7 @@ struct BudgetEditor: View {
     private let store: AppStore
     @State private var viewModel: BudgetEditorViewModel
     @State private var confirmingClear = false
+    @State private var showDetails = false
     @State private var revertTask: Task<Void, Never>?
 
     init(settingsStore: SettingsStore, store: AppStore) {
@@ -21,7 +22,7 @@ struct BudgetEditor: View {
     private var progressGradient: LinearGradient {
         let base = BudgetColor.color(
             spent: viewModel.monthlyTotal,
-            budget: settingsStore.settings.monthlyBudget
+            budget: settingsStore.effectiveBudget
         )
         return LinearGradient(
             colors: [base.opacity(0.75), base],
@@ -34,7 +35,7 @@ struct BudgetEditor: View {
     private var progressColor: Color {
         BudgetColor.color(
             spent: viewModel.monthlyTotal,
-            budget: settingsStore.settings.monthlyBudget
+            budget: settingsStore.effectiveBudget
         )
     }
 
@@ -196,7 +197,7 @@ struct BudgetEditor: View {
                                 )
                             Text("Monthly Budget")
                                 .typography(.bodyLarge)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.primary)
                         }
                         .padding(.vertical, 4)
                         Spacer()
@@ -207,7 +208,7 @@ struct BudgetEditor: View {
                     }
                     if vm.hasBudget {
                         Button {
-                            vm.prepareEdit()
+                            showDetails = true
                         } label: {
                             Text(vm.formattedBudget)
                                 .typography(.headlineSmall)
@@ -235,7 +236,7 @@ struct BudgetEditor: View {
                     appearance: .glassy,
                     size: .medium,
                     expands: true,
-                    action: { vm.prepareEdit() }
+                    action: { showDetails = true }
                 )
                 .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
@@ -244,16 +245,10 @@ struct BudgetEditor: View {
             .spring(response: 0.35, dampingFraction: 0.85),
             value: vm.hasBudget
         )
-        .sheet(isPresented: $vm.showKeypad) {
-            NumKeyPadSheet(
-                amount: $vm.budgetAmount,
-                currencyCode: $vm.currencyCode,
-                typingStyle: .freeform
-            ) {
-                vm.applyKeypadAmount()
-            }
-            .presentationDetents([.height(560)])
-            .presentationDragIndicator(.visible)
+        .sheet(isPresented: $showDetails) {
+            BudgetDetailsSheet(settingsStore: settingsStore, store: store)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
     }
 }

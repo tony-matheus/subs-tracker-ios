@@ -19,7 +19,7 @@ struct OnboardingBudgetHero: View {
                     .iconStyle(size: 16, weight: .semibold, color: .secondary)
                 Text("Monthly Budget")
                     .typography(.bodyLarge)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                 Spacer()
                 Text("\(Int((ratio * 100).rounded()))%")
                     .typography(.headlineSmall)

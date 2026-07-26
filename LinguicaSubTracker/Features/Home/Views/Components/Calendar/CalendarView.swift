@@ -55,7 +55,6 @@ struct CalendarView: View {
                     height: calendarStyle.gridHeight,
                     style: calendarStyle,
                     onComplete: {
-                        viewModel.completeRewind(targetIndex: pair.targetIndex)
                         withAnimation(.easeOut(duration: 0.2)) {
                             viewModel.rewindPair = nil
                         }
@@ -68,11 +67,6 @@ struct CalendarView: View {
         }
         // Grid height is style-dependent; +60 covers the weekday header row.
         .frame(height: calendarStyle.gridHeight + 60)
-        .onAppear { viewModel.onAppear() }
-        .onChange(of: store.expenses) { _, _ in viewModel.onExpensesChange() }
-        .onChange(of: coordinator.filter) { _, _ in viewModel.onFilterChange() }
-        .onChange(of: viewModel.currentMonthIndex) { _, _ in viewModel.onCurrentMonthIndexChange() }
-        .onChange(of: viewModel.rewindToken) { _, token in viewModel.onRewindRequest(token) }
     }
 }
 

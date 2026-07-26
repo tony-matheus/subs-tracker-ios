@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" stroke="black">
+  <g stroke="none">
+    <ellipse cx="256" cy="208" rx="240" ry="128"/>
+    <path d="M16 208v112c0 71 107 128 240 128s240-57 240-128V208"/>
+  </g>
+
+  <g fill="none" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="256" cy="208" rx="240" ry="128" fill="black"/>
+    <path d="M16 208v112c0 71 107 128 240 128s240-57 240-128V208"/>
+    <path d="M72 295v105"/>
+    <path d="M152 330v105"/>
+    <path d="M256 340v105"/>
+    <path d="M360 330v105"/>
+    <path d="M440 295v105"/>
+  </g>
+</svg>

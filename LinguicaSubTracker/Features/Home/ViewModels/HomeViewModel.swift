@@ -32,12 +32,12 @@ final class HomeViewModel {
     }
 
     var budgetRatio: Double {
-        guard let budget = settingsStore.settings.monthlyBudget, budget > 0 else { return 0 }
+        guard let budget = settingsStore.effectiveBudget, budget > 0 else { return 0 }
         return min(monthlyTotal / budget, 1.0)
     }
 
     var budgetTint: Color {
-        BudgetColor.color(spent: monthlyTotal, budget: settingsStore.settings.monthlyBudget)
+        BudgetColor.color(spent: monthlyTotal, budget: settingsStore.effectiveBudget)
     }
 
     var filterLabel: String {
@@ -79,7 +79,7 @@ final class HomeViewModel {
     }
 
     func jumpToCurrentMonth() {
-        calendarViewModel.requestRewind()
+        calendarViewModel.jumpToCurrentMonth()
     }
 
     func clearSelectedDay() { coordinator.selectedDay = nil }

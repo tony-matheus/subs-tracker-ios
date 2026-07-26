@@ -12,6 +12,11 @@ struct AppSettings: Codable {
     var themeMode: ThemeMode? = nil
     // Optional so previously persisted settings decode unchanged (nil → .rounded).
     var calendarStyle: CalendarStyle? = nil
+    // Per-category slice of `monthlyBudget`, keyed by category name (same key
+    // expenses use). Optional so previously persisted settings decode unchanged.
+    var categoryBudgets: [String: Double]? = nil
+    // Strict budgets refuse to stretch past `monthlyBudget` (nil → flexible).
+    var strictBudget: Bool? = nil
 
     static let `default` = AppSettings(
         currencyCode: "CAD",

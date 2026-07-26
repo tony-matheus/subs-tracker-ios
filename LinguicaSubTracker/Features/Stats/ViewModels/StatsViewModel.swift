@@ -102,7 +102,7 @@ final class StatsViewModel {
 
     /// Bar tint: budget tier when a budget is set, theme fallback otherwise.
     func trendBarColor(amount: Double) -> Color {
-        if let budget = settingsStore.settings.monthlyBudget, budget > 0 {
+        if let budget = settingsStore.effectiveBudget, budget > 0 {
             return BudgetColor.color(spent: amount, budget: budget)
         }
         return Self.fallbackPalette[0]

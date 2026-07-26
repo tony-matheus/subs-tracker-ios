@@ -5,15 +5,29 @@ struct TotalView: View {
     /// Compact style: tapping the budget progress swaps the big total for a
     /// small one plus a per-category month breakdown.
     @State private var showBreakdown = false
+    /// Width of the container, used to size the total so it always fits.
+    @State private var containerWidth: CGFloat = 0
+    var showCoins = false
+    var showDate = false
     var action: () -> Void
+
+    /// Breathing room kept on both sides of the total.
+    private let totalInset: CGFloat = 24
+    /// The total fills the row it is given: short amounts grow to the upper
+    /// bound, long ones shrink towards the lower one.
+    private let totalSizeRange: ClosedRange<CGFloat> = 48...92
 
     init(
         store: AppStore,
         settingsStore: SettingsStore,
         coordinator: AppCoordinator,
         calendarViewModel: CalendarViewModel,
+        showDate: Bool = false,
+        showCoins: Bool = false,
         action: @escaping () -> Void = {}
     ) {
+        self.showCoins = showCoins
+        self.showDate = showDate
         self.action = action
         _viewModel = State(
             initialValue: TotalViewModel(
@@ -51,26 +65,28 @@ struct TotalView: View {
             VStack(spacing: 10) {
                 Button(action: action) {
                     VStack(spacing: 8) {
-                        Text(
-                            viewModel.currentMonth.formatted(
-                                .dateTime.month().year()
+                        if showDate {
+                            Text(
+                                viewModel.currentMonth.formatted(
+                                    .dateTime.month().year()
+                                )
                             )
-                        )
-                        .typography(.titleLarge)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .id(viewModel.monthKey)
-                        .transition(.monthRipple)
-                        .animation(
-                            .spring(response: 0.42, dampingFraction: 0.82),
-                            value: viewModel.monthKey
-                        )
+                            .typography(.titleLarge)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .id(viewModel.monthKey)
+                            .transition(.monthRipple)
+                            .animation(
+                                .spring(response: 0.42, dampingFraction: 0.82),
+                                value: viewModel.monthKey
+                            )
+                        }
 
                         if isBreakdownVisible {
                             HStack(alignment: .firstTextBaseline, spacing: 6) {
                                 MoneyDisplay(
                                     text: viewModel.formattedTotal,
-                                    size: 30,
+                                    size: 40,
                                     tint: viewModel.budgetTint
                                 )
                                 if let budget = viewModel.formattedBudget {
@@ -82,6 +98,9 @@ struct TotalView: View {
                         } else {
                             MoneyDisplay(
                                 text: viewModel.formattedTotal,
+                                size: totalSizeRange.upperBound,
+                                minSize: totalSizeRange.lowerBound,
+                                availableWidth: totalWidth,
                                 tint: viewModel.budgetTint
                             )
                         }
@@ -90,17 +109,20 @@ struct TotalView: View {
                 .buttonStyle(.plain)
                 .rippleOnTap()
 
-                if viewModel.isCompactStyle, let progress = viewModel.budgetProgress {
-                    Button {
-                        withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) {
+                if !viewModel.categorySpends.isEmpty && showCoins {
+                    CoinProgress(
+                        spends: viewModel.categorySpends,
+                        budget: viewModel.monthlyBudget
+                    ) {
+                        withAnimation(
+                            .spring(response: 0.42, dampingFraction: 0.82)
+                        ) {
                             showBreakdown.toggle()
                         }
-                    } label: {
-                        budgetProgressBar(progress)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Budget progress")
-                    .accessibilityHint("Shows this month's spending by category")
+                    .accessibilityHint(
+                        "Shows this month's spending by category"
+                    )
                 }
 
                 if isBreakdownVisible {
@@ -109,22 +131,21 @@ struct TotalView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity)
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { width in
+            containerWidth = width
+        }
+    }
+
+    /// Space the big total can occupy, or `nil` before the first layout pass.
+    private var totalWidth: CGFloat? {
+        containerWidth > 0 ? containerWidth - totalInset * 2 : nil
     }
 
     private var isBreakdownVisible: Bool {
         showBreakdown && viewModel.isCompactStyle
-    }
-
-    private func budgetProgressBar(_ progress: Double) -> some View {
-        ZStack(alignment: .leading) {
-            Capsule()
-                .fill(Color.primary.opacity(0.12))
-            Capsule()
-                .fill(viewModel.budgetTint.gradient)
-                .frame(width: max(8, 180 * progress))
-        }
-        .frame(width: 180, height: 8)
-        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: progress)
     }
 
     private var breakdown: some View {
@@ -136,14 +157,18 @@ struct TotalView: View {
                 // Stacked share bar: each category's slice of the month.
                 GeometryReader { geo in
                     let spacing: CGFloat = 2
-                    let available = geo.size.width
+                    let available =
+                        geo.size.width
                         - spacing * CGFloat(max(0, spends.count - 1))
                     HStack(spacing: spacing) {
                         ForEach(spends) { spend in
                             Capsule()
                                 .fill(spend.color)
                                 .frame(
-                                    width: max(3, available * spend.amount / totalSpent)
+                                    width: max(
+                                        3,
+                                        available * spend.amount / totalSpent
+                                    )
                                 )
                         }
                     }
@@ -199,7 +224,7 @@ private struct MonthRippleModifier: ViewModifier, Animatable {
 }
 
 extension AnyTransition {
-    fileprivate static var monthRipple: AnyTransition {
+    static var monthRipple: AnyTransition {
         .asymmetric(
             insertion: .modifier(
                 active: MonthRippleModifier(phase: 0.001),

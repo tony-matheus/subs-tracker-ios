@@ -19,12 +19,7 @@ final class TotalViewModel {
 
     var currentMonth: Date { calendarViewModel.currentMonth }
 
-    var monthKey: String {
-        let c = Calendar.current
-        let y = c.component(.year, from: currentMonth)
-        let m = c.component(.month, from: currentMonth)
-        return "\(y)-\(m)"
-    }
+    var monthKey: String { calendarViewModel.monthKey }
 
     var total: Double {
         ExpenseService.totalForMonth(
@@ -38,7 +33,7 @@ final class TotalViewModel {
     }
 
     var budgetTint: Color {
-        BudgetColor.color(spent: total, budget: settingsStore.settings.monthlyBudget)
+        BudgetColor.color(spent: total, budget: settingsStore.effectiveBudget)
     }
 
     var glowOpacity: Double {
@@ -54,14 +49,22 @@ final class TotalViewModel {
 
     /// 0…1 share of the monthly budget spent (nil when no budget set).
     var budgetProgress: Double? {
-        guard let budget = settingsStore.settings.monthlyBudget, budget > 0 else {
+        guard let budget = settingsStore.effectiveBudget, budget > 0 else {
             return nil
         }
         return min(1, total / budget)
     }
 
+    var monthlyBudget: Double? { settingsStore.effectiveBudget }
+
+    /// What a category's pile is measured against: its own slice of the budget,
+    /// or the whole budget when the user never gave it one.
+    func budget(for category: String) -> Double? {
+        settingsStore.categoryBudgets[category] ?? monthlyBudget
+    }
+
     var formattedBudget: String? {
-        settingsStore.settings.monthlyBudget.map {
+        settingsStore.effectiveBudget.map {
             MoneyFormatter.format($0, settings: settingsStore.settings)
         }
     }

@@ -9,10 +9,13 @@ final class CalendarViewModel {
     var rewindPair: RewindPair? = nil
 
     // Paging state — owned here (no longer on AppStore).
-    var currentMonthIndex: Int = 0
+    /// Every writer (calendar paging, the month picker, the jump-to-today
+    /// button) goes through here, so the displayed month follows on its own
+    /// instead of waiting for a view to nudge it.
+    var currentMonthIndex: Int = 0 {
+        didSet { syncDisplayedMonth() }
+    }
     var currentMonth: Date = Date()
-    /// Bumped to request a rewind animation. Observed by CalendarView.
-    var rewindToken: Int? = nil
     /// Initial-load guard. After first appear we don't re-snap to today's
     /// month on every re-appear (e.g. after sheet dismissals).
     private var hasAppearedOnce: Bool = false
@@ -36,6 +39,10 @@ final class CalendarViewModel {
         Calendar.current.isDate(currentMonth, equalTo: Date(), toGranularity: .month)
     }
 
+    var monthKey: String {
+        currentMonth.formatted(.dateTime.month(.wide).year())
+    }
+
     func currentMonthIndexBinding() -> Binding<Int> {
         Binding(
             get: { self.currentMonthIndex },
@@ -43,8 +50,23 @@ final class CalendarViewModel {
         )
     }
 
-    func requestRewind() {
-        rewindToken = (rewindToken ?? 0) + 1
+    /// Jumps back to today's month. Updates `currentMonthIndex`/`currentMonth`
+    /// immediately — this is the source of truth every view reads, whether or
+    /// not `CalendarView` (and its rewind overlay) is even mounted. Setting
+    /// `rewindPair` is just a cue for `CalendarView` to play its transition
+    /// when it *is* on screen; it's a no-op otherwise.
+    func jumpToCurrentMonth() {
+        guard !months.isEmpty else { return }
+        let calendar = Calendar.current
+        let now = Date()
+        guard let targetIndex = months.firstIndex(where: {
+            calendar.isDate($0.date, equalTo: now, toGranularity: .month)
+        }) else { return }
+        let sourceIndex = currentMonthIndex
+        if sourceIndex != targetIndex {
+            rewindPair = RewindPair(source: months[sourceIndex], target: months[targetIndex], targetIndex: targetIndex)
+        }
+        currentMonthIndex = targetIndex
     }
 
     func onAppear() {
@@ -63,36 +85,6 @@ final class CalendarViewModel {
 
     func onFilterChange() {
         refreshMonths()
-    }
-
-    func onCurrentMonthIndexChange() {
-        syncDisplayedMonth()
-    }
-
-    func onRewindRequest(_ request: Int?) {
-        guard request != nil else { return }
-        startRewind()
-        rewindToken = nil
-    }
-
-    func completeRewind(targetIndex: Int) {
-        currentMonthIndex = targetIndex
-    }
-
-    private func startRewind() {
-        guard !months.isEmpty else { return }
-        let cal = Calendar.current
-        let now = Date()
-        guard let targetIndex = months.firstIndex(where: {
-            cal.isDate($0.date, equalTo: now, toGranularity: .month)
-        }) else { return }
-        let sourceIndex = min(max(0, currentMonthIndex), months.count - 1)
-        guard sourceIndex != targetIndex else { return }
-        rewindPair = RewindPair(
-            source: months[sourceIndex],
-            target: months[targetIndex],
-            targetIndex: targetIndex
-        )
     }
 
     private func refreshMonths() {

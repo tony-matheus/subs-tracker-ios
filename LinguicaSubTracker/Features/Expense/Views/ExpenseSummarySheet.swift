@@ -49,8 +49,8 @@ struct ExpenseSummarySheet: View {
             Text("\(vm.expense.name) will be permanently removed.")
         }
         .sheet(isPresented: $vm.showEdit) {
-            ExpenseFormView(
-                mode: .edit(vm.expense),
+            SimplifiedAddExpenseView(
+                expense: vm.expense,
                 store: vm.store,
                 settingsStore: settingsStore,
                 onCommit: { updated in vm.applyEdit(updated) }

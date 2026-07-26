@@ -4,10 +4,6 @@ import Observation
 @Observable
 @MainActor
 final class BudgetEditorViewModel {
-    var showKeypad = false
-    var budgetAmount: Double = 0
-    var currencyCode: String = "CAD"
-
     let settingsStore: SettingsStore
     let store: AppStore
 
@@ -29,12 +25,12 @@ final class BudgetEditorViewModel {
 
     /// Spending ratio clamped to [0, 1]. Zero when no budget is set.
     var ratio: Double {
-        guard let budget = settings.monthlyBudget, budget > 0 else { return 0 }
+        guard let budget = settingsStore.effectiveBudget, budget > 0 else { return 0 }
         return min(monthlyTotal / budget, 1)
     }
 
     var formattedBudget: String {
-        guard let budget = settings.monthlyBudget else { return "Not set" }
+        guard let budget = settingsStore.effectiveBudget else { return "Not set" }
         return MoneyFormatter.format(budget, settings: settings)
     }
 
@@ -43,16 +39,16 @@ final class BudgetEditorViewModel {
     }
 
     var overSpent: Bool {
-        guard let budget = settings.monthlyBudget else { return false }
+        guard let budget = settingsStore.effectiveBudget else { return false }
         return monthlyTotal > budget
     }
     var overSpentAmount: String {
-        MoneyFormatter.format((monthlyTotal - (settings.monthlyBudget ?? 0)), settings: settings)
+        MoneyFormatter.format((monthlyTotal - (settingsStore.effectiveBudget ?? 0)), settings: settings)
     }
 
     /// Budget minus spent; zero-floored for display.
     var remaining: Double {
-        guard let budget = settings.monthlyBudget else { return 0 }
+        guard let budget = settingsStore.effectiveBudget else { return 0 }
         return budget - monthlyTotal
     }
 
@@ -61,24 +57,11 @@ final class BudgetEditorViewModel {
     }
 
     var formattedBudgetSecondary: String? {
-        guard let budget = settings.monthlyBudget else { return nil }
+        guard let budget = settingsStore.effectiveBudget else { return nil }
         return MoneyFormatter.format(budget, settings: settings)
     }
 
-    func prepareEdit() {
-        budgetAmount = settings.monthlyBudget ?? 0
-        currencyCode = settings.currencyCode
-        showKeypad = true
-    }
-
-    func applyKeypadAmount() {
-        showKeypad = false
-        if budgetAmount > 0 {
-            settingsStore.settings.monthlyBudget = budgetAmount
-        }
-    }
-
     func clearBudget() {
-        settingsStore.settings.monthlyBudget = nil
+        settingsStore.deleteBudget()
     }
 }

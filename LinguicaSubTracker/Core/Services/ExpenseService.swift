@@ -278,6 +278,28 @@ enum ExpenseService {
         return result
     }
 
+    /// Every charge landing in `month`, grouped by the day it lands on.
+    /// Days with no charge are omitted; order is first-of-month onwards.
+    static func occurrencesByDay(
+        _ expenses: [Expense],
+        month: Date
+    ) -> [(day: Date, expenses: [Expense])] {
+        let calendar = Calendar.current
+
+        guard let range = calendar.range(of: .day, in: .month, for: month),
+              let firstOfMonth = calendar.date(
+                from: calendar.dateComponents([.year, .month], from: month)
+              )
+        else { return [] }
+
+        return range.compactMap { day in
+            guard let date = calendar.date(byAdding: .day, value: day - 1, to: firstOfMonth)
+            else { return nil }
+            let charges = self.expenses(for: date, expenses: expenses)
+            return charges.isEmpty ? nil : (day: date, expenses: charges)
+        }
+    }
+
     /// Projected total for each month (1...12) of `year`, from billing cycles.
     static func monthlyForecast(_ expenses: [Expense], year: Int) -> [Double] {
         let calendar = Calendar.current

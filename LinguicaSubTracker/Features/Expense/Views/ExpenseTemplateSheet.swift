@@ -96,7 +96,13 @@ struct ExpenseTemplateSheet: View {
                 )
             }
             .navigationDestination(isPresented: $vm.showCatalog) {
-                SubscriptionCatalogView(viewModel: viewModel)
+                SubscriptionCatalogView(
+                    templates: vm.filteredServices,
+                    searchText: $vm.searchText,
+                    showEmptyCTA: vm.showEmptyCTA,
+                    onSelect: { vm.selectTemplate($0) },
+                    onCreateBlank: { _ in vm.createBlankWithSearch() }
+                )
             }
             .navigationDestination(isPresented: $showBatchAdd) {
                 BatchAddView(

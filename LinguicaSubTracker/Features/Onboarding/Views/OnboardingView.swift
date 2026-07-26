@@ -78,13 +78,14 @@ struct OnboardingView: View {
             ) {
                 OnboardingStatsHero()
             }
-        case .voice:
-            OnboardingFeaturePage(
-                title: "Just say it",
-                subtitle: "Hold the + button and rattle off expenses in one breath. Linguica listens, transcribes, and files each one for you."
-            ) {
-                OnboardingVoiceHero()
-            }
+        // Hidden with the `.voice` page while the speech capture is improved:
+        // case .voice:
+        //     OnboardingFeaturePage(
+        //         title: "Just say it",
+        //         subtitle: "Hold the + button and rattle off expenses in one breath. Linguica listens, transcribes, and files each one for you."
+        //     ) {
+        //         OnboardingVoiceHero()
+        //     }
         case .choosePath:
             OnboardingChoosePage(viewModel: viewModel, onFinish: onFinish)
         case .quickAdd:
