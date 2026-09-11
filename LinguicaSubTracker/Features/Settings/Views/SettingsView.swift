@@ -135,6 +135,9 @@ struct SettingsView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $vm.showApplePayImport) {
+            ApplePayImportSheet(store: vm.store, settingsStore: vm.settingsStore)
+        }
         .alert("Delete All Data?", isPresented: $showDeleteDataAlert) {
             Button("Delete", role: .destructive) {
                 viewModel.deleteAllExpenses()
@@ -339,6 +342,16 @@ struct SettingsView: View {
                 title: "Lists",
                 count: vm.listsCount
             ) { vm.showLists = true }
+
+            if FeatureFlags.isApplePayImportEnabled {
+                Divider()
+
+                detailRow(
+                    icon: "apple.logo",
+                    title: "Import Apple Pay",
+                    detail: ""
+                ) { vm.showApplePayImport = true }
+            }
         }
     }
 

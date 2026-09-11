@@ -9,6 +9,7 @@ struct ExpenseTemplateSheet: View {
     @State private var voiceViewModel: VoiceAddViewModel
     @State private var showReceiptScan: Bool = false
     @State private var showBatchAdd: Bool = false
+    @State private var showApplePayImport: Bool = false
     @State private var keypadItemID: UUID?
     @State private var currencyCode: String = ""
     @Environment(\.dismiss) private var dismiss
@@ -93,6 +94,13 @@ struct ExpenseTemplateSheet: View {
                     store: store,
                     settingsStore: settingsStore,
                     onSaved: { dismiss() }
+                )
+            }
+            .sheet(isPresented: $showApplePayImport) {
+                ApplePayImportSheet(
+                    date: vm.date,
+                    store: store,
+                    settingsStore: settingsStore
                 )
             }
             .navigationDestination(isPresented: $vm.showCatalog) {
@@ -184,13 +192,13 @@ struct ExpenseTemplateSheet: View {
                     minHeight: 110
                 ) { vm.showCatalog = true }
 
-                AddOptionCard(
-                    icon: "square.and.arrow.down",
-                    title: "Import from Sheet, Notion",
-                    badge: "Coming soon",
-                    isEnabled: false,
-                    minHeight: 110
-                ) {}
+                if FeatureFlags.isApplePayImportEnabled {
+                    AddOptionCard(
+                        icon: "apple.logo",
+                        title: "Import Apple Pay",
+                        minHeight: 110
+                    ) { showApplePayImport = true }
+                }
             }
         }
     }
