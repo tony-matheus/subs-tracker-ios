@@ -67,5 +67,15 @@ struct SatoruShortcuts: AppShortcutsProvider {
             shortTitle: "Add Expense",
             systemImageName: "plus.circle.fill"
         )
+        AppShortcut(
+            intent: ImportApplePayTransactionIntent(),
+            phrases: [
+                "Import Apple Pay in \(.applicationName)",
+                "Log Apple Pay transaction in \(.applicationName)",
+            ],
+            shortTitle: "Import Apple Pay",
+            systemImageName: "creditcard.fill"
+        )
     }
 }
+

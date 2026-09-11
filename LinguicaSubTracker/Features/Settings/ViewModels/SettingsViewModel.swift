@@ -12,6 +12,7 @@ final class SettingsViewModel {
     var showCalendarStyle = false
     var showPrivacy = false
     var showDataInfo = false
+    var showApplePayImport = false
 
     let settingsStore: SettingsStore
     let store: AppStore
