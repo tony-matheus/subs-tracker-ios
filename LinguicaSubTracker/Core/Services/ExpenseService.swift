@@ -333,3 +333,67 @@ enum ExpenseService {
         return total
     }
 }
+
+extension ExpenseService {
+    /// Every charge landing inside `interval` (half-open), day by day, so
+    /// recurring expenses count once per renewal.
+    static func occurrences(
+        in interval: DateInterval,
+        _ expenses: [Expense]
+    ) -> [(date: Date, expense: Expense)] {
+        let calendar = Calendar.current
+        var result: [(date: Date, expense: Expense)] = []
+        var day = calendar.startOfDay(for: interval.start)
+        while day < interval.end {
+            result += self.expenses(for: day, expenses: expenses).map { (day, $0) }
+            guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+            day = next
+        }
+        return result
+    }
+}
+
+/// Deterministic spending facts for a period — what Siri reads back.
+struct SpendingSummary: Equatable {
+    struct Amount: Equatable {
+        let name: String
+        let value: Double
+    }
+
+    let total: Double
+    let count: Int
+    /// Up to three categories, largest first.
+    let topCategories: [Amount]
+    let biggest: Amount?
+
+    init(_ occurrences: [(date: Date, expense: Expense)]) {
+        total = occurrences.reduce(0) { $0 + $1.expense.price }
+        count = occurrences.count
+        let byCategory = Dictionary(grouping: occurrences, by: \.expense.category)
+            .map { Amount(name: $0.key, value: $0.value.reduce(0) { $0 + $1.expense.price }) }
+        topCategories = Array(byCategory.sorted { ($0.value, $1.name) > ($1.value, $0.name) }.prefix(3))
+        biggest = occurrences.max { $0.expense.price < $1.expense.price }
+            .map { Amount(name: $0.expense.name, value: $0.expense.price) }
+    }
+
+    /// e.g. "This week you spent $182.00 across 9 transactions. Most went to
+    /// Food ($74.00). Biggest: Groceries $52.00."
+    func sentence(period: String, budgetLeft: Double?, format: (Double) -> String) -> String {
+        let lead = period.prefix(1).uppercased() + period.dropFirst()
+        guard count > 0 else { return "\(lead) you haven't spent anything." }
+
+        var parts = ["\(lead) you spent \(format(total)) across \(count) \(count == 1 ? "transaction" : "transactions")."]
+        if let top = topCategories.first, topCategories.count > 1 {
+            parts.append("Most went to \(top.name) (\(format(top.value))).")
+        }
+        if let biggest, count > 1 {
+            parts.append("Biggest: \(biggest.name) \(format(biggest.value)).")
+        }
+        if let budgetLeft {
+            parts.append(budgetLeft >= 0
+                ? "\(format(budgetLeft)) left in your budget."
+                : "\(format(-budgetLeft)) over your budget.")
+        }
+        return parts.joined(separator: " ")
+    }
+}

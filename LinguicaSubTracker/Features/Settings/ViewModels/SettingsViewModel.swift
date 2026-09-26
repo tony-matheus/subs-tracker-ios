@@ -70,6 +70,9 @@ final class SettingsViewModel {
     /// Wipes everything — expenses, customizations, settings — and sends the
     /// user back through onboarding, matching a fresh install.
     func resetAppCompletely() {
+        // A reset behaves like a fresh install on this device only: turn sync
+        // off first so the wipe doesn't delete the user's iCloud copy.
+        store.sync?.setEnabled(false)
         store.deleteAllExpenses()
         settingsStore.resetToDefaults()
         StorageService.hasCompletedOnboarding = false
