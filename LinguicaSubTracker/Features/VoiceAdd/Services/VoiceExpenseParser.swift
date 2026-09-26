@@ -10,15 +10,16 @@ enum VoiceExpenseParser {
         let trimmed = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return [] }
 
-        if case .available = SystemLanguageModel.default.availability {
-            do {
-                let items = try await aiParse(trimmed, categories: categories)
-                if !items.isEmpty { return items }
-            } catch {
-                // Model hiccup → deterministic path below.
-            }
-        }
+        if let items = await naturalParse(trimmed, categories: categories) { return items }
         return regexParse(trimmed, categories: categories)
+    }
+
+    /// On-device FoundationModels parse, or nil when the model is unavailable,
+    /// fails, or finds nothing (callers fall back to `regexParse`).
+    static func naturalParse(_ transcript: String, categories: [String]) async -> [ParsedExpense]? {
+        guard case .available = SystemLanguageModel.default.availability else { return nil }
+        let items = try? await aiParse(transcript, categories: categories)
+        return items?.isEmpty == false ? items : nil
     }
 
     // MARK: - AI path

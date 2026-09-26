@@ -11,6 +11,8 @@ import UIKit
 /// (deterministic regex path — fast, on-device). All segments except the
 /// last are final ("frozen") and appended once; the last segment keeps
 /// updating its row in place until a new segment starts or recording stops.
+/// When recording stops, the final transcript is re-read by the on-device
+/// language model (natural phrasing), replacing the regex rows if it can.
 @Observable
 @MainActor
 final class VoiceCaptureViewModel {
@@ -30,6 +32,7 @@ final class VoiceCaptureViewModel {
     let settingsStore: SettingsStore
 
     private let transcription = SpeechTranscriptionService()
+    private let locale: Locale
     private var startTask: Task<Void, Never>?
     /// Generation counter: bumped on every begin/dismiss so in-flight async
     /// work from a previous hold can never resurrect state after dismissal.
@@ -39,9 +42,10 @@ final class VoiceCaptureViewModel {
     /// Row currently being updated by the still-growing last segment.
     private var growingID: UUID?
 
-    init(store: AppStore, settingsStore: SettingsStore) {
+    init(store: AppStore, settingsStore: SettingsStore, locale: Locale = .current) {
         self.store = store
         self.settingsStore = settingsStore
+        self.locale = locale
     }
 
     private var categoryNames: [String] {
@@ -69,6 +73,7 @@ final class VoiceCaptureViewModel {
         startTask = Task {
             do {
                 try await transcription.start(
+                    locale: locale,
                     onUpdate: { [weak self] text in self?.liveParse(text) },
                     onLevel: { [weak self] raw in
                         guard let self else { return }
@@ -121,6 +126,14 @@ final class VoiceCaptureViewModel {
             let finalTranscript = await transcription.stop()
             guard generation == session else { return }
             liveParse(finalTranscript, isFinal: true)
+
+            // Natural-language pass over the whole utterance; keeps the regex
+            // rows when the model is unavailable (non-Apple-Intelligence devices).
+            if let natural = await VoiceExpenseParser.naturalParse(finalTranscript, categories: categoryNames) {
+                guard generation == session else { return }
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { items = natural }
+            }
+            guard generation == session else { return }
 
             transcript = ""
             level = 0

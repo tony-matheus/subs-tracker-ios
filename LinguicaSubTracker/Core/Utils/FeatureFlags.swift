@@ -15,4 +15,11 @@ enum FeatureFlags {
     #else
     static let renewals = false
     #endif
+
+    /// Control Center / Action Button control that opens voice capture.
+    #if FF_QUICK_ADD
+    static let quickAdd = true
+    #else
+    static let quickAdd = false
+    #endif
 }
