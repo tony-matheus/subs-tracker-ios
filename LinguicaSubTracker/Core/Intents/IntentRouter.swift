@@ -10,4 +10,7 @@ import Observation
 final class IntentRouter {
     /// Set by `QuickAddIntent`; the app root shows the voice capture.
     var pendingQuickAdd = false
+    /// Set by `OpenReceiptCaptureIntent`; the app root shows that receipt's
+    /// review. An id (not the items) so this file needs no receipt types.
+    var pendingReceiptID: UUID?
 }

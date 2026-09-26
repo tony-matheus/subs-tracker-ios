@@ -62,6 +62,9 @@ struct SatoruApp: App {
                 }
                 .animation(.easeOut(duration: 0.2), value: router.pendingQuickAdd)
                 #endif
+                #if FF_VISUAL_INTELLIGENCE
+                .receiptCaptureSheet(router: router, store: store, settingsStore: settingsStore)
+                #endif
                 .overlay { SyncToast(message: $sync.toast) }
                 .preferredColorScheme(settingsStore.themeMode.colorScheme)
                 .fullScreenCover(isPresented: $showOnboarding) {
@@ -104,6 +107,11 @@ struct SatoruApp: App {
                     if FeatureFlags.quickAdd, env["DEBUG_QUICK_ADD"] == "1" {
                         router.pendingQuickAdd = true
                     }
+                    #if FF_VISUAL_INTELLIGENCE
+                    if env["DEBUG_SCAN_SAMPLE"] == "1" {
+                        router.pendingReceiptID = await ReceiptCaptureCache.debugSample(settings: settingsStore.settings)
+                    }
+                    #endif
                 }
                 #endif
         }

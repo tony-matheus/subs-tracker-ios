@@ -12,13 +12,15 @@ struct ReceiptScanSheet: View {
         date: Date,
         store: AppStore,
         settingsStore: SettingsStore,
+        items: [ScannedExpenseItem] = [],
         onSaved: @escaping () -> Void = {}
     ) {
         _viewModel = State(
             initialValue: ReceiptScanViewModel(
                 date: date,
                 store: store,
-                settingsStore: settingsStore
+                settingsStore: settingsStore,
+                items: items
             )
         )
         self.onSaved = onSaved

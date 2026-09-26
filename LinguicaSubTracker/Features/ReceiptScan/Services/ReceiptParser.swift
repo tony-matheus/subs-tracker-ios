@@ -13,7 +13,7 @@ enum ReceiptParser {
 
     /// Lines whose text contains any of these are receipt summary/metadata,
     /// never purchasable items.
-    private static let noiseKeywords: [String] = [
+    nonisolated static let noiseKeywords: [String] = [
         "total", "subtotal", "sub-total", "tax", "hst", "gst", "pst", "vat",
         "change", "cash", "credit", "debit", "visa", "mastercard", "amex",
         "balance", "amount due", "tender", "tip", "gratuity", "payment",

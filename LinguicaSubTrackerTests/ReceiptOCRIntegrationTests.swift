@@ -1,3 +1,4 @@
+import FoundationModels
 import Testing
 import UIKit
 
@@ -53,5 +54,27 @@ struct ReceiptOCRIntegrationTests {
         #expect(items.contains { $0.name.localizedCaseInsensitiveContains("Bagel") && $0.price == 3.20 })
         #expect(items.contains { $0.name.localizedCaseInsensitiveContains("Juice") && $0.price == 4.00 })
         #expect(!items.contains { $0.name.localizedCaseInsensitiveContains("total") })
+    }
+
+    /// Same receipt through the on-device model (runs only where it's available).
+    @Test(.enabled(if: SystemLanguageModel.default.availability == .available))
+    func smartPipelineExtractsGroundedItems() async throws {
+        let image = renderReceipt(lines: [
+            ("CORNER CAFE", nil),
+            ("Latte", "5.50"),
+            ("Sesame Bagel", "3.20"),
+            ("Orange Juice", "4.00"),
+            ("TAX", "1.65"),
+            ("TOTAL", "14.35"),
+        ])
+        let tokens = try await ReceiptOCRService.recognizeTokens(in: image)
+        let items = try #require(await ReceiptSmartParser.naturalItems(
+            from: tokens, categories: ["Lifestyle", "Entertainment", "Other"]
+        ))
+
+        #expect(items.count == 3)
+        #expect(Set(items.map(\.price)) == [5.50, 3.20, 4.00])
+        #expect(!items.contains { $0.name.localizedCaseInsensitiveContains("total") })
+        #expect(items.allSatisfy { ["Lifestyle", "Entertainment", "Other"].contains($0.category ?? "") })
     }
 }

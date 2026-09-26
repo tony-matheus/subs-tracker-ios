@@ -24,10 +24,15 @@ final class ReceiptScanViewModel {
     let store: AppStore
     let settingsStore: SettingsStore
 
-    init(date: Date, store: AppStore, settingsStore: SettingsStore) {
+    /// `items` pre-fills the review (e.g. a receipt read by Visual Intelligence).
+    init(date: Date, store: AppStore, settingsStore: SettingsStore, items: [ScannedExpenseItem] = []) {
         self.date = date
         self.store = store
         self.settingsStore = settingsStore
+        if !items.isEmpty {
+            self.items = items
+            stage = .review
+        }
     }
 
     // MARK: - Input
@@ -41,7 +46,10 @@ final class ReceiptScanViewModel {
         do {
             for image in images {
                 let tokens = try await ReceiptOCRService.recognizeTokens(in: image)
-                found += ReceiptParser.items(from: tokens)
+                found += await ReceiptSmartParser.items(
+                    from: tokens,
+                    categories: settingsStore.settings.categories.map(\.name)
+                )
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -111,7 +119,7 @@ final class ReceiptScanViewModel {
                 billingCycle: .oneTime,
                 type: .expense,
                 startDate: date,
-                category: "Entertainment",
+                category: item.category ?? "Entertainment",
                 list: "Personal"
             )
             store.add(expense)
