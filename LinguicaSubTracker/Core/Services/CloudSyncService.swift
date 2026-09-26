@@ -138,6 +138,8 @@ final class CloudSyncService: CKSyncEngineDelegate {
                 stopEngine()
                 resetLocalSyncState()
                 startEngine()
+            @unknown default:
+                break
             }
 
         case .fetchedDatabaseChanges(let changes):

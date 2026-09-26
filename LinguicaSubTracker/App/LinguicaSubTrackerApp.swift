@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppIntents
 import SwiftUI
 
 @main
@@ -26,6 +27,9 @@ struct SatoruApp: App {
         _store = State(initialValue: store)
         _settingsStore = State(initialValue: settingsStore)
         _sync = State(initialValue: sync)
+        // Siri/Shortcuts intents get the same live stores via @Dependency.
+        AppDependencyManager.shared.add(dependency: store)
+        AppDependencyManager.shared.add(dependency: settingsStore)
     }
 
     var body: some Scene {

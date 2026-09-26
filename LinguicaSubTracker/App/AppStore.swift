@@ -16,6 +16,8 @@ final class AppStore {
     init() {
         expenses = StorageService.load()
         logoCustomizations = StorageService.loadCustomizations()
+        // ponytail: full reindex each launch (upsert); diff it if launch cost shows up.
+        ExpenseSpotlight.index(expenses)
 
         // Data can change outside the UI (Siri/Shortcuts intent, iCloud
         // sync). Re-read on foreground so a later in-app save doesn't
@@ -55,6 +57,7 @@ final class AppStore {
         expenses.append(expense)
         StorageService.save(expenses)
         sync?.expensesChanged(saved: [expense.id], deleted: [])
+        ExpenseSpotlight.index([expense])
     }
 
     func update(_ expense: Expense) {
@@ -62,6 +65,7 @@ final class AppStore {
         expenses[index] = expense
         StorageService.save(expenses)
         sync?.expensesChanged(saved: [expense.id], deleted: [])
+        ExpenseSpotlight.index([expense])
     }
 
     func delete(_ expense: Expense) {
@@ -69,12 +73,14 @@ final class AppStore {
         StorageService.save(expenses)
         clearCustomization(id: expense.id)
         sync?.expensesChanged(saved: [], deleted: [expense.id])
+        ExpenseSpotlight.remove([expense.id])
     }
 
     /// Wipes all expenses and per-expense logo customizations. Settings
     /// (currency, categories, payment methods, lists, budget, theme) are untouched.
     func deleteAllExpenses() {
         sync?.expensesChanged(saved: [], deleted: expenses.map(\.id))
+        ExpenseSpotlight.remove(expenses.map(\.id))
         expenses = []
         logoCustomizations = [:]
         StorageService.save(expenses)
@@ -105,6 +111,8 @@ final class AppStore {
         deleted.forEach { logoCustomizations[$0] = nil }
         StorageService.save(expenses)
         StorageService.saveCustomizations(logoCustomizations)
+        ExpenseSpotlight.index(saved)
+        ExpenseSpotlight.remove(deleted)
         return (inserted, changed)
     }
 
