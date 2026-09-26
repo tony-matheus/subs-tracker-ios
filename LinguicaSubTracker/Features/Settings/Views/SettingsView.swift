@@ -9,6 +9,10 @@ struct SettingsView: View {
     /// Same key `CloudSyncService.isEnabled` reads.
     @AppStorage(CloudSyncService.enabledKey) private var iCloudSyncEnabled = false
     @State private var iCloudAvailable = false
+    /// Device-local, read by `RenewalReminders`.
+    @AppStorage(RenewalReminders.enabledKey) private var remindersEnabled = false
+    @AppStorage(RenewalReminders.leadDaysKey) private var reminderLeadDays = 1
+    @State private var notificationsDenied = false
     // Gates the footer heart's repeating bounce so it only animates while
     // actually scrolled into view (it lives at the bottom of the scroll).
     @State private var isFooterVisible = false
@@ -42,6 +46,9 @@ struct SettingsView: View {
                     section("Money & Display") { numberPreferences(vm: vm) }
                     section("Organize") { filtersPreferences(vm: vm) }
                     section("Appearance") { appearancePreferences(vm: vm) }
+                    if FeatureFlags.renewals {
+                        section("Notifications") { notificationsSection(vm: vm) }
+                    }
                     section("Privacy & Data") { aboutSection(vm: vm) }
                     section("Danger Zone") { dangerZone(vm: vm) }
                     VStack(spacing: 8) {
@@ -185,6 +192,76 @@ struct SettingsView: View {
                 ) { vm.showCalendarStyle = true }
             }
             .padding(.vertical, 8)
+        }
+    }
+
+    @ViewBuilder
+    private func notificationsSection(vm: SettingsViewModel) -> some View {
+        GlassSection {
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle(isOn: $remindersEnabled) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "bell.badge")
+                            .iconStyle(size: 16, weight: .medium, color: .secondary)
+                            .frame(width: 24)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Renewal reminders")
+                                .typography(.bodyLarge)
+                                .foregroundStyle(.primary)
+                            Text(notificationsDenied
+                                 ? "Allow notifications in Settings"
+                                 : "A heads-up before subscriptions renew")
+                                .typography(.bodySmall)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .toggleStyle(SwitchToggleStyle(tint: .green))
+                .onChange(of: remindersEnabled) { _, on in
+                    Task {
+                        let allowed = await vm.store.reminders?.setEnabled(on) ?? true
+                        guard on else { return }
+                        notificationsDenied = !allowed
+                        if !allowed { remindersEnabled = false }
+                    }
+                }
+
+                if notificationsDenied {
+                    Button("Open Settings") {
+                        guard let url = URL(string: UIApplication.openNotificationSettingsURLString) else { return }
+                        UIApplication.shared.open(url)
+                    }
+                    .typography(.bodySmall)
+                    .padding(.leading, 34)
+                }
+            }
+            .padding(.vertical, 8)
+            .task {
+                notificationsDenied = await vm.store.reminders?.authorizationStatus() == .denied
+            }
+
+            if remindersEnabled {
+                Divider()
+                HStack(spacing: 10) {
+                    Image(systemName: "clock")
+                        .iconStyle(size: 16, weight: .medium, color: .secondary)
+                        .frame(width: 24)
+                    Text("Remind me")
+                        .typography(.bodyLarge)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Picker("Remind me", selection: $reminderLeadDays) {
+                        ForEach(RenewalReminders.leadDayOptions, id: \.self) { days in
+                            Text(days == 0 ? "Same day" : days == 1 ? "1 day before" : "\(days) days before")
+                                .tag(days)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(.secondary)
+                }
+                .padding(.vertical, 8)
+                .onChange(of: reminderLeadDays) { _, _ in vm.store.reminders?.reschedule() }
+            }
         }
     }
 

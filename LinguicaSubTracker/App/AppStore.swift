@@ -12,6 +12,8 @@ final class AppStore {
     var logoCustomizations: [UUID: LogoCustomization] = [:]
     /// Told about every local write so it can queue the matching CloudKit change.
     @ObservationIgnored weak var sync: CloudSyncService?
+    /// Reached from Settings to toggle renewal reminders.
+    @ObservationIgnored weak var reminders: RenewalReminders?
 
     init() {
         expenses = StorageService.load()
