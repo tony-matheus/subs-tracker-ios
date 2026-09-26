@@ -9,6 +9,9 @@ struct SatoruWidgetsBundle: WidgetBundle {
         MonthBudgetWidget()
         CalendarWidget()
         UpcomingWidget()
+        #if FF_QUICK_ADD
+        QuickAddControl()
+        #endif
     }
 }
 

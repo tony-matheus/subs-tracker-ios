@@ -16,6 +16,7 @@ struct SatoruApp: App {
     @State private var sync: CloudSyncService
     @State private var coordinator: AppCoordinator
     @State private var reminders: RenewalReminders
+    @State private var router: IntentRouter
     @State private var showOnboarding = !StorageService.hasCompletedOnboarding
     @Environment(\.scenePhase) private var scenePhase
 
@@ -35,9 +36,12 @@ struct SatoruApp: App {
         _sync = State(initialValue: sync)
         _coordinator = State(initialValue: coordinator)
         _reminders = State(initialValue: reminders)
+        let router = IntentRouter()
+        _router = State(initialValue: router)
         // Siri/Shortcuts intents get the same live stores via @Dependency.
         AppDependencyManager.shared.add(dependency: store)
         AppDependencyManager.shared.add(dependency: settingsStore)
+        AppDependencyManager.shared.add(dependency: router)
     }
 
     var body: some Scene {
@@ -47,6 +51,17 @@ struct SatoruApp: App {
                 .environment(store)
                 .environment(settingsStore)
                 .environment(coordinator)
+                #if FF_QUICK_ADD
+                .overlay {
+                    if router.pendingQuickAdd {
+                        QuickVoiceAddView(store: store, settingsStore: settingsStore) {
+                            router.pendingQuickAdd = false
+                        }
+                        .transition(.opacity)
+                    }
+                }
+                .animation(.easeOut(duration: 0.2), value: router.pendingQuickAdd)
+                #endif
                 .overlay { SyncToast(message: $sync.toast) }
                 .preferredColorScheme(settingsStore.themeMode.colorScheme)
                 .fullScreenCover(isPresented: $showOnboarding) {
@@ -81,8 +96,13 @@ struct SatoruApp: App {
                 }
                 #if DEBUG
                 .task {
-                    if FeatureFlags.renewals, ProcessInfo.processInfo.environment["DEBUG_REMINDERS"] == "1" {
+                    let env = ProcessInfo.processInfo.environment
+                    if FeatureFlags.renewals, env["DEBUG_REMINDERS"] == "1" {
                         await reminders.debugRun()
+                    }
+                    // SIMCTL_CHILD_DEBUG_QUICK_ADD=1: what the Quick Add control does.
+                    if FeatureFlags.quickAdd, env["DEBUG_QUICK_ADD"] == "1" {
+                        router.pendingQuickAdd = true
                     }
                 }
                 #endif

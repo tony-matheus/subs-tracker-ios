@@ -4,6 +4,7 @@ import Speech
 
 enum VoiceAddError: LocalizedError {
     case micDenied
+    case unavailable
     case localeUnsupported
     case audioFormatUnavailable
 
@@ -11,6 +12,8 @@ enum VoiceAddError: LocalizedError {
         switch self {
         case .micDenied:
             return "Microphone access is off. Enable it in Settings to speak expenses."
+        case .unavailable:
+            return "On-device speech recognition isn't available on this device."
         case .localeUnsupported:
             return "On-device transcription isn't available for your language yet."
         case .audioFormatUnavailable:
@@ -37,7 +40,15 @@ final class SpeechTranscriptionService {
         (finalized + volatile).trimmingCharacters(in: .whitespaces)
     }
 
+    /// Exact BCP-47 match first, then any locale with the same language
+    /// (so en-CA falls back to en-US), else nil.
+    nonisolated static func pickLocale(_ preferred: Locale, from supported: [Locale]) -> Locale? {
+        supported.first { $0.identifier(.bcp47) == preferred.identifier(.bcp47) }
+            ?? supported.first { $0.language.languageCode == preferred.language.languageCode }
+    }
+
     func start(
+        locale preferred: Locale = .current,
         onUpdate: @escaping @MainActor (String) -> Void,
         onLevel: (@MainActor (Float) -> Void)? = nil
     ) async throws {
@@ -45,13 +56,12 @@ final class SpeechTranscriptionService {
             throw VoiceAddError.micDenied
         }
 
+        // Simulators and older hardware have no on-device transcriber.
+        guard SpeechTranscriber.isAvailable else { throw VoiceAddError.unavailable }
+
         // Locale + model. Downloads the on-device model on first use.
         let supported = await SpeechTranscriber.supportedLocales
-        guard let locale = supported.first(where: {
-            $0.identifier(.bcp47) == Locale.current.identifier(.bcp47)
-        }) ?? supported.first(where: {
-            $0.language.languageCode == Locale.current.language.languageCode
-        }) else {
+        guard let locale = Self.pickLocale(preferred, from: supported) else {
             throw VoiceAddError.localeUnsupported
         }
 

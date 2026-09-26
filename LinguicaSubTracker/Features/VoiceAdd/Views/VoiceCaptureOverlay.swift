@@ -6,6 +6,8 @@ import SwiftUI
 /// overlay) so it never moves — rows appear to spring out of it.
 struct VoiceCaptureOverlay: View {
     @Bindable var viewModel: VoiceCaptureViewModel
+    /// Quick Add uses tap-to-talk instead of hold-to-talk.
+    var holdToSpeak = true
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -124,7 +126,7 @@ struct VoiceCaptureOverlay: View {
 
     private var hint: some View {
         VStack(spacing: 6) {
-            Text("Hold the button and speak")
+            Text(holdToSpeak ? "Hold the button and speak" : "Tap the mic and speak")
                 .typography(.titleMedium)
                 .foregroundStyle(.primary)
             Text("\"50 dollars on Safeway, 20 at Starbucks…\"")
