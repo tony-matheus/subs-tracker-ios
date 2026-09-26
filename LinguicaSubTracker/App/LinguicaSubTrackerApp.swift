@@ -14,7 +14,8 @@ struct SatoruApp: App {
     @State private var store: AppStore
     @State private var settingsStore: SettingsStore
     @State private var sync: CloudSyncService
-    @State private var coordinator = AppCoordinator()
+    @State private var coordinator: AppCoordinator
+    @State private var reminders: RenewalReminders
     @State private var showOnboarding = !StorageService.hasCompletedOnboarding
     @Environment(\.scenePhase) private var scenePhase
 
@@ -24,9 +25,16 @@ struct SatoruApp: App {
         let sync = CloudSyncService(store: store, settingsStore: settingsStore)
         store.sync = sync
         settingsStore.sync = sync
+        let coordinator = AppCoordinator()
+        // Also the notification-center delegate, so it must exist at launch
+        // to route a tapped reminder that cold-starts the app.
+        let reminders = RenewalReminders(store: store, settingsStore: settingsStore, coordinator: coordinator)
+        store.reminders = reminders
         _store = State(initialValue: store)
         _settingsStore = State(initialValue: settingsStore)
         _sync = State(initialValue: sync)
+        _coordinator = State(initialValue: coordinator)
+        _reminders = State(initialValue: reminders)
         // Siri/Shortcuts intents get the same live stores via @Dependency.
         AppDependencyManager.shared.add(dependency: store)
         AppDependencyManager.shared.add(dependency: settingsStore)
@@ -56,9 +64,28 @@ struct SatoruApp: App {
                 }
                 .onOpenURL { coordinator.handle($0) }
                 .onChange(of: scenePhase) { _, phase in
+                    guard phase == .active else { return }
                     // Silent pull on every open; the pill reports anything new.
-                    if phase == .active { Task { await sync.syncNow() } }
+                    Task { await sync.syncNow() }
+                    reminders.reschedule()
                 }
+                // Every write path (UI, Siri, iCloud, reload) lands in
+                // store.expenses, so this one hook keeps reminders current.
+                // Unconditional: with FF_RENEWALS off, reschedule() just
+                // clears anything scheduled by an earlier build.
+                .onChange(of: store.expenses) { _, _ in
+                    reminders.reschedule()
+                }
+                .onChange(of: settingsStore.settings.currencyCode) { _, _ in
+                    reminders.reschedule()
+                }
+                #if DEBUG
+                .task {
+                    if FeatureFlags.renewals, ProcessInfo.processInfo.environment["DEBUG_REMINDERS"] == "1" {
+                        await reminders.debugRun()
+                    }
+                }
+                #endif
         }
     }
 }
