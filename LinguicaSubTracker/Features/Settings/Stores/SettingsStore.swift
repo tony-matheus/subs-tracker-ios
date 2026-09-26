@@ -6,11 +6,30 @@ import Observation
 @MainActor
 final class SettingsStore {
     var settings: AppSettings {
-        didSet { StorageService.saveSettings(settings) }
+        didSet {
+            StorageService.saveSettings(settings)
+            if !isApplyingRemote { sync?.settingsChanged() }
+        }
     }
+
+    @ObservationIgnored weak var sync: CloudSyncService?
+    @ObservationIgnored private var isApplyingRemote = false
 
     init() {
         settings = StorageService.loadSettings()
+    }
+
+    /// Applies settings fetched from iCloud without echoing them back.
+    /// Returns whether anything actually changed.
+    @discardableResult
+    func applyRemote(_ remote: AppSettings) -> Bool {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        guard (try? encoder.encode(remote)) != (try? encoder.encode(settings)) else { return false }
+        isApplyingRemote = true
+        settings = remote
+        isApplyingRemote = false
+        return true
     }
 
     var themeMode: ThemeMode {

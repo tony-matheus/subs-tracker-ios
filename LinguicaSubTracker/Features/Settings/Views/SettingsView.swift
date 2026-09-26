@@ -1,3 +1,4 @@
+import CloudKit
 import SwiftUI
 
 struct SettingsView: View {
@@ -5,8 +6,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteDataAlert = false
     @State private var showResetAppAlert = false
-    /// Same key StorageService.iCloudSyncEnabled reads.
-    @AppStorage("icloud_sync_enabled") private var iCloudSyncEnabled = false
+    /// Same key `CloudSyncService.isEnabled` reads.
+    @AppStorage(CloudSyncService.enabledKey) private var iCloudSyncEnabled = false
+    @State private var iCloudAvailable = false
     // Gates the footer heart's repeating bounce so it only animates while
     // actually scrolled into view (it lives at the bottom of the scroll).
     @State private var isFooterVisible = false
@@ -141,7 +143,7 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently deletes all \(viewModel.expensesCount) expenses and their logos. Categories, payment methods, lists, budget and appearance stay as configured. This can't be undone.")
+            Text("This permanently deletes all \(viewModel.expensesCount) expenses and their logos\(iCloudSyncEnabled ? " from all your devices" : ""). Categories, payment methods, lists, budget and appearance stay as configured. This can't be undone.")
         }
         .alert("Reset App Completely?", isPresented: $showResetAppAlert) {
             Button("Reset", role: .destructive) {
@@ -189,33 +191,37 @@ struct SettingsView: View {
     @ViewBuilder
     private func aboutSection(vm: SettingsViewModel) -> some View {
         GlassSection {
-            // iCloud sync toggle — hidden until the dev account exists (the
-            // ubiquity entitlement fails signing on a personal team).
-            // Uncomment together with StorageService's iCloud section.
-            // VStack(alignment: .leading, spacing: 4) {
-            //     Toggle(isOn: $iCloudSyncEnabled) {
-            //         HStack(spacing: 10) {
-            //             Image(systemName: "icloud")
-            //                 .iconStyle(size: 16, weight: .medium, color: .secondary)
-            //                 .frame(width: 24)
-            //             VStack(alignment: .leading, spacing: 2) {
-            //                 Text("Sync with iCloud")
-            //                     .typography(.bodyLarge)
-            //                     .foregroundStyle(.primary)
-            //                 Text("Keep expenses and settings on all your devices")
-            //                     .typography(.bodySmall)
-            //                     .foregroundStyle(.secondary)
-            //             }
-            //         }
-            //     }
-            //     .toggleStyle(SwitchToggleStyle(tint: .green))
-            //     .onChange(of: iCloudSyncEnabled) { _, enabled in
-            //         if enabled { StorageService.pushAllToICloud() }
-            //     }
-            // }
-            // .padding(.vertical, 8)
-            //
-            // Divider()
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle(isOn: $iCloudSyncEnabled) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "icloud")
+                            .iconStyle(size: 16, weight: .medium, color: .secondary)
+                            .frame(width: 24)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Sync with iCloud")
+                                .typography(.bodyLarge)
+                                .foregroundStyle(.primary)
+                            Text(iCloudAvailable
+                                 ? "Keep expenses and settings on all your devices"
+                                 : "Sign in to iCloud in the Settings app")
+                                .typography(.bodySmall)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .toggleStyle(SwitchToggleStyle(tint: .green))
+                .disabled(!iCloudAvailable)
+                .onChange(of: iCloudSyncEnabled) { _, enabled in
+                    vm.store.sync?.setEnabled(enabled)
+                }
+            }
+            .padding(.vertical, 8)
+            .task {
+                let status = try? await CKContainer(identifier: CloudSyncService.containerID).accountStatus()
+                iCloudAvailable = status == .available
+            }
+
+            Divider()
 
             detailRow(
                 icon: "hand.raised",

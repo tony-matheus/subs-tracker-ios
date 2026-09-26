@@ -10,10 +10,23 @@ import SwiftUI
 
 @main
 struct SatoruApp: App {
-    @State private var store = AppStore()
-    @State private var settingsStore = SettingsStore()
+    @State private var store: AppStore
+    @State private var settingsStore: SettingsStore
+    @State private var sync: CloudSyncService
     @State private var coordinator = AppCoordinator()
     @State private var showOnboarding = !StorageService.hasCompletedOnboarding
+    @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        let store = AppStore()
+        let settingsStore = SettingsStore()
+        let sync = CloudSyncService(store: store, settingsStore: settingsStore)
+        store.sync = sync
+        settingsStore.sync = sync
+        _store = State(initialValue: store)
+        _settingsStore = State(initialValue: settingsStore)
+        _sync = State(initialValue: sync)
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -22,6 +35,7 @@ struct SatoruApp: App {
                 .environment(store)
                 .environment(settingsStore)
                 .environment(coordinator)
+                .overlay { SyncToast(message: $sync.toast) }
                 .preferredColorScheme(settingsStore.themeMode.colorScheme)
                 .fullScreenCover(isPresented: $showOnboarding) {
                     OnboardingView(store: store, settingsStore: settingsStore) {
@@ -36,7 +50,10 @@ struct SatoruApp: App {
                     coordinator.didRequestOnboardingReplay = false
                     showOnboarding = true
                 }
+                .onChange(of: scenePhase) { _, phase in
+                    // Silent pull on every open; the pill reports anything new.
+                    if phase == .active { Task { await sync.syncNow() } }
+                }
         }
     }
 }
-
