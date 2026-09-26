@@ -27,6 +27,18 @@ final class AppCoordinator {
     /// the app root observes this to bring back the onboarding flow.
     var didRequestOnboardingReplay = false
 
+    /// Set by a `satoru://add` deep link; HomeView opens the add sheet.
+    var didRequestAdd = false
+
+    /// Routes `satoru://` URLs from widgets.
+    func handle(_ url: URL) {
+        switch DeepLink(url: url) {
+        case .add: didRequestAdd = true
+        case .day(let date): selectedDay = date
+        case nil: break
+        }
+    }
+
     func filtered(_ expenses: [Expense]) -> [Expense] {
         expenses.filter { expense in
             if let list = filter.list, expense.list != list { return false }

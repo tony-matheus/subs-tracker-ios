@@ -351,6 +351,22 @@ extension ExpenseService {
         }
         return result
     }
+
+    /// Sunday-start week containing `date`, matching the app's calendar grid.
+    static func weekInterval(containing date: Date) -> DateInterval {
+        var calendar = Calendar.current
+        calendar.firstWeekday = WeekStartDay.sunday.calendarValue
+        return calendar.dateInterval(of: .weekOfYear, for: date)
+            ?? DateInterval(start: calendar.startOfDay(for: date), duration: 7 * 86_400)
+    }
+
+    /// Charges from the start of `date`'s day to the end of its week, soonest first.
+    static func upcoming(from date: Date, _ expenses: [Expense]) -> [(date: Date, expense: Expense)] {
+        let start = Calendar.current.startOfDay(for: date)
+        let end = weekInterval(containing: date).end
+        guard start < end else { return [] }
+        return occurrences(in: DateInterval(start: start, end: end), expenses)
+    }
 }
 
 /// Deterministic spending facts for a period — what Siri reads back.

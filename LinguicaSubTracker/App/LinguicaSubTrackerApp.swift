@@ -54,6 +54,7 @@ struct SatoruApp: App {
                     coordinator.didRequestOnboardingReplay = false
                     showOnboarding = true
                 }
+                .onOpenURL { coordinator.handle($0) }
                 .onChange(of: scenePhase) { _, phase in
                     // Silent pull on every open; the pill reports anything new.
                     if phase == .active { Task { await sync.syncNow() } }
