@@ -22,4 +22,18 @@ enum FeatureFlags {
     #else
     static let quickAdd = false
     #endif
+
+    /// Receipt scanning with iOS 26 document OCR + on-device model parsing.
+    #if FF_SMART_RECEIPTS
+    static let smartReceipts = true
+    #else
+    static let smartReceipts = false
+    #endif
+
+    /// Satoru as a Visual Intelligence result for receipts (device-only SDK).
+    #if FF_VISUAL_INTELLIGENCE
+    static let visualIntelligence = true
+    #else
+    static let visualIntelligence = false
+    #endif
 }
