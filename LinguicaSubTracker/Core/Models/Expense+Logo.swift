@@ -4,16 +4,16 @@ extension LogoCustomization {
     /// Single source of truth for resolving an expense's logo customization.
     ///
     /// Resolution order:
-    /// 1. User-saved override in `AppStore.logoCustomizations`.
+    /// 1. User-saved override in `customizations` (`AppStore.logoCustomizations`).
     /// 2. Template defaults via `SubscriptionTemplate.template(matching:)`
     ///    (matches the look used by the popular-expenses picker).
     /// 3. Neutral gray fallback for unrecognized names.
     static func resolved(
         for id: UUID,
         name: String,
-        in store: AppStore
+        customizations: [UUID: LogoCustomization]
     ) -> LogoCustomization {
-        if let saved = store.customization(for: id) { return saved }
+        if let saved = customizations[id] { return saved }
         if let template = SubscriptionTemplate.template(matching: name) {
             return template.makeCustomization(id: id)
         }
@@ -63,7 +63,7 @@ extension Expense {
     /// Resolved logo customization — saved override → template defaults →
     /// neutral fallback. Use this everywhere an `Expense` is rendered so
     /// every site matches the popular-expenses picker look.
-    func logoCustomization(in store: AppStore) -> LogoCustomization {
-        LogoCustomization.resolved(for: id, name: name, in: store)
+    func logoCustomization(customizations: [UUID: LogoCustomization]) -> LogoCustomization {
+        LogoCustomization.resolved(for: id, name: name, customizations: customizations)
     }
 }

@@ -45,3 +45,24 @@ struct AppSettings: Codable {
         ]
     )
 }
+
+// MARK: - Budget math (shared with the widget extension)
+
+extension AppSettings {
+    /// The ceiling every budget read should use: a flexible budget grows to
+    /// cover its category slices once they outgrow the general amount, a
+    /// strict one stays put.
+    var effectiveBudget: Double? {
+        guard let budget = monthlyBudget else { return nil }
+        let allocated = (categoryBudgets ?? [:]).values.reduce(0, +)
+        return strictBudget == true ? budget : max(budget, allocated)
+    }
+
+    /// Monthly budget prorated to a 7-day week of `date`'s month.
+    func weekBudget(for date: Date, calendar: Calendar = .current) -> Double? {
+        guard let budget = effectiveBudget,
+              let days = calendar.range(of: .day, in: .month, for: date)?.count
+        else { return nil }
+        return budget * 7 / Double(days)
+    }
+}

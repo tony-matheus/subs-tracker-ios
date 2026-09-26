@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		18A8E78F3068321100A50CC2 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 186144A82FF765CC006D5545 /* WidgetKit.framework */; };
+		18A8E7903068321100A50CC2 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 186144AA2FF765CC006D5545 /* SwiftUI.framework */; };
+		18A8E79F3068321300A50CC2 /* SatoruWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 18A8E78E3068321100A50CC2 /* SatoruWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1814E5A62F9AEE29004DF657 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,6 +27,13 @@
 			remoteGlobalIDString = 1814E5972F9AEE28004DF657;
 			remoteInfo = LinguicaSubTracker;
 		};
+		18A8E79D3068321300A50CC2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1814E5902F9AEE28004DF657 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 18A8E78D3068321100A50CC2;
+			remoteInfo = SatoruWidgetsExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,6 +43,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				18A8E79F3068321300A50CC2 /* SatoruWidgetsExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -42,6 +56,8 @@
 		1814E5AF2F9AEE29004DF657 /* LinguicaSubTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LinguicaSubTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		186144A82FF765CC006D5545 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		186144AA2FF765CC006D5545 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		18A8E78E3068321100A50CC2 /* SatoruWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SatoruWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		18A8E7A43068328F00A50CC2 /* SatoruWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SatoruWidgetsExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -52,6 +68,46 @@
 			);
 			target = 1814E5972F9AEE28004DF657 /* LinguicaSubTracker */;
 		};
+		18A8E7A33068321300A50CC2 /* Exceptions for "SatoruWidgets" folder in "SatoruWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 18A8E78D3068321100A50CC2 /* SatoruWidgetsExtension */;
+		};
+		18A8E7B03068400000A50CC2 /* Exceptions for "LinguicaSubTracker" folder in "SatoruWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Core/Components/LogoCircle.swift,
+				Core/Models/DeepLink.swift,
+				Core/Models/Expense.swift,
+				"Core/Models/Expense+Logo.swift",
+				Core/Models/LogoCustomization.swift,
+				Core/Models/SubscriptionTemplate.swift,
+				Core/Services/ExpenseService.swift,
+				Core/Services/StorageService.swift,
+				Core/Utils/AppTheme.swift,
+				Core/Utils/BudgetColor.swift,
+				Core/Utils/Extensions/Color.swift,
+				Core/Utils/MoneyFormatter.swift,
+				Features/Home/Services/CalendarService.swift,
+				Features/Settings/Models/AppSettings.swift,
+				Features/Settings/Models/CalendarStyle.swift,
+				Features/Settings/Models/Category.swift,
+				Features/Settings/Models/ExpenseList.swift,
+				Features/Settings/Models/PaymentMethod.swift,
+				Resources/Assets.xcassets,
+			);
+			target = 18A8E78D3068321100A50CC2 /* SatoruWidgetsExtension */;
+		};
+		18A8E7B13068400000A50CC2 /* Exceptions for "SatoruWidgets" folder in "LinguicaSubTracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				WidgetData.swift,
+				WidgetViews.swift,
+			);
+			target = 1814E5972F9AEE28004DF657 /* LinguicaSubTracker */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -59,6 +115,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				1805E8982F9ECD6900EE69D4 /* Exceptions for "LinguicaSubTracker" folder in "LinguicaSubTracker" target */,
+				18A8E7B03068400000A50CC2 /* Exceptions for "LinguicaSubTracker" folder in "SatoruWidgetsExtension" target */,
 			);
 			path = LinguicaSubTracker;
 			sourceTree = "<group>";
@@ -71,6 +128,15 @@
 		1814E5B22F9AEE29004DF657 /* LinguicaSubTrackerUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = LinguicaSubTrackerUITests;
+			sourceTree = "<group>";
+		};
+		18A8E7913068321100A50CC2 /* SatoruWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				18A8E7B13068400000A50CC2 /* Exceptions for "SatoruWidgets" folder in "LinguicaSubTracker" target */,
+				18A8E7A33068321300A50CC2 /* Exceptions for "SatoruWidgets" folder in "SatoruWidgetsExtension" target */,
+			);
+			path = SatoruWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -97,15 +163,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		18A8E78B3068321100A50CC2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18A8E7903068321100A50CC2 /* SwiftUI.framework in Frameworks */,
+				18A8E78F3068321100A50CC2 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		1814E58F2F9AEE28004DF657 = {
 			isa = PBXGroup;
 			children = (
+				18A8E7A43068328F00A50CC2 /* SatoruWidgetsExtension.entitlements */,
 				1814E59A2F9AEE28004DF657 /* LinguicaSubTracker */,
 				1814E5A82F9AEE29004DF657 /* LinguicaSubTrackerTests */,
 				1814E5B22F9AEE29004DF657 /* LinguicaSubTrackerUITests */,
+				18A8E7913068321100A50CC2 /* SatoruWidgets */,
 				186144A72FF765CC006D5545 /* Frameworks */,
 				1814E5992F9AEE28004DF657 /* Products */,
 			);
@@ -117,6 +194,7 @@
 				1814E5982F9AEE28004DF657 /* LinguicaSubTracker.app */,
 				1814E5A52F9AEE29004DF657 /* LinguicaSubTrackerTests.xctest */,
 				1814E5AF2F9AEE29004DF657 /* LinguicaSubTrackerUITests.xctest */,
+				18A8E78E3068321100A50CC2 /* SatoruWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -145,6 +223,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				18A8E79E3068321300A50CC2 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				1814E59A2F9AEE28004DF657 /* LinguicaSubTracker */,
@@ -202,6 +281,28 @@
 			productReference = 1814E5AF2F9AEE29004DF657 /* LinguicaSubTrackerUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		18A8E78D3068321100A50CC2 /* SatoruWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 18A8E7A03068321300A50CC2 /* Build configuration list for PBXNativeTarget "SatoruWidgetsExtension" */;
+			buildPhases = (
+				18A8E78A3068321100A50CC2 /* Sources */,
+				18A8E78B3068321100A50CC2 /* Frameworks */,
+				18A8E78C3068321100A50CC2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				18A8E7913068321100A50CC2 /* SatoruWidgets */,
+			);
+			name = SatoruWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = SatoruWidgetsExtension;
+			productReference = 18A8E78E3068321100A50CC2 /* SatoruWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -223,6 +324,9 @@
 						CreatedOnToolsVersion = 26.4.1;
 						TestTargetID = 1814E5972F9AEE28004DF657;
 					};
+					18A8E78D3068321100A50CC2 = {
+						CreatedOnToolsVersion = 26.6;
+					};
 				};
 			};
 			buildConfigurationList = 1814E5932F9AEE28004DF657 /* Build configuration list for PBXProject "LinguicaSubTracker" */;
@@ -242,6 +346,7 @@
 				1814E5972F9AEE28004DF657 /* LinguicaSubTracker */,
 				1814E5A42F9AEE29004DF657 /* LinguicaSubTrackerTests */,
 				1814E5AE2F9AEE29004DF657 /* LinguicaSubTrackerUITests */,
+				18A8E78D3068321100A50CC2 /* SatoruWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -262,6 +367,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1814E5AD2F9AEE29004DF657 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		18A8E78C3068321100A50CC2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -292,6 +404,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		18A8E78A3068321100A50CC2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -304,6 +423,11 @@
 			isa = PBXTargetDependency;
 			target = 1814E5972F9AEE28004DF657 /* LinguicaSubTracker */;
 			targetProxy = 1814E5B02F9AEE29004DF657 /* PBXContainerItemProxy */;
+		};
+		18A8E79E3068321300A50CC2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 18A8E78D3068321100A50CC2 /* SatoruWidgetsExtension */;
+			targetProxy = 18A8E79D3068321300A50CC2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -589,6 +713,70 @@
 			};
 			name = Release;
 		};
+		18A8E7A13068321300A50CC2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = SatoruWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T2V9K4HQP6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SatoruWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SatoruWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dtx.LinguicaSubTracker.SatoruWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		18A8E7A23068321300A50CC2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = SatoruWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T2V9K4HQP6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SatoruWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SatoruWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dtx.LinguicaSubTracker.SatoruWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -624,6 +812,15 @@
 			buildConfigurations = (
 				1814E5C02F9AEE29004DF657 /* Debug */,
 				1814E5C12F9AEE29004DF657 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		18A8E7A03068321300A50CC2 /* Build configuration list for PBXNativeTarget "SatoruWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				18A8E7A13068321300A50CC2 /* Debug */,
+				18A8E7A23068321300A50CC2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

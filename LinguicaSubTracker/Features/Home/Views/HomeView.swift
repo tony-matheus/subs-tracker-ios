@@ -6,6 +6,9 @@ struct HomeView: View {
     @State private var viewModel: HomeViewModel
     @State private var showMonthPicker = false
     @State private var viewType: HomeViewType = .calendar
+    #if DEBUG
+    @State private var debugWidgetGallery: String?
+    #endif
 
     init(
         store: AppStore,
@@ -68,6 +71,12 @@ struct HomeView: View {
             .onChange(of: coordinator.filter) { _, _ in
                 vm.calendarViewModel.onFilterChange()
             }
+            // `satoru://add` from a widget (see AppCoordinator.handle).
+            .onChange(of: coordinator.didRequestAdd) { _, requested in
+                guard requested else { return }
+                coordinator.didRequestAdd = false
+                vm.didTapAdd()
+            }
             .onAppear {
                 vm.calendarViewModel.onAppear()
                 #if DEBUG
@@ -88,6 +97,8 @@ struct HomeView: View {
                         vm.calendarViewModel.currentMonthIndex = index
                     }
                 }
+                // SIMCTL_CHILD_DEBUG_WIDGET_GALLERY=<section>, see WidgetGallery.
+                debugWidgetGallery = ProcessInfo.processInfo.environment["DEBUG_WIDGET_GALLERY"]
                 #endif
             }
             .toolbar {
@@ -118,6 +129,14 @@ struct HomeView: View {
                     showMonthPicker = false
                 }
             }
+            #if DEBUG
+            .fullScreenCover(isPresented: Binding(
+                get: { debugWidgetGallery != nil },
+                set: { if !$0 { debugWidgetGallery = nil } }
+            )) {
+                WidgetGallery(section: debugWidgetGallery ?? "week")
+            }
+            #endif
             .sheet(isPresented: $vm.showAddSheet) {
                 SimplifiedAddExpenseView(
                     date: Date(),

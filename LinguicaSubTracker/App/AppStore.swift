@@ -130,3 +130,17 @@ final class AppStore {
         return result
     }
 }
+
+// App-side conveniences over the store-free resolver in Expense+Logo.swift
+// (kept here so that file also compiles into the widget extension).
+extension LogoCustomization {
+    static func resolved(for id: UUID, name: String, in store: AppStore) -> LogoCustomization {
+        resolved(for: id, name: name, customizations: store.logoCustomizations)
+    }
+}
+
+extension Expense {
+    func logoCustomization(in store: AppStore) -> LogoCustomization {
+        logoCustomization(customizations: store.logoCustomizations)
+    }
+}

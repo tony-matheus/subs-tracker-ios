@@ -63,10 +63,7 @@ final class SettingsStore {
     /// The ceiling every budget read should use: a flexible budget grows to
     /// cover its slices once they outgrow the general amount, a strict one
     /// stays put (and the editor warns instead).
-    var effectiveBudget: Double? {
-        guard let budget = settings.monthlyBudget else { return nil }
-        return isStrictBudget ? budget : max(budget, allocatedBudget)
-    }
+    var effectiveBudget: Double? { settings.effectiveBudget }
 
     /// `nil`/non-positive amount removes the slice.
     func setCategoryBudget(_ name: String, amount: Double?) {
