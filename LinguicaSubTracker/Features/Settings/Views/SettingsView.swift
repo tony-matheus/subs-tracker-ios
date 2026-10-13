@@ -7,14 +7,20 @@ struct SettingsView: View {
     @State private var showDeleteDataAlert = false
     @State private var showResetAppAlert = false
     /// Same key `CloudSyncService.isEnabled` reads.
-    @AppStorage(CloudSyncService.enabledKey) private var iCloudSyncEnabled = false
+    @AppStorage(CloudSyncService.enabledKey) private var iCloudSyncEnabled =
+        false
     @State private var iCloudAvailable = false
     /// Device-local, read by `RenewalReminders`.
-    @AppStorage(RenewalReminders.enabledKey) private var remindersEnabled = false
+    @AppStorage(RenewalReminders.enabledKey) private var remindersEnabled =
+        false
     @AppStorage(RenewalReminders.leadDaysKey) private var reminderLeadDays = 1
     @State private var notificationsDenied = false
 
-    init(settingsStore: SettingsStore, store: AppStore, coordinator: AppCoordinator) {
+    init(
+        settingsStore: SettingsStore,
+        store: AppStore,
+        coordinator: AppCoordinator
+    ) {
         _viewModel = State(
             initialValue: SettingsViewModel(
                 settingsStore: settingsStore,
@@ -34,18 +40,22 @@ struct SettingsView: View {
                 VStack(spacing: 24) {
                     KasagiHeader()
                     section("Budget") {
-                        GlassSection {
+                        SettingsCard(topInset: 8, bottomInset: 16) {
                             BudgetEditor(
                                 settingsStore: vm.settingsStore,
                                 store: vm.store
                             )
                         }
                     }
-                    section("Money & Display") { numberPreferences(vm: vm) }
+                    section("Money & Display") {
+                        moneyAndDisplayPreferences(vm: vm)
+                    }
                     section("Organize") { filtersPreferences(vm: vm) }
                     section("Appearance") { appearancePreferences(vm: vm) }
                     if FeatureFlags.renewals {
-                        section("Notifications") { notificationsSection(vm: vm) }
+                        section("Notifications") {
+                            notificationsSection(vm: vm)
+                        }
                     }
                     section("Privacy & Data") { aboutSection(vm: vm) }
                     section("Danger Zone") { dangerZone(vm: vm) }
@@ -69,7 +79,7 @@ struct SettingsView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 8)
                 .padding(.top, 8)
                 .padding(.bottom, 32)
             }
@@ -78,14 +88,16 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 #if DEBUG
-                // Headless-testing hook (same pattern as ONBOARDING_PAGE):
-                // SIMCTL_CHILD_DEBUG_OPEN_SETTINGS_PAGE=privacy|datainfo|calendarstyle
-                switch ProcessInfo.processInfo.environment["DEBUG_OPEN_SETTINGS_PAGE"] {
-                case "privacy": viewModel.showPrivacy = true
-                case "datainfo": viewModel.showDataInfo = true
-                case "calendarstyle": viewModel.showCalendarStyle = true
-                default: break
-                }
+                    // Headless-testing hook (same pattern as ONBOARDING_PAGE):
+                    // SIMCTL_CHILD_DEBUG_OPEN_SETTINGS_PAGE=privacy|datainfo|calendarstyle
+                    switch ProcessInfo.processInfo.environment[
+                        "DEBUG_OPEN_SETTINGS_PAGE"
+                    ] {
+                    case "privacy": viewModel.showPrivacy = true
+                    case "datainfo": viewModel.showDataInfo = true
+                    case "calendarstyle": viewModel.showCalendarStyle = true
+                    default: break
+                    }
                 #endif
             }
             .toolbar {
@@ -140,7 +152,9 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently deletes all \(viewModel.expensesCount) expenses and their logos\(iCloudSyncEnabled ? " from all your devices" : ""). Categories, payment methods, lists, budget and appearance stay as configured. This can't be undone.")
+            Text(
+                "This permanently deletes all \(viewModel.expensesCount) expenses and their logos\(iCloudSyncEnabled ? " from all your devices" : ""). Categories, payment methods, lists, budget and appearance stay as configured. This can't be undone."
+            )
         }
         .alert("Reset App Completely?", isPresented: $showResetAppAlert) {
             Button("Reset", role: .destructive) {
@@ -149,7 +163,9 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently deletes every expense, category, payment method, list and preference, then restarts onboarding as if freshly installed. This can't be undone.")
+            Text(
+                "This permanently deletes every expense, category, payment method, list and preference, then restarts onboarding as if freshly installed. This can't be undone."
+            )
         }
     }
 
@@ -159,323 +175,202 @@ struct SettingsView: View {
         @ViewBuilder content: () -> some View
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(title)
+            SectionLabel(title, markerVariant: .default)
             content()
         }
     }
 
     @ViewBuilder
     private func appearancePreferences(vm: SettingsViewModel) -> some View {
-        GlassSection {
-            VStack(alignment: .leading, spacing: 12) {
-                AppearanceSelector(selection: vm.themeModeBinding())
-
-                Rule()
-
-                detailRow(
-                    icon: "calendar",
-                    title: "Calendar Style",
-                    detail: vm.calendarStyleName
-                ) { vm.showCalendarStyle = true }
-            }
-            .padding(.vertical, 8)
+        SettingsCard(topInset: 16, bottomInset: 8) {
+            AppearanceSelector(selection: vm.themeModeBinding())
+            Rule().padding(.vertical, 8)
+            SettingsNavigationRow(
+                icon: "calendar",
+                title: "Calendar Style",
+                actionText: vm.calendarStyleName
+            ) { vm.showCalendarStyle = true }
         }
     }
 
     @ViewBuilder
     private func notificationsSection(vm: SettingsViewModel) -> some View {
-        GlassSection {
-            VStack(alignment: .leading, spacing: 4) {
-                Toggle(isOn: $remindersEnabled) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "bell.badge")
-                            .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
-                            .frame(width: 24)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Renewal reminders")
-                                .typography(.bodyLarge)
-                                .foregroundStyle(Color.ink)
-                            Text(notificationsDenied
-                                 ? "Allow notifications in Settings"
-                                 : "A heads-up before subscriptions renew")
-                                .typography(.bodySmall)
-                                .foregroundStyle(Color.inkSecondary)
-                        }
-                    }
-                }
-                .toggleStyle(SwitchToggleStyle(tint: Color.shu))
-                .onChange(of: remindersEnabled) { _, on in
-                    Task {
-                        let allowed = await vm.store.reminders?.setEnabled(on) ?? true
-                        guard on else { return }
-                        notificationsDenied = !allowed
-                        if !allowed { remindersEnabled = false }
-                    }
-                }
-
-                if notificationsDenied {
-                    Button("Open Settings") {
-                        guard let url = URL(string: UIApplication.openNotificationSettingsURLString) else { return }
-                        UIApplication.shared.open(url)
-                    }
-                    .typography(.bodySmall)
-                    .padding(.leading, 34)
+        SettingsCard(
+            topInset: 16,
+            bottomInset: remindersEnabled || notificationsDenied ? 8 : 16
+        ) {
+            SettingsToggleRow(
+                icon: "bell.badge",
+                title: "Renewal reminders",
+                description: notificationsDenied
+                    ? "Allow notifications in Settings"
+                    : "A heads-up before subscriptions renew",
+                isOn: $remindersEnabled
+            ) { on in
+                Task {
+                    let allowed = await vm.store.reminders?.setEnabled(on) ?? true
+                    guard on else { return }
+                    notificationsDenied = !allowed
+                    if !allowed { remindersEnabled = false }
                 }
             }
-            .padding(.vertical, 8)
-            .task {
-                notificationsDenied = await vm.store.reminders?.authorizationStatus() == .denied
+
+            if notificationsDenied {
+                Rule().padding(.vertical, 8)
+                SettingsNavigationRow(
+                    icon: "gearshape",
+                    title: "Open Settings",
+                    actionText: "Notifications"
+                ) {
+                    guard let url = URL(
+                        string: UIApplication.openNotificationSettingsURLString
+                    ) else { return }
+                    UIApplication.shared.open(url)
+                }
             }
 
             if remindersEnabled {
-                Rule()
-                HStack(spacing: 10) {
-                    Image(systemName: "clock")
-                        .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
-                        .frame(width: 24)
-                    Text("Remind me")
-                        .typography(.bodyLarge)
-                        .foregroundStyle(Color.ink)
-                    Spacer()
+                Rule().padding(.vertical, 8)
+                HStack(spacing: 8) {
+                    SettingsRowLabel(icon: "clock", title: "Remind me")
                     Picker("Remind me", selection: $reminderLeadDays) {
-                        ForEach(RenewalReminders.leadDayOptions, id: \.self) { days in
-                            Text(days == 0 ? "Same day" : days == 1 ? "1 day before" : "\(days) days before")
-                                .tag(days)
+                        ForEach(RenewalReminders.leadDayOptions, id: \.self) {
+                            days in
+                            Text(
+                                days == 0
+                                    ? "Same day"
+                                    : days == 1
+                                        ? "1 day before" : "\(days) days before"
+                            )
+                            .tag(days)
                         }
                     }
                     .pickerStyle(.menu)
-                    .tint(.secondary)
+                    .tint(Color.ink)
                 }
-                .padding(.vertical, 8)
-                .onChange(of: reminderLeadDays) { _, _ in vm.store.reminders?.reschedule() }
+                .settingsRowFrame()
+                .onChange(of: reminderLeadDays) { _, _ in
+                    vm.store.reminders?.reschedule()
+                }
             }
+        }
+        .task {
+            notificationsDenied =
+                await vm.store.reminders?.authorizationStatus() == .denied
         }
     }
 
     @ViewBuilder
     private func aboutSection(vm: SettingsViewModel) -> some View {
-        GlassSection {
-            VStack(alignment: .leading, spacing: 4) {
-                Toggle(isOn: $iCloudSyncEnabled) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "icloud")
-                            .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
-                            .frame(width: 24)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Sync with iCloud")
-                                .typography(.bodyLarge)
-                                .foregroundStyle(Color.ink)
-                            Text(iCloudAvailable
-                                 ? "Keep expenses and settings on all your devices"
-                                 : "Sign in to iCloud in the Settings app")
-                                .typography(.bodySmall)
-                                .foregroundStyle(Color.inkSecondary)
-                        }
-                    }
-                }
-                .toggleStyle(SwitchToggleStyle(tint: Color.shu))
-                .disabled(!iCloudAvailable)
-                .onChange(of: iCloudSyncEnabled) { _, enabled in
-                    vm.store.sync?.setEnabled(enabled)
-                }
+        SettingsCard(topInset: 16, bottomInset: 8) {
+            SettingsToggleRow(
+                icon: "icloud",
+                title: "Sync with iCloud",
+                description: iCloudAvailable
+                    ? "Keep expenses and settings on all your devices"
+                    : "Sign in to iCloud in the Settings app",
+                isOn: $iCloudSyncEnabled
+            ) { enabled in
+                vm.store.sync?.setEnabled(enabled)
             }
-            .padding(.vertical, 8)
-            .task {
-                let status = try? await CKContainer(identifier: CloudSyncService.containerID).accountStatus()
-                iCloudAvailable = status == .available
-            }
+            .disabled(!iCloudAvailable)
 
-            Rule()
-
-            detailRow(
+            Rule().padding(.vertical, 8)
+            SettingsNavigationRow(
                 icon: "hand.raised",
-                title: "Privacy",
-                detail: ""
+                title: "Privacy"
             ) { vm.showPrivacy = true }
 
-            Rule()
-
-            detailRow(
+            Rule().padding(.vertical, 8)
+            SettingsNavigationRow(
                 icon: "internaldrive",
-                title: "How My Data Is Saved",
-                detail: ""
+                title: "How My Data Is Saved"
             ) { vm.showDataInfo = true }
+        }
+        .task {
+            let status = try? await CKContainer(
+                identifier: CloudSyncService.containerID
+            ).accountStatus()
+            iCloudAvailable = status == .available
         }
     }
 
     @ViewBuilder
-    private func numberPreferences(vm: SettingsViewModel) -> some View {
-        GlassSection {
-            Button {
-                vm.showCurrencyPicker = true
-            } label: {
-                HStack {
-                    Image(systemName: "banknote.fill")
-                        .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
-                        .frame(width: 24)
-                    Text("Main Currency")
-                        .typography(.bodyLarge)
-                        .foregroundStyle(Color.ink)
-                    Spacer()
-                    Text(vm.currencyCode)
-                        .typography(.bodyMedium)
-                        .foregroundStyle(Color.inkSecondary)
-                    Image(systemName: "chevron.right")
-                        .iconStyle(
-                            size: 12,
-                            weight: .semibold,
-                            color: Color.inkSecondary
-                        )
-                }
-                .frame(height: 44)
-            }
-            .buttonStyle(.plain)
+    private func moneyAndDisplayPreferences(vm: SettingsViewModel) -> some View {
+        SettingsCard(topInset: 8, bottomInset: 16) {
+            SettingsNavigationRow(
+                icon: "banknote.fill",
+                title: "Main Currency",
+                actionText: vm.currencyCode
+            ) { vm.showCurrencyPicker = true }
 
-            Rule()
+            Rule().padding(.vertical, 8)
+            SettingsToggleRow(
+                icon: "0.circle.fill",
+                title: "Rounding",
+                description: "Display amounts without decimals",
+                isOn: vm.roundAmountsBinding()
+            )
 
-            VStack(alignment: .leading, spacing: 4) {
-                Toggle(isOn: vm.roundAmountsBinding()) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "0.circle.fill")
-                            .iconStyle(
-                                size: 16,
-                                weight: .medium,
-                                color: Color.inkSecondary
-                            )
-                            .frame(width: 24)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Rounding")
-                                .typography(.bodyLarge)
-                                .foregroundStyle(Color.ink)
-                            Text("Display amounts without decimals")
-                                .typography(.bodySmall)
-                                .foregroundStyle(Color.inkSecondary)
-                        }
-                    }
-                }
-                .toggleStyle(SwitchToggleStyle(tint: Color.shu))
-            }
-            .padding(.vertical, 8)
-
-            Rule()
-
-            VStack(alignment: .leading, spacing: 4) {
-                Toggle(isOn: vm.abbreviateLargeNumbersBinding()) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "k.circle.fill")
-                            .iconStyle(
-                                size: 16,
-                                weight: .medium,
-                                color: Color.inkSecondary
-                            )
-                            .frame(width: 24)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Abbreviate Large Numbers")
-                                .typography(.bodyLarge)
-                                .foregroundStyle(Color.ink)
-                            Text("Use compact format like 74.5k")
-                                .typography(.bodySmall)
-                                .foregroundStyle(Color.inkSecondary)
-                        }
-                    }
-                }
-                .toggleStyle(SwitchToggleStyle(tint: Color.shu))
-            }
-            .padding(.vertical, 8)
+            Rule().padding(.vertical, 8)
+            SettingsToggleRow(
+                icon: "k.circle.fill",
+                title: "Abbreviate Large Numbers",
+                description: "Use compact format like 74.5k",
+                isOn: vm.abbreviateLargeNumbersBinding()
+            )
         }
     }
 
     @ViewBuilder
     private func filtersPreferences(vm: SettingsViewModel) -> some View {
-        GlassSection {
-            filterRow(
+        SettingsCard(topInset: 8, bottomInset: 8) {
+            SettingsNavigationRow(
                 icon: "square.grid.2x2",
                 title: "Categories",
-                count: vm.categoriesCount
+                actionText: "\(vm.categoriesCount)"
             ) { vm.showCategories = true }
 
-            Rule()
-
-            filterRow(
+            Rule().padding(.vertical, 8)
+            SettingsNavigationRow(
                 icon: "creditcard",
                 title: "Payment Methods",
-                count: vm.paymentMethodsCount
+                actionText: "\(vm.paymentMethodsCount)"
             ) { vm.showPaymentMethods = true }
 
-            Rule()
-
-            filterRow(
+            Rule().padding(.vertical, 8)
+            SettingsNavigationRow(
                 icon: "list.dash",
                 title: "Lists",
-                count: vm.listsCount
+                actionText: "\(vm.listsCount)"
             ) { vm.showLists = true }
         }
     }
 
     @ViewBuilder
     private func dangerZone(vm: SettingsViewModel) -> some View {
-        GlassSection {
-            VStack(alignment: .leading, spacing: 12) {
-                AppButton(
-                    title: "Delete All Data",
-                    icon: "trash",
-                    style: .destructive,
-                    appearance: .glassy,
-                    size: .medium,
-                    expands: true,
-                    action: { showDeleteDataAlert = true }
-                )
+        SettingsCard {
+            AppButton(
+                title: "Delete All Data",
+                icon: "trash",
+                style: .destructive,
+                appearance: .outline,
+                size: .medium,
+                expands: true,
+                action: { showDeleteDataAlert = true }
+            )
 
-                AppButton(
-                    title: "Reset App Completely",
-                    icon: "arrow.counterclockwise",
-                    style: .destructive,
-                    appearance: .glassy,
-                    size: .medium,
-                    expands: true,
-                    action: { showResetAppAlert = true }
-                )
-            }
-            .padding(.vertical, 8)
+            Rule().padding(.vertical, 8)
+            AppButton(
+                title: "Reset App Completely",
+                icon: "arrow.counterclockwise",
+                style: .destructive,
+                appearance: .outline,
+                size: .medium,
+                expands: true,
+                action: { showResetAppAlert = true }
+            )
         }
-    }
-
-    private func filterRow(
-        icon: String,
-        title: String,
-        count: Int,
-        action: @escaping () -> Void
-    ) -> some View {
-        detailRow(icon: icon, title: title, detail: "\(count)", action: action)
-    }
-
-    /// Disclosure row: icon + title, optional detail text, chevron.
-    private func detailRow(
-        icon: String,
-        title: String,
-        detail: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                    .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
-                    .frame(width: 24)
-                Text(title)
-                    .typography(.bodyLarge)
-                    .foregroundStyle(Color.ink)
-                Spacer()
-                if !detail.isEmpty {
-                    Text(detail)
-                        .typography(.bodyMedium)
-                        .foregroundStyle(Color.inkSecondary)
-                }
-                Image(systemName: "chevron.right")
-                    .iconStyle(size: 12, weight: .semibold, color: Color.inkSecondary)
-            }
-            .frame(height: 44)
-        }
-        .buttonStyle(.plain)
     }
 }
 

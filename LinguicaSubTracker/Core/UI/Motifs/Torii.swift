@@ -16,37 +16,90 @@ struct Kasagi: Shape {
 }
 
 struct KasagiHeader: View {
+    var variant: Hashira.Variant = .default
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var mainColor: Color {
+        switch variant {
+        case .default: Color.shu
+        case .mono: colorScheme == .light ? .black : .white
+        }
+    }
+
+    private var lowerColor: Color {
+        switch variant {
+        case .default: colorScheme == .light ? .black : Color.shu
+        case .mono: colorScheme == .light ? .black : .white
+        }
+    }
+
     var body: some View {
         VStack(spacing: 4) {
-            Kasagi().stroke(Color.ink, lineWidth: 2).frame(height: 3)
-            Rectangle().fill(Color.ink).frame(height: 1)
+            Kasagi().stroke(mainColor, lineWidth: 2).frame(height: 3)
+            Rectangle().fill(lowerColor).frame(height: 1)
         }
-        .padding(.top, 1)
         .accessibilityHidden(true)
     }
 }
 
 struct Hashira: View {
+    enum Variant {
+        case `default`
+        case mono
+    }
+
     var height: CGFloat = 12
+    var variant: Variant = .default
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        Rectangle().fill(Color.shu).frame(width: 3, height: height).accessibilityHidden(true)
+        HStack(spacing: 0) {
+            switch variant {
+            case .default:
+                Rectangle()
+                    .fill(Color.shu)
+                    .frame(width: colorScheme == .light ? 2 : 3)
+                if colorScheme == .light {
+                    Rectangle()
+                        .fill(Color.black)
+                        .frame(width: 1)
+                }
+            case .mono:
+                Rectangle()
+                    .fill(colorScheme == .light ? Color.black : Color.white)
+                    .frame(width: 3)
+            }
+        }
+        .frame(height: height)
+        .accessibilityHidden(true)
     }
 }
 
 struct SectionLabel: View {
     let title: String
     var color: Color = .inkSecondary
+    var markerVariant: Hashira.Variant = .default
     @ScaledMetric(relativeTo: .caption) private var markerHeight: CGFloat = 12
+    @ScaledMetric(relativeTo: .caption) private var titleSize: CGFloat = 12
 
-    init(_ title: String, color: Color = .inkSecondary) {
+    init(
+        _ title: String,
+        color: Color = .inkSecondary,
+        markerVariant: Hashira.Variant = .default
+    ) {
         self.title = title
         self.color = color
+        self.markerVariant = markerVariant
     }
 
     var body: some View {
-        HStack(spacing: 6) {
-            Hashira(height: markerHeight)
-            Text(title).typography(.labelLarge).foregroundStyle(color)
+        HStack(spacing: 8) {
+            Hashira(height: markerHeight, variant: markerVariant)
+            Text(title)
+                .font(.system(size: titleSize, weight: .bold, design: .monospaced))
+                .tracking(AppTypography.Style.labelLarge.letterSpacing)
+                .textCase(.uppercase)
+                .foregroundStyle(color)
         }
         .padding(.horizontal, 8)
         .accessibilityElement(children: .combine)
@@ -66,4 +119,70 @@ struct Rule: View {
             .padding(.horizontal, -overhang)
             .accessibilityHidden(true)
     }
+}
+
+#Preview("Kasagi") {
+    Kasagi()
+        .stroke(Color.ink, lineWidth: 2)
+        .frame(height: 8)
+        .padding()
+        .background(Color.paper)
+}
+
+#Preview("KasagiHeader · light") {
+    VStack(spacing: 24) {
+        KasagiHeader()
+        KasagiHeader(variant: .mono)
+    }
+    .padding()
+    .background(Color.paper)
+    .preferredColorScheme(.light)
+}
+
+#Preview("KasagiHeader · dark") {
+    VStack(spacing: 24) {
+        KasagiHeader()
+        KasagiHeader(variant: .mono)
+    }
+    .padding()
+    .background(Color.paper)
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Hashira · light") {
+    HStack(spacing: 24) {
+        Hashira(height: 24)
+        Hashira(height: 24, variant: .mono)
+    }
+    .padding()
+    .background(Color.paper)
+    .preferredColorScheme(.light)
+}
+
+#Preview("Hashira · dark") {
+    HStack(spacing: 24) {
+        Hashira(height: 24)
+        Hashira(height: 24, variant: .mono)
+    }
+    .padding()
+    .background(Color.paper)
+    .preferredColorScheme(.dark)
+}
+
+#Preview("SectionLabel") {
+    VStack(alignment: .leading, spacing: 12) {
+        SectionLabel("Money & Display")
+        SectionLabel("Monochrome", markerVariant: .mono)
+    }
+    .padding()
+    .background(Color.paper)
+}
+
+#Preview("Rule") {
+    VStack(spacing: 16) {
+        Rule()
+        Rule(color: .ruleStrong, thickness: 1, overhang: 3)
+    }
+    .padding()
+    .background(Color.paper)
 }

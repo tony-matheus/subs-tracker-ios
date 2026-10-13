@@ -51,7 +51,7 @@ struct BudgetEditor: View {
                     vm.clearBudget()
                 }
             } label: {
-                HStack(spacing: 5) {
+                HStack(spacing: 4) {
                     Image(systemName: "trash")
                         .foregroundStyle(Color.beni)
                         .font(.system(size: 13, weight: .semibold))
@@ -60,8 +60,8 @@ struct BudgetEditor: View {
                         .typography(.bodySmall)
                 }
                 .foregroundStyle(Color.ink)
-                .padding(.vertical, 6)
-                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 8)
             }
             .buttonStyle(.plain)
             .glassEffect(.regular.interactive(), in: .rect(cornerRadius: AppRadius.card))
@@ -95,7 +95,7 @@ struct BudgetEditor: View {
         vm: BudgetEditorViewModel,
         height: CGFloat = 16
     ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
@@ -166,7 +166,7 @@ struct BudgetEditor: View {
         color: Color,
         alignment: HorizontalAlignment
     ) -> some View {
-        VStack(alignment: alignment, spacing: 2) {
+        VStack(alignment: alignment, spacing: 4) {
             Text(label)
                 .typography(.labelMedium)
                 .foregroundStyle(Color.inkSecondary)
@@ -184,46 +184,35 @@ struct BudgetEditor: View {
         let _ = settingsStore.settings.currencyCode
         let _ = store.expenses
 
-        VStack(spacing: 14) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
+        VStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    SettingsRowLabel(
+                        icon: "wallet.bifold.fill",
+                        title: "Monthly Budget"
+                    )
+                    .frame(minHeight: 44)
 
-                        HStack {
-                            Image(systemName: "wallet.bifold.fill")
-                                .iconStyle(
-                                    size: 16,
-                                    weight: .semibold,
-                                    color: Color.inkSecondary
-                                )
-                            Text("Monthly Budget")
-                                .typography(.bodyLarge)
-                                .foregroundStyle(Color.ink)
-                        }
-                        .padding(.vertical, 4)
-                        Spacer()
-
-                        if vm.hasBudget {
-                            clearButton(vm: vm)
-                        }
-                    }
                     if vm.hasBudget {
-                        Button {
-                            showDetails = true
-                        } label: {
-                            Text(vm.formattedBudget)
-                                .typography(.headlineSmall)
-                                .foregroundStyle(Color.ink)
-                                .contentTransition(.numericText())
-                                .animation(
-                                    .spring(response: 0.35, dampingFraction: 0.8),
-                                    value: vm.formattedBudget
-                                )
-                        }
-                        .buttonStyle(.plain)
+                        clearButton(vm: vm)
                     }
                 }
 
+                if vm.hasBudget {
+                    Button {
+                        showDetails = true
+                    } label: {
+                        Text(vm.formattedBudget)
+                            .typography(.headlineSmall)
+                            .foregroundStyle(Color.ink)
+                            .contentTransition(.numericText())
+                            .animation(
+                                .spring(response: 0.35, dampingFraction: 0.8),
+                                value: vm.formattedBudget
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
 
             if vm.hasBudget {

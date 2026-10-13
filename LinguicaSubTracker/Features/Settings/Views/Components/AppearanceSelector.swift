@@ -3,86 +3,108 @@ import SwiftUI
 struct AppearanceSelector: View {
     @Binding var selection: ThemeMode
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Namespace private var ns
+    @Namespace private var doorNamespace
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 0) {
             ForEach(ThemeMode.allCases) { mode in
-                segmentContent(mode)
-                    .background {
-                        if selection == mode {
-                            RoundedRectangle(cornerRadius: AppRadius.card)
-                                .fill(Color.clear)
-                                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: AppRadius.card))
-                                .matchedGeometryEffect(id: "appearanceHighlight", in: ns)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        guard selection != mode else { return }
-                        selection = mode
-                    }
+                panel(for: mode)
+
+                if mode != ThemeMode.allCases.last {
+                    Rectangle()
+                        .fill(Color.ruleStrong)
+                        .frame(width: 1)
+                        .accessibilityHidden(true)
+                }
             }
         }
         .padding(4)
-        .background(Color.paperRaised, in: .rect(cornerRadius: AppRadius.card))
-        .overlay(RoundedRectangle(cornerRadius: AppRadius.card).strokeBorder(Color.rule))
-        .animation(reduceMotion ? nil : .smooth(duration: 0.25), value: selection)
+        .background(Color.paper, in: .rect(cornerRadius: AppRadius.card))
+        .overlay {
+            RoundedRectangle(cornerRadius: AppRadius.card)
+                .strokeBorder(Color.ruleStrong, lineWidth: 1)
+        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: selection)
         .sensoryFeedback(.selection, trigger: selection)
     }
 
-    @ViewBuilder
-    private func segmentContent(_ mode: ThemeMode) -> some View {
+    private func panel(for mode: ThemeMode) -> some View {
         let isSelected = selection == mode
 
-        VStack(spacing: 6) {
-            modeIcon(mode, isSelected: isSelected)
+        return Button {
+            selection = mode
+        } label: {
+            VStack(spacing: 0) {
+                modeIcon(mode, isSelected: isSelected)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 40)
 
-            Text(mode.label)
-                .typography(.labelMedium)
-                .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
+                Rectangle()
+                    .fill(isSelected ? Color.ruleStrong : Color.rule)
+                    .frame(height: 1)
+                    .accessibilityHidden(true)
+
+                Text(mode.label)
+                    .typography(.labelMedium)
+                    .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 28)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity)
+            .background {
+                if isSelected {
+                    Rectangle()
+                        .fill(Color.paperRaised)
+                        .overlay {
+                            Rectangle().strokeBorder(Color.ruleStrong, lineWidth: 1)
+                        }
+                        .overlay(alignment: .trailing) {
+                            Rectangle().fill(Color.shu).frame(width: 4)
+                        }
+                        .shadow(color: Color.ink.opacity(0.1), radius: 2, y: 2)
+                        .matchedGeometryEffect(id: "shojiDoor", in: doorNamespace)
+                }
+            }
+            .contentShape(Rectangle())
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .padding(.horizontal, 8)
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(mode.label) appearance")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
-    @ViewBuilder
     private func modeIcon(_ mode: ThemeMode, isSelected: Bool) -> some View {
+        let symbol: String
         switch mode {
-        case .system:
-            Image(systemName: "circle.lefthalf.filled")
-                .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
-
-
-
-
-        case .light:
-            Image(systemName: "sun.max.fill")
-                .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
-
-
-
-
-
-        case .dark:
-            Image(systemName: "moon.stars.fill")
-                .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
-
-
-
+        case .system: symbol = "circle.lefthalf.filled"
+        case .light: symbol = "sun.max.fill"
+        case .dark: symbol = "moon.stars.fill"
         }
+
+        return Image(systemName: symbol)
+            .font(.system(size: 22, weight: .medium))
+            .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
+            .accessibilityHidden(true)
     }
 }
 
-#Preview {
-    @Previewable @State var mode: ThemeMode = .system
+#Preview("Shoji · light") {
+    @Previewable @State var mode: ThemeMode = .light
 
     AppearanceSelector(selection: $mode)
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.paperRaised)
+        .background(Color.paper)
+        .preferredColorScheme(.light)
+}
+
+#Preview("Shoji · dark") {
+    @Previewable @State var mode: ThemeMode = .dark
+
+    AppearanceSelector(selection: $mode)
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.paper)
+        .preferredColorScheme(.dark)
 }
