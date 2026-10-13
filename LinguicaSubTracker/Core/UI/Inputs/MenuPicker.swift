@@ -29,7 +29,7 @@ struct MenuPicker<V: Hashable>: View {
         } label: {
             menuLabel
         }
-        .tint(style == .glassy ? .gray : nil)
+        .tint(Color.inkSecondary)
     }
 
     @ViewBuilder
@@ -42,7 +42,7 @@ struct MenuPicker<V: Hashable>: View {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 12, weight: .semibold))
             }
-            .foregroundStyle(.gray)
+            .foregroundStyle(Color.inkSecondary)
 
         case .glassy:
             HStack(spacing: 4) {
@@ -51,10 +51,10 @@ struct MenuPicker<V: Hashable>: View {
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.system(size: 11, weight: .semibold))
             }
-            .foregroundStyle(.gray)
+            .foregroundStyle(Color.inkSecondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .glassEffect(.regular.interactive(), in: Capsule())
+            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: AppRadius.card))
         }
     }
 }
@@ -72,7 +72,7 @@ struct MenuPicker<V: Hashable>: View {
 
     MenuPicker(title: "Lists", selection: $selection, options: options, style: .plain)
         .padding()
-        .background(.black)
+        .background(Color.paper)
 }
 
 #Preview("MenuPicker — glassy") {
@@ -82,7 +82,7 @@ struct MenuPicker<V: Hashable>: View {
 
     MenuPicker(title: "Year", selection: $year, options: options, style: .glassy)
         .padding()
-        .background(.black)
+        .background(Color.paper)
 }
 
 #Preview("Both MenuPicker styles") {
@@ -102,5 +102,5 @@ struct MenuPicker<V: Hashable>: View {
     }
     .padding()
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.black)
+    .background(Color.paper)
 }

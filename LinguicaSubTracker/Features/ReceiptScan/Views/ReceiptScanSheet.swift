@@ -66,7 +66,7 @@ struct ReceiptScanSheet: View {
                                 .typography(.labelLarge)
                         }
                         .buttonStyle(.glassProminent)
-                        .tint(Color.green.gradient)
+                        .foregroundStyle(Color.paper)
                         .disabled(!vm.canSave)
                     }
                 }
@@ -252,7 +252,7 @@ struct ReceiptScanSheet: View {
             }
             .typography(.titleSmall)
         }
-        .listRowBackground(Color.appSurface.opacity(0.6))
+        .listRowBackground(Color.paperRaised.opacity(0.6))
     }
 
     /// Green = trustworthy OCR, amber = double-check, red = probably wrong.

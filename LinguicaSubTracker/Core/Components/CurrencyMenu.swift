@@ -43,5 +43,5 @@ struct CurrencyMenu: View {
     @Previewable @State var code: String = "CAD"
     CurrencyMenu(code: $code)
         .padding()
-        .background(.black)
+        .background(Color.paper)
 }

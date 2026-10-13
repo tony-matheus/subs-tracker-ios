@@ -107,7 +107,6 @@ struct TotalView: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .rippleOnTap()
 
                 if !viewModel.categorySpends.isEmpty && showCoins {
                     CoinProgress(
@@ -185,7 +184,7 @@ struct TotalView: View {
                             .foregroundStyle(.primary)
                         Spacer()
                         Text(viewModel.formatted(spend.amount))
-                            .typography(.bodyMedium.weight(.semibold))
+                            .typography(.bodyMedium)
                             .foregroundStyle(.secondary)
                     }
                 }

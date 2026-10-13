@@ -12,15 +12,10 @@ struct DayCell: View {
     var style: CalendarStyle = .rounded
     var height: CGFloat = 68
     var onTap: (Date) -> Void
-    /// Reports the cell's center (in `MonthView.rippleSpace`) so the parent can
-    /// originate a ripple from the tapped day. Nil skips the geometry tracking
-    /// entirely — the dot styles don't ripple.
-    var onRipple: ((CGPoint) -> Void)?
     /// Compact-style quick actions; operate on the day's primary expense.
     var onEdit: ((Expense) -> Void)? = nil
     var onDelete: ((Expense) -> Void)? = nil
 
-    @State private var center: CGPoint = .zero
     /// Set by the compact context menu's Delete; drives the confirmation alert.
     @State private var pendingDelete: Expense? = nil
 
@@ -78,9 +73,6 @@ struct DayCell: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: height)
-            .background {
-                if onRipple != nil { centerReader }
-            }
             .overlay(alignment: .topLeading) {
                 if viewModel.displayDay, let dayNumber = viewModel.dayNumber {
                     Text("\(dayNumber)")
@@ -113,20 +105,8 @@ struct DayCell: View {
     }
 
     private func handleTap() {
-        onRipple?(center)
         guard let date = viewModel.date else { return }
         onTap(date)
-    }
-
-    private var centerReader: some View {
-        GeometryReader { geo in
-            let frame = geo.frame(in: .named(MonthView.rippleSpace))
-            Color.clear
-                .onAppear { center = CGPoint(x: frame.midX, y: frame.midY) }
-                .onChange(of: frame) { _, newFrame in
-                    center = CGPoint(x: newFrame.midX, y: newFrame.midY)
-                }
-        }
     }
 
     private func expenseFloatingLayer(primary: Expense) -> some View {
@@ -179,7 +159,7 @@ struct DayCell: View {
     private func overflowBadge(remaining: Int) -> some View {
         ZStack {
             Circle()
-                .fill(Color.appSurface.opacity(0.8))
+                .fill(Color.paperRaised.opacity(0.8))
                 .frame(width: logoSize, height: logoSize)
                 .overlay(
                     Circle().stroke(Color.primary.opacity(0.2), lineWidth: 1)
@@ -295,8 +275,7 @@ struct DayCell: View {
 }
 
 struct DayClickStyle: ButtonStyle {
-    /// When false (e.g. empty `.none` cells), the cell still triggers a ripple
-    /// but skips the press scale + haptic so it doesn't feel selectable.
+    /// Empty cells skip press feedback so they do not feel selectable.
     var showsPressFeedback: Bool = true
 
     func makeBody(configuration: Configuration) -> some View {

@@ -29,13 +29,9 @@ struct ColorPresetPicker: View {
                                 Circle()
                                     .strokeBorder(
                                         viewModel.isSelected(hex, current: selectedHex)
-                                            ? Color.white : Color.clear,
+                                            ? Color.ink : Color.clear,
                                         lineWidth: 3
                                     )
-                            )
-                            .shadow(
-                                color: Color(hex: hex).opacity(0.5),
-                                radius: 4
                             )
                     }
                 }

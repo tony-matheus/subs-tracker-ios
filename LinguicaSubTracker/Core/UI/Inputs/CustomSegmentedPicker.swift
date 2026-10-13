@@ -4,8 +4,8 @@ import SwiftUI
 //
 // A segmented picker that accepts arbitrary leading / center / trailing
 // content per segment. Mirrors the liquid-glass look of the native
-// `Picker(.segmented)` via `.glassEffect(.regular, in: Capsule())` while
-// allowing things native picker forbids — gradient SF symbols, badges,
+// `Picker(.segmented)` via `.glassEffect(.regular, in: .rect(cornerRadius: AppRadius.card))` while
+// allowing things native picker forbids — SF symbols, badges,
 // emoji + text combos, etc.
 //
 // Usage:
@@ -28,6 +28,7 @@ struct CustomSegmentedPicker<Value: Hashable>: View {
     /// Padding inside each segment's tappable area.
     var segmentPadding: EdgeInsets = .init(top: 8, leading: 12, bottom: 8, trailing: 12)
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var highlightNS
 
     var body: some View {
@@ -36,17 +37,18 @@ struct CustomSegmentedPicker<Value: Hashable>: View {
                 segmentContent(segment)
                     .background {
                         if selection == segment.value {
-                            Capsule()
+                            RoundedRectangle(cornerRadius: AppRadius.card)
                                 .fill(Color.clear)
-                                .glassEffect(.regular.interactive(), in: Capsule())
+                                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: AppRadius.card))
                                 .matchedGeometryEffect(id: "highlight", in: highlightNS)
                         }
                     }
             }
         }
         .padding(4)
-        .background(.ultraThinMaterial.opacity(0.5), in: Capsule())
-        .contentShape(Capsule())
+        .background(Color.paperRaised, in: .rect(cornerRadius: AppRadius.card))
+        .overlay(RoundedRectangle(cornerRadius: AppRadius.card).strokeBorder(Color.rule))
+        .contentShape(Rectangle())
         .overlay(
             GeometryReader { geo in
                 Color.clear
@@ -59,7 +61,7 @@ struct CustomSegmentedPicker<Value: Hashable>: View {
                     )
             }
         )
-        .animation(.spring(response: 0.35, dampingFraction: 0.82), value: selection)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.25), value: selection)
     }
 
     private func updateSelection(at x: CGFloat, width: CGFloat) {
@@ -87,7 +89,7 @@ struct CustomSegmentedPicker<Value: Hashable>: View {
         .truncationMode(.tail)
         .frame(maxWidth: .infinity)
         .padding(segmentPadding)
-        .contentShape(Capsule())
+        .contentShape(Rectangle())
     }
 }
 
@@ -138,32 +140,28 @@ struct CustomSegment<Value: Hashable>: Identifiable {
 
 // MARK: - Previews
 
-#Preview("Icons + text (gradient)") {
+#Preview("Icons + text") {
     @Previewable @State var tab: Int = 0
 
-    let gradient = LinearGradient(
-        colors: [.green, .green],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
+    let iconColor = Color.ink
 
     CustomSegmentedPicker(
         selection: $tab,
         segments: [
             .init(value: 0,
-                  leading: { Image(systemName: "photo.fill").foregroundStyle(gradient) },
-                  center:  { Text("Photo").typography(.bodyMedium.weight(.semibold)) }),
+                  leading: { Image(systemName: "photo.fill").foregroundStyle(iconColor) },
+                  center:  { Text("Photo").typography(.bodyMedium) }),
             .init(value: 1,
-                  leading: { Image(systemName: "face.smiling.inverse").foregroundStyle(gradient) },
-                  center:  { Text("Emoji").typography(.bodyMedium.weight(.semibold)) }),
+                  leading: { Image(systemName: "face.smiling.inverse").foregroundStyle(iconColor) },
+                  center:  { Text("Emoji").typography(.bodyMedium) }),
             .init(value: 2,
-                  leading: { Image(systemName: "star.fill").foregroundStyle(gradient) },
-                  center:  { Text("Symbols").typography(.bodyMedium.weight(.semibold)) }),
+                  leading: { Image(systemName: "star.fill").foregroundStyle(iconColor) },
+                  center:  { Text("Symbols").typography(.bodyMedium) }),
         ]
     )
     .padding()
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.black)
+    .background(Color.paper)
 }
 
 #Preview("With trailing badge") {
@@ -173,21 +171,21 @@ struct CustomSegment<Value: Hashable>: Identifiable {
         selection: $tab,
         segments: [
             .init(value: "all",
-                  center: { Text("All").typography(.bodyMedium.weight(.semibold)) },
+                  center: { Text("All").typography(.bodyMedium) },
                   trailing: {
                       Text("12")
                           .typography(.labelMedium)
                           .padding(.horizontal, 6)
                           .padding(.vertical, 2)
-                          .background(.white.opacity(0.2), in: Capsule())
+                          .background(Color.paperRaised, in: .rect(cornerRadius: AppRadius.card))
                   }),
             .init(value: "active",
-                  center: { Text("Active").typography(.bodyMedium.weight(.semibold)) }),
+                  center: { Text("Active").typography(.bodyMedium) }),
             .init(value: "paused",
-                  center: { Text("Paused").typography(.bodyMedium.weight(.semibold)) }),
+                  center: { Text("Paused").typography(.bodyMedium) }),
         ]
     )
     .padding()
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.black)
+    .background(Color.paper)
 }

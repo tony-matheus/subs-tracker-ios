@@ -42,12 +42,14 @@ struct SatoruApp: App {
         AppDependencyManager.shared.add(dependency: store)
         AppDependencyManager.shared.add(dependency: settingsStore)
         AppDependencyManager.shared.add(dependency: router)
+        Theme.applyUIKitAppearance()
     }
 
     var body: some Scene {
         WindowGroup {
             HomeView(store: store, settingsStore: settingsStore, coordinator: coordinator)
-                .environment(\.font, Theme.font(size: 16, weight: .regular))
+                .environment(\.font, Theme.font(size: 15))
+                .foregroundStyle(Color.ink)
                 .environment(store)
                 .environment(settingsStore)
                 .environment(coordinator)
@@ -72,7 +74,8 @@ struct SatoruApp: App {
                         StorageService.hasCompletedOnboarding = true
                         showOnboarding = false
                     }
-                    .environment(\.font, Theme.font(size: 16, weight: .regular))
+                    .environment(\.font, Theme.font(size: 15))
+                    .foregroundStyle(Color.ink)
                     .preferredColorScheme(settingsStore.themeMode.colorScheme)
                 }
                 .onChange(of: coordinator.didRequestOnboardingReplay) { _, requested in

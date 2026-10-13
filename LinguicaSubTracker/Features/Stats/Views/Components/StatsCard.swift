@@ -13,7 +13,7 @@ struct StatsCard: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             Text(value)
-                .typography(.headlineLarge.weight(.bold))
+                .typography(.headlineLarge)
                 .foregroundStyle(.primary)
                 .contentTransition(.numericText())
                 .animation(.spring(response: 0.4, dampingFraction: 0.85), value: value)

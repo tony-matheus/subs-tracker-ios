@@ -47,14 +47,14 @@ struct QuickVoiceAddView: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(viewModel.isRecording ? Color("AppPurple") : Color.appSurface)
-                    .shadow(color: .black.opacity(0.2), radius: 10, y: 4)
+                    .fill(viewModel.isRecording ? Color.shu : Color.paperRaised)
+
                 if viewModel.isProcessing {
                     ProgressView()
                 } else {
                     Image(systemName: viewModel.isRecording ? "stop.fill" : "mic.fill")
                         .font(.system(size: 24, weight: .semibold))
-                        .foregroundStyle(viewModel.isRecording ? Color.white : Color.primary)
+                        .foregroundStyle(viewModel.isRecording ? Color.paper : Color.ink)
                 }
             }
             .frame(width: 68, height: 68)

@@ -42,7 +42,7 @@ struct BudgetEditor: View {
     @ViewBuilder
     private func clearButton(vm: BudgetEditorViewModel) -> some View {
         if confirmingClear {
-            Button {
+            Button(role: .destructive) {
                 revertTask?.cancel()
                 revertTask = nil
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -53,17 +53,18 @@ struct BudgetEditor: View {
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "trash")
+                        .foregroundStyle(Color.beni)
                         .font(.system(size: 13, weight: .semibold))
                         .contentTransition(.symbolEffect(.replace))
                     Text("Clear?")
                         .typography(.bodySmall)
                 }
-                .foregroundStyle(.red)
+                .foregroundStyle(Color.ink)
                 .padding(.vertical, 6)
                 .padding(.horizontal, 10)
             }
             .buttonStyle(.plain)
-            .glassEffect(.regular.tint(.red.opacity(0.15)).interactive(), in: Capsule())
+            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: AppRadius.card))
             .transition(.scale(scale: 0.85).combined(with: .opacity))
         } else {
             AppButton(
@@ -117,7 +118,7 @@ struct BudgetEditor: View {
                 }
             }
             .frame(height: height)
-            .background(Color.appSurface)
+            .background(Color.paperRaised)
 
             HStack(alignment: .top) {
                 statColumn(
@@ -150,7 +151,7 @@ struct BudgetEditor: View {
                 statColumn(
                     label: "Budget",
                     value: vm.formattedBudget,
-                    color: .secondary,
+                    color: Color.inkSecondary,
                     alignment: .trailing
                 )
             }
@@ -168,9 +169,9 @@ struct BudgetEditor: View {
         VStack(alignment: alignment, spacing: 2) {
             Text(label)
                 .typography(.labelMedium)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSecondary)
             Text(value)
-                .typography(.bodyMedium.weight(.semibold))
+                .typography(.bodyMedium)
                 .foregroundStyle(color)
                 .contentTransition(.numericText())
         }
@@ -193,11 +194,11 @@ struct BudgetEditor: View {
                                 .iconStyle(
                                     size: 16,
                                     weight: .semibold,
-                                    color: .secondary
+                                    color: Color.inkSecondary
                                 )
                             Text("Monthly Budget")
                                 .typography(.bodyLarge)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Color.ink)
                         }
                         .padding(.vertical, 4)
                         Spacer()
@@ -212,7 +213,7 @@ struct BudgetEditor: View {
                         } label: {
                             Text(vm.formattedBudget)
                                 .typography(.headlineSmall)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Color.ink)
                                 .contentTransition(.numericText())
                                 .animation(
                                     .spring(response: 0.35, dampingFraction: 0.8),

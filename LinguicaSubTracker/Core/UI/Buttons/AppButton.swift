@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AppButton: View {
     /// Global toggle: when `true`, `.outline` appearance also gets liquid glass.
-    /// Flip to `false` to render outline as a flat stroked capsule.
+    /// Flip to `false` to render outline as a flat stroked rectangle.
     static var glassOnOutline: Bool = true
 
     let title: String
@@ -16,16 +16,14 @@ struct AppButton: View {
     var expands: Bool = false
     let action: () -> Void
 
-    @Environment(\.colorScheme) private var colorScheme
-
     enum Dimension {
         case standard
         case icon
     }
 
     enum Appearance {
-        case solid  // flat opaque bg (white in dark mode, black in light mode), no glass
-        case glassy  // ultraThinMaterial + glassEffect (default)
+        case solid  // tinted glass with a contrasting paper label
+        case glassy  // untinted glass (default)
         case outline  // hairline stroke, optional glass via glassOnOutline
         case ghost  // no bg, no glass, no border
     }
@@ -58,17 +56,17 @@ struct AppButton: View {
             case .small:
                 return Theme.font(
                     size: AppTypography.Style.bodySmall.size,
-                    weight: AppTypography.Style.bodySmall.weight
+                    relativeTo: AppTypography.Style.bodySmall.textStyle
                 )
             case .medium:
                 return Theme.font(
                     size: AppTypography.Style.titleMedium.size,
-                    weight: AppTypography.Style.titleMedium.weight
+                    relativeTo: AppTypography.Style.titleMedium.textStyle
                 )
             case .large:
                 return Theme.font(
                     size: AppTypography.Style.titleLarge.size,
-                    weight: AppTypography.Style.titleLarge.weight
+                    relativeTo: AppTypography.Style.titleLarge.textStyle
                 )
             }
         }
@@ -127,7 +125,7 @@ struct AppButton: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        Button(role: style == .destructive ? .destructive : nil, action: action) {
             HStack(spacing: 8) {
                 if isLoading {
                     ProgressView()
@@ -141,7 +139,6 @@ struct AppButton: View {
                 if let icon, !isLoading {
                     Image(systemName: icon)
                         .contentTransition(.symbolEffect(.replace))
-                        .symbolColorRenderingMode(.gradient)
                         .foregroundColor(iconForegroundColor)
                         .accessibilityHidden(true)
                 }
@@ -172,8 +169,8 @@ struct AppButton: View {
             .background {
                 switch appearance {
                 case .outline:
-                    Capsule().strokeBorder(
-                        accentColor.opacity(0.6),
+                    RoundedRectangle(cornerRadius: AppRadius.card).strokeBorder(
+                        accentColor,
                         lineWidth: 1
                     )
                 case .glassy, .ghost, .solid:
@@ -192,46 +189,25 @@ struct AppButton: View {
     }
 
     private var glassTintColor: Color {
-        switch appearance {
-        case .solid:
-            switch style {
-            case .primary: return .appAccent
-            case .secondary: return .appAccent
-            case .neutral: return .white
-            case .destructive: return .red
-            }
-        case .glassy, .outline, .ghost:
-            return .clear
+        guard appearance == .solid else { return .clear }
+        switch style {
+        case .primary, .secondary: return Color.shu
+        case .neutral: return Color.ink
+        case .destructive: return Color.beni
         }
     }
 
     private var accentColor: Color {
         switch style {
-        case .destructive: .red
-        case .neutral: colorScheme == .dark ? .white : .black
-        case .primary: .appAccent
-        case .secondary: .appAccent
+        case .primary, .secondary: Color.shu
+        case .neutral: Color.ruleStrong
+        case .destructive: Color.beni
         }
     }
 
     private var iconForegroundColor: Color {
-        switch appearance {
-        case .glassy:
-            switch style {
-            case .neutral: return .white
-            case .destructive: return .red
-            case .primary: return .appAccent
-            case .secondary: return .appAccent
-            }
-        case .solid:
-            switch style {
-            case .neutral: return .black
-            case .destructive, .primary, .secondary:
-                return colorScheme == .dark ? .black : .white
-            }
-        case .outline, .ghost:
-            return accentColor
-        }
+        if appearance == .solid { return Color.paper }
+        return style == .neutral ? Color.ink : accentColor
     }
 
     private var shouldApplyGlass: Bool {
@@ -242,32 +218,8 @@ struct AppButton: View {
         }
     }
 
-    private var solidBackgroundColor: Color {
-        switch style {
-        case .destructive: Color.red
-        case .neutral: Color.white
-        case .primary: Color.appAccent
-        case .secondary: Color.appAccent
-        }
-    }
-
     private var foregroundColor: Color {
-        switch appearance {
-        case .glassy:
-            switch style {
-            case .destructive: return .red
-            case .neutral: return colorScheme == .dark ? .white : .black
-            case .primary, .secondary: return .primary
-            }
-        case .solid:
-            switch style {
-            case .neutral: return .black
-            case .destructive, .primary, .secondary:
-                return colorScheme == .dark ? .black : .white
-            }
-        case .outline, .ghost:
-            return .primary
-        }
+        appearance == .solid ? Color.paper : Color.ink
     }
 }
 
@@ -279,7 +231,7 @@ private struct GlassIfNeeded: ViewModifier {
         if active {
             content.glassEffect(
                 .regular.tint(tint).interactive(),
-                in: Capsule()
+                in: .rect(cornerRadius: AppRadius.card)
             )
         } else {
             content

@@ -3,15 +3,15 @@ import SwiftUI
 struct FormRow<Content: View>: View {
     let label: String
     var icon: String? = nil
-    var iconColor: Color = .secondary
-    var labelColor: Color = .secondary
+    var iconColor: Color = .inkSecondary
+    var labelColor: Color = .inkSecondary
     let content: Content
 
     init(
         label: String,
         icon: String? = nil,
-        iconColor: Color = .secondary,
-        labelColor: Color = .secondary,
+        iconColor: Color = .inkSecondary,
+        labelColor: Color = .inkSecondary,
         @ViewBuilder content: () -> Content
     ) {
         self.label = label
@@ -32,8 +32,8 @@ struct FormRow<Content: View>: View {
                 .typography(.bodyLarge)
                 .foregroundStyle(labelColor)
             Spacer()
-            content.foregroundStyle(.primary)
+            content.foregroundStyle(Color.ink)
         }
-        .frame(height: 44)
+        .frame(minHeight: 44)
     }
 }

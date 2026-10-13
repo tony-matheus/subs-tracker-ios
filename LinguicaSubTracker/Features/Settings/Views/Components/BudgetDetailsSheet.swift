@@ -117,7 +117,7 @@ struct BudgetDetailsSheet: View {
                 Capsule()
                     .fill(vm.isOverAllocated
                           ? (vm.isStrict ? Color.red : Color.orange)
-                          : Color.appAccent)
+                          : Color.shu)
                     .frame(width: geo.size.width * max(vm.allocationRatio, 0.02))
             }
         }
@@ -134,18 +134,18 @@ struct BudgetDetailsSheet: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Strict budget")
                         .typography(.bodyLarge)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.ink)
                     Text(vm.isStrict
                          ? "Categories may not add up past the budget."
                          : "Categories may add up past the budget — it stretches to fit.")
                         .typography(.bodySmall)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.inkSecondary)
                 }
             }
             .padding(.vertical, 4)
 
             if let warning = vm.warning {
-                Divider()
+                Rule()
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .iconStyle(size: 14, weight: .semibold, color: .red)
@@ -166,7 +166,7 @@ struct BudgetDetailsSheet: View {
 
         return LabeledSection("Categories") {
             ForEach(Array(vm.categories.enumerated()), id: \.element.id) { index, category in
-                if index > 0 { Divider() }
+                if index > 0 { Rule() }
                 categoryRow(
                     vm: vm,
                     category: category,
@@ -194,7 +194,7 @@ struct BudgetDetailsSheet: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(category.name)
                         .typography(.bodyLarge)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.ink)
                     Text("\(vm.formatted(spend)) spent")
                         .typography(.bodySmall)
                         .foregroundStyle(
@@ -205,7 +205,7 @@ struct BudgetDetailsSheet: View {
                 Spacer()
 
                 Text(slice.map { vm.formatted($0) } ?? "Not set")
-                    .typography(.bodyMedium.weight(.semibold))
+                    .typography(.bodyMedium)
                     .foregroundStyle(slice == nil ? .secondary : .primary)
                     .contentTransition(.numericText())
             }

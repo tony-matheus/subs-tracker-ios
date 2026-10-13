@@ -41,7 +41,7 @@ struct BudgetEditorPreviewHost: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(label)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSecondary)
                 .textCase(.uppercase)
                 .tracking(0.5)
 

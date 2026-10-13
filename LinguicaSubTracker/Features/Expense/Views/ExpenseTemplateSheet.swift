@@ -207,7 +207,7 @@ struct ExpenseTemplateSheet: View {
                 VStack(spacing: 14) {
                     Image(systemName: "waveform")
                         .font(.system(size: 44, weight: .light))
-                        .foregroundStyle(Color.appPurple)
+                        .foregroundStyle(Color.shu)
                         .symbolEffect(.variableColor.iterative, isActive: true)
                     Text(voice.isProcessing ? "Adding…" : "Listening…")
                         .typography(.titleMedium)
@@ -309,7 +309,7 @@ struct ExpenseTemplateSheet: View {
             }
         } label: {
             Text(item.wrappedValue.category)
-                .typography(.bodyMedium.weight(.semibold))
+                .typography(.bodyMedium)
                 .foregroundStyle(color.contrastingForeground)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
@@ -412,7 +412,7 @@ struct ExpenseTemplateSheet: View {
         HStack(spacing: 10) {
             if voice.isProcessing {
                 ProgressView()
-                    .tint(.white)
+                    .tint(Color.paper)
                 Text("Adding…")
             } else {
                 Image(systemName: voice.isRecording ? "waveform" : "mic.fill")
@@ -422,12 +422,12 @@ struct ExpenseTemplateSheet: View {
             }
         }
         .typography(.titleMedium)
-        .foregroundStyle(.white)
+        .foregroundStyle(Color.paper)
         .frame(maxWidth: .infinity)
         .frame(height: 76)
         .background(
             RoundedRectangle(cornerRadius: 24)
-                .fill((voice.isRecording ? Color.red : Color.appPurple).gradient)
+                .fill(Color.shu)
         )
         .scaleEffect(voice.isRecording ? 1.02 : 1)
         .gesture(

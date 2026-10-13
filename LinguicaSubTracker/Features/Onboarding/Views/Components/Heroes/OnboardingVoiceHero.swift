@@ -11,9 +11,9 @@ struct OnboardingVoiceHero: View {
         VStack(spacing: 16) {
             HStack(spacing: 14) {
                 Image(systemName: "mic.fill")
-                    .iconStyle(size: 18, weight: .semibold, color: .white)
+                    .iconStyle(size: 18, weight: .semibold, color: Color.paper)
                     .frame(width: 44, height: 44)
-                    .background(Color.appPurple.gradient, in: Circle())
+                    .background(Color.shu, in: Circle())
 
                 WaveformLine(level: level)
                     .frame(height: 36)

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeActionButton: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let isOnCurrentMonth: Bool
     var onAdd: () -> Void
     var onBackToCurrent: () -> Void
@@ -14,33 +15,33 @@ struct HomeActionButton: View {
                             systemName: "plus"
                         )
                         .foregroundStyle(
-                            Color.green.gradient
+                            Color.ink
                         )
                         Text("Add expense")
                     }
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.primary.gradient)
+                    .typography(.titleMedium)
+                    .foregroundStyle(Color.ink)
                 }
                 .id(isOnCurrentMonth)
-                .transition(.liquidRipple)
+                .transition(.opacity)
             } else {
                 Button(action: onBackToCurrent) {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.uturn.left")
                             .foregroundStyle(
-                                Color.purple.gradient
+                                Color.ink
                             )
                         Text("Today")
                     }
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.primary.gradient)
+                    .typography(.titleMedium)
+                    .foregroundStyle(Color.ink)
                 }
                 .id(isOnCurrentMonth)
-                .transition(.liquidRipple)
+                .transition(.opacity)
             }
         }
         .animation(
-            .spring(response: 0.5, dampingFraction: 0.62),
+            reduceMotion ? nil : .smooth(duration: 0.25),
             value: isOnCurrentMonth
         )
     }
@@ -59,7 +60,7 @@ struct HomeActionButton: View {
                 Button("Toggle") { current.toggle() }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black)
+            .background(Color.paper)
         }
     }
     return Demo()

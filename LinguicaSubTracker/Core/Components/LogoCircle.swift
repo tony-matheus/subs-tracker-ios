@@ -108,7 +108,7 @@ struct LogoCircle: View {
 
     private var fallbackInitials: some View {
         Text(initials(for: name))
-            .font(.system(size: size * 0.33, weight: .bold))
+            .font(.custom(AppFont.mono, fixedSize: size * 0.33))
             .foregroundColor(customization.resolvedForeground)
     }
 

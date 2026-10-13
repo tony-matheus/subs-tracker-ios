@@ -1,9 +1,8 @@
 import SwiftUI
 
 /// Calendar hero — the real `MonthView` from the Home feature, seeded with
-/// mock brand expenses so renewal days show actual logos. `MonthView`
-/// brings its own tap-driven ripple, so no `rippleOnDrag` here (it would
-/// fight the onboarding swipe-to-page gesture).
+/// mock brand expenses so renewal days show actual logos. Its opaque card
+/// stays compatible with onboarding effects; the calendar itself is static.
 struct OnboardingCalendarHero: View {
     private let store = OnboardingMockData.makeStore()
 

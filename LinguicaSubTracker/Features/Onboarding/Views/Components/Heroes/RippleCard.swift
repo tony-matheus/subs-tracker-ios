@@ -7,7 +7,7 @@ struct RippleCardBackground: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(16)
-            .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 24))
+            .background(Color.paperRaised, in: RoundedRectangle(cornerRadius: 24))
             .overlay(
                 RoundedRectangle(cornerRadius: 24)
                     .stroke(Color.primary.opacity(0.08), lineWidth: 1)

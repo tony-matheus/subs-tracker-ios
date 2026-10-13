@@ -22,17 +22,17 @@ struct CurrencyPickerSheet: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(currency.code)
                                 .typography(.titleSmall)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Color.ink)
                             Text(currency.name)
                                 .typography(.bodySmall)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.inkSecondary)
                         }
 
                         Spacer()
 
                         Text(currency.symbol)
                             .typography(.titleMedium)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.inkSecondary)
 
                         if viewModel.isSelected(currency) {
                             Image(systemName: "checkmark")

@@ -5,6 +5,7 @@ import SwiftUI
 /// home calendar re-renders live behind the sheet.
 struct CalendarStyleSheet: View {
     let settingsStore: SettingsStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -19,7 +20,7 @@ struct CalendarStyleSheet: View {
                 .padding(.top, 8)
                 .padding(.bottom, 32)
                 .animation(
-                    .spring(response: 0.35, dampingFraction: 0.82),
+                    reduceMotion ? nil : .smooth(duration: 0.25),
                     value: settingsStore.calendarStyle
                 )
             }
@@ -32,7 +33,7 @@ struct CalendarStyleSheet: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark")
+                        Image(systemName: "xmark").foregroundStyle(Color.ink)
                     }
                 }
             }
@@ -51,10 +52,10 @@ struct CalendarStyleSheet: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(style.displayName)
                         .typography(.bodyLarge)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.ink)
                     Text(style.subtitle)
                         .typography(.bodySmall)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.inkSecondary)
                 }
 
                 Spacer()
@@ -63,16 +64,15 @@ struct CalendarStyleSheet: View {
                     .iconStyle(
                         size: 20,
                         weight: .semibold,
-                        color: isSelected ? .primary : .secondary
+                        color: isSelected ? Color.ink : Color.inkSecondary
                     )
             }
             .padding(14)
-            .background(Color.gray.opacity(isSelected ? 0.22 : 0.13))
-            .cornerRadius(20)
+            .background(Color.paperRaised, in: .rect(cornerRadius: AppRadius.card))
             .overlay(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: AppRadius.card)
                     .stroke(
-                        Color.primary.opacity(isSelected ? 0.35 : 0),
+                        isSelected ? Color.ink : Color.rule,
                         lineWidth: 1
                     )
             )
@@ -113,8 +113,8 @@ private struct CalendarStylePreviewCell: View {
                 }
 
             Text("17")
-                .font(.system(size: 9))
-                .foregroundStyle(.primary)
+                .font(.custom(AppFont.mono, fixedSize: 9))
+                .foregroundStyle(Color.ink)
                 .opacity(0.6)
                 .padding(4)
 

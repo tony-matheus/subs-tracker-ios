@@ -113,7 +113,7 @@ private struct LogoTabPicker: View {
             },
             center: {
                 Text(text)
-                    .typography(.bodyMedium.weight(.semibold))
+                    .typography(.bodyMedium)
                     .foregroundStyle(tab == value ? Color.primary : Color.secondary)
             }
         )
@@ -393,7 +393,7 @@ private struct PhotoTabBody: View {
                 HStack {
                     Image(systemName: "photo.on.rectangle")
                     Text(hasImage ? "Replace photo" : "Select custom photo")
-                        .typography(.titleMedium.weight(.semibold))
+                        .typography(.titleMedium)
                 }
                 .foregroundStyle(.black)
                 .frame(maxWidth: .infinity)
@@ -409,7 +409,7 @@ private struct PhotoTabBody: View {
                     customization.imageScale = 1.0
                 } label: {
                     Text("Remove photo")
-                        .typography(.bodyMedium.weight(.semibold))
+                        .typography(.bodyMedium)
                         .foregroundStyle(.red)
                         .frame(maxWidth: .infinity)
                 }

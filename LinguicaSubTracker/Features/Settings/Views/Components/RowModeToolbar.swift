@@ -22,7 +22,7 @@ struct RowModeToolbar: ToolbarContent {
     var body: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button(action: onDismiss) {
-                Image(systemName: "xmark")
+                Image(systemName: "xmark").foregroundStyle(Color.ink)
             }
         }
 
@@ -32,16 +32,16 @@ struct RowModeToolbar: ToolbarContent {
                 Button {
                     withAnimation { onEnterEdit() }
                 } label: {
-                    Image(systemName: "pencil")
+                    Image(systemName: "pencil").foregroundStyle(Color.ink)
                 }
-                .tint(.green)
+
 
                 Button {
                     withAnimation { onEnterSelect() }
                 } label: {
                     Image(systemName: "checkmark.circle")
                 }
-                .tint(.appAccent)
+                .tint(Color.ink)
             }
 
         case .editing:
@@ -49,10 +49,10 @@ struct RowModeToolbar: ToolbarContent {
                 Button {
                     withAnimation { onDone() }
                 } label: {
-                    Image(systemName: "checkmark")
+                    Image(systemName: "checkmark").foregroundStyle(Color.paper)
                 }
                 .buttonStyle(.glassProminent)
-                .tint(.green)
+
             }
 
         case .selecting:
@@ -61,8 +61,9 @@ struct RowModeToolbar: ToolbarContent {
                     withAnimation { onDeleteSelected() }
                 } label: {
                     Image(systemName: "trash")
+                        .accessibilityLabel("Delete selected")
                 }
-                .tint(.red)
+                .tint(Color.beni)
                 .disabled(!hasSelection)
 
                 Button("Done") {

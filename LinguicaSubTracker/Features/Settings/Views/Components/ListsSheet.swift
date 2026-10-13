@@ -26,7 +26,8 @@ struct ListsSheet: View {
                     addBar(vm: vm)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(.ultraThinMaterial)
+                        .background(Color.paper)
+                        .overlay(alignment: .top) { Rule() }
                 }
             }
             .navigationTitle("Lists")
@@ -67,19 +68,19 @@ struct ListsSheet: View {
                         ? "checkmark.circle.fill" : "circle"
                 )
                 .foregroundStyle(
-                    Color.appAccent.gradient
+                    Color.ink
                 )
             }
             Text(list.name)
                 .typography(.bodyLarge)
-                .foregroundStyle(.primary)
+                .foregroundStyle(Color.ink)
             Spacer()
             Circle()
                 .fill(Color(hex: list.colorHex))
                 .frame(width: 22, height: 22)
             if vm.mode == .editing {
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSecondary)
             }
         }
         .padding(.vertical, 2)
@@ -109,7 +110,7 @@ struct ListsSheet: View {
                     .frame(width: 30, height: 30)
                     .overlay(
                         Circle()
-                            .strokeBorder(.white.opacity(0.3), lineWidth: 1.5)
+                            .strokeBorder(Color.rule, lineWidth: 1)
                     )
             }
 

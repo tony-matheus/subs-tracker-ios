@@ -13,9 +13,6 @@ struct SettingsView: View {
     @AppStorage(RenewalReminders.enabledKey) private var remindersEnabled = false
     @AppStorage(RenewalReminders.leadDaysKey) private var reminderLeadDays = 1
     @State private var notificationsDenied = false
-    // Gates the footer heart's repeating bounce so it only animates while
-    // actually scrolled into view (it lives at the bottom of the scroll).
-    @State private var isFooterVisible = false
 
     init(settingsStore: SettingsStore, store: AppStore, coordinator: AppCoordinator) {
         _viewModel = State(
@@ -35,6 +32,7 @@ struct SettingsView: View {
                 // Grouped by task, most-used first (budget), destructive
                 // actions last — one labeled section per concern.
                 VStack(spacing: 24) {
+                    KasagiHeader()
                     section("Budget") {
                         GlassSection {
                             BudgetEditor(
@@ -55,12 +53,7 @@ struct SettingsView: View {
                         HStack {
                             Text("Made with")
                             Image(systemName: "suit.heart.fill")
-                                .symbolEffect(
-                                    .bounce.up.byLayer,
-                                    options: .repeat(.periodic(delay: 0.3)),
-                                    isActive: isFooterVisible
-                                )
-                                .foregroundStyle(.red)
+                                .foregroundStyle(Color.shu)
                             Text("by")
                             Link(
                                 "@tony_linguica",
@@ -68,15 +61,12 @@ struct SettingsView: View {
                             )
                         }
                         .typography(.titleSmall)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.inkSecondary)
                         HStack {
                             Text("version: 0.0.1")
                                 .typography(.bodySmall)
-                                .foregroundStyle(Color.secondary)
+                                .foregroundStyle(Color.inkSecondary)
                         }
-                    }
-                    .onScrollVisibilityChange(threshold: 0.2) { visible in
-                        isFooterVisible = visible
                     }
                 }
                 .padding(.horizontal, 16)
@@ -103,7 +93,7 @@ struct SettingsView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark")
+                        Image(systemName: "xmark").foregroundStyle(Color.ink)
                     }
 
                 }
@@ -169,10 +159,7 @@ struct SettingsView: View {
         @ViewBuilder content: () -> some View
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .typography(.labelLarge)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
+            SectionLabel(title)
             content()
         }
     }
@@ -183,7 +170,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 AppearanceSelector(selection: vm.themeModeBinding())
 
-                Divider()
+                Rule()
 
                 detailRow(
                     icon: "calendar",
@@ -202,21 +189,21 @@ struct SettingsView: View {
                 Toggle(isOn: $remindersEnabled) {
                     HStack(spacing: 10) {
                         Image(systemName: "bell.badge")
-                            .iconStyle(size: 16, weight: .medium, color: .secondary)
+                            .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
                             .frame(width: 24)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Renewal reminders")
                                 .typography(.bodyLarge)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Color.ink)
                             Text(notificationsDenied
                                  ? "Allow notifications in Settings"
                                  : "A heads-up before subscriptions renew")
                                 .typography(.bodySmall)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.inkSecondary)
                         }
                     }
                 }
-                .toggleStyle(SwitchToggleStyle(tint: .green))
+                .toggleStyle(SwitchToggleStyle(tint: Color.shu))
                 .onChange(of: remindersEnabled) { _, on in
                     Task {
                         let allowed = await vm.store.reminders?.setEnabled(on) ?? true
@@ -241,14 +228,14 @@ struct SettingsView: View {
             }
 
             if remindersEnabled {
-                Divider()
+                Rule()
                 HStack(spacing: 10) {
                     Image(systemName: "clock")
-                        .iconStyle(size: 16, weight: .medium, color: .secondary)
+                        .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
                         .frame(width: 24)
                     Text("Remind me")
                         .typography(.bodyLarge)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.ink)
                     Spacer()
                     Picker("Remind me", selection: $reminderLeadDays) {
                         ForEach(RenewalReminders.leadDayOptions, id: \.self) { days in
@@ -272,21 +259,21 @@ struct SettingsView: View {
                 Toggle(isOn: $iCloudSyncEnabled) {
                     HStack(spacing: 10) {
                         Image(systemName: "icloud")
-                            .iconStyle(size: 16, weight: .medium, color: .secondary)
+                            .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
                             .frame(width: 24)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Sync with iCloud")
                                 .typography(.bodyLarge)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Color.ink)
                             Text(iCloudAvailable
                                  ? "Keep expenses and settings on all your devices"
                                  : "Sign in to iCloud in the Settings app")
                                 .typography(.bodySmall)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.inkSecondary)
                         }
                     }
                 }
-                .toggleStyle(SwitchToggleStyle(tint: .green))
+                .toggleStyle(SwitchToggleStyle(tint: Color.shu))
                 .disabled(!iCloudAvailable)
                 .onChange(of: iCloudSyncEnabled) { _, enabled in
                     vm.store.sync?.setEnabled(enabled)
@@ -298,7 +285,7 @@ struct SettingsView: View {
                 iCloudAvailable = status == .available
             }
 
-            Divider()
+            Rule()
 
             detailRow(
                 icon: "hand.raised",
@@ -306,7 +293,7 @@ struct SettingsView: View {
                 detail: ""
             ) { vm.showPrivacy = true }
 
-            Divider()
+            Rule()
 
             detailRow(
                 icon: "internaldrive",
@@ -324,27 +311,27 @@ struct SettingsView: View {
             } label: {
                 HStack {
                     Image(systemName: "banknote.fill")
-                        .iconStyle(size: 16, weight: .medium, color: .secondary)
+                        .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
                         .frame(width: 24)
                     Text("Main Currency")
                         .typography(.bodyLarge)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.ink)
                     Spacer()
                     Text(vm.currencyCode)
                         .typography(.bodyMedium)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.inkSecondary)
                     Image(systemName: "chevron.right")
                         .iconStyle(
                             size: 12,
                             weight: .semibold,
-                            color: .secondary
+                            color: Color.inkSecondary
                         )
                 }
                 .frame(height: 44)
             }
             .buttonStyle(.plain)
 
-            Divider()
+            Rule()
 
             VStack(alignment: .leading, spacing: 4) {
                 Toggle(isOn: vm.roundAmountsBinding()) {
@@ -353,24 +340,24 @@ struct SettingsView: View {
                             .iconStyle(
                                 size: 16,
                                 weight: .medium,
-                                color: .secondary
+                                color: Color.inkSecondary
                             )
                             .frame(width: 24)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Rounding")
                                 .typography(.bodyLarge)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Color.ink)
                             Text("Display amounts without decimals")
                                 .typography(.bodySmall)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.inkSecondary)
                         }
                     }
                 }
-                .toggleStyle(SwitchToggleStyle(tint: .green))
+                .toggleStyle(SwitchToggleStyle(tint: Color.shu))
             }
             .padding(.vertical, 8)
 
-            Divider()
+            Rule()
 
             VStack(alignment: .leading, spacing: 4) {
                 Toggle(isOn: vm.abbreviateLargeNumbersBinding()) {
@@ -379,20 +366,20 @@ struct SettingsView: View {
                             .iconStyle(
                                 size: 16,
                                 weight: .medium,
-                                color: .secondary
+                                color: Color.inkSecondary
                             )
                             .frame(width: 24)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Abbreviate Large Numbers")
                                 .typography(.bodyLarge)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Color.ink)
                             Text("Use compact format like 74.5k")
                                 .typography(.bodySmall)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.inkSecondary)
                         }
                     }
                 }
-                .toggleStyle(SwitchToggleStyle(tint: .green))
+                .toggleStyle(SwitchToggleStyle(tint: Color.shu))
             }
             .padding(.vertical, 8)
         }
@@ -407,7 +394,7 @@ struct SettingsView: View {
                 count: vm.categoriesCount
             ) { vm.showCategories = true }
 
-            Divider()
+            Rule()
 
             filterRow(
                 icon: "creditcard",
@@ -415,7 +402,7 @@ struct SettingsView: View {
                 count: vm.paymentMethodsCount
             ) { vm.showPaymentMethods = true }
 
-            Divider()
+            Rule()
 
             filterRow(
                 icon: "list.dash",
@@ -472,19 +459,19 @@ struct SettingsView: View {
         Button(action: action) {
             HStack {
                 Image(systemName: icon)
-                    .iconStyle(size: 16, weight: .medium, color: .secondary)
+                    .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
                     .frame(width: 24)
                 Text(title)
                     .typography(.bodyLarge)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.ink)
                 Spacer()
                 if !detail.isEmpty {
                     Text(detail)
                         .typography(.bodyMedium)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.inkSecondary)
                 }
                 Image(systemName: "chevron.right")
-                    .iconStyle(size: 12, weight: .semibold, color: .secondary)
+                    .iconStyle(size: 12, weight: .semibold, color: Color.inkSecondary)
             }
             .frame(height: 44)
         }

@@ -4,7 +4,7 @@ import SwiftUI
 /// with the restored plain `HomeActionButton` in the same module.
 ///
 /// At rest: a glass capsule pill ("Add expense" / "Today").
-/// While the user holds and the mic is active: morphs into a purple recording orb.
+/// While the user holds and the mic is active: morphs into a vermilion recording orb.
 /// Tap handling and gesture wiring live in `SpeechActionButton`; this view is
 /// pure rendering.
 struct SpeechPillButton: View {
@@ -38,14 +38,14 @@ struct SpeechPillButton: View {
             HStack(spacing: 8) {
                 Image(systemName: isOnCurrentMonth ? "plus" : "arrow.uturn.left")
                     .foregroundStyle(
-                        (isOnCurrentMonth ? Color.appAccent : Color.appPurple).gradient
+                        Color.ink
                     )
                 Text(isOnCurrentMonth ? "Add expense" : "Today")
             }
-            .font(.system(size: 16, weight: .semibold))
-            .foregroundStyle(Color.primary.gradient)
+            .typography(.titleMedium)
+            .foregroundStyle(Color.ink)
             .id(isOnCurrentMonth)
-            .transition(.liquidRipple)
+            .transition(.opacity)
         }
         .animation(
             .spring(response: 0.5, dampingFraction: 0.62),
@@ -56,21 +56,20 @@ struct SpeechPillButton: View {
         .glassEffect(.regular.interactive(), in: Capsule())
     }
 
-    /// Recording state: compact purple orb with a live waveform.
+    /// Recording state: compact vermilion orb with a live waveform.
     private var orb: some View {
         ZStack {
             Circle()
-                .fill(Color.appPurple.gradient)
+                .fill(Color.shu)
                 .frame(width: 64, height: 64)
-                .shadow(color: Color.appPurple.opacity(0.55), radius: 18, x: 0, y: 4)
 
             if isProcessing {
                 ProgressView()
-                    .tint(.white)
+                    .tint(Color.paper)
             } else {
                 Image(systemName: "waveform")
                     .font(.system(size: 24, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.paper)
                     .symbolEffect(.variableColor.iterative, isActive: isRecording)
             }
         }

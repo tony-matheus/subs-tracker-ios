@@ -2,45 +2,49 @@ import SwiftUI
 
 enum Theme {
     enum FontName: String {
-        case regular = "SFCompactRounded-Regular"
-        case semibold = "SFCompactRounded-Semibold"
-        case bold = "SFCompactRounded-Bold"
-        case heavy = "SFCompactRounded-Heavy"
+        case regular = "FragmentMono-Regular"
     }
 
-    static func font(size: CGFloat, weight: FontName = .regular) -> Font {
-        return .custom(weight.rawValue, size: size)
+    static func font(size: CGFloat, relativeTo style: Font.TextStyle = .body) -> Font {
+        .custom(AppFont.mono, size: size, relativeTo: style)
     }
-}
 
-struct AppButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(Theme.font(size: 16, weight: .bold))
-            .padding()
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+    @MainActor static func applyUIKitAppearance() {
+        guard let title = UIFont(name: AppFont.mono, size: 17),
+              let large = UIFont(name: AppFont.mono, size: 28),
+              let segment = UIFont(name: AppFont.mono, size: 13) else {
+            return assertionFailure("Fragment Mono not registered")
+        }
+        UINavigationBar.appearance().titleTextAttributes = [
+            .font: UIFontMetrics(forTextStyle: .headline).scaledFont(for: title),
+            .foregroundColor: UIColor(Color.ink)
+        ]
+        UINavigationBar.appearance().largeTitleTextAttributes = [
+            .font: UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: large),
+            .foregroundColor: UIColor(Color.ink)
+        ]
+        UISegmentedControl.appearance().setTitleTextAttributes(
+            [.font: UIFontMetrics(forTextStyle: .footnote).scaledFont(for: segment)], for: .normal)
     }
-}
-
-struct LiquidGlassButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(.secondary)
-            .glassEffect(.regular.interactive())
-    }
-}
-
-extension ButtonStyle where Self == LiquidGlassButtonStyle {
-    static var liquidGlass: LiquidGlassButtonStyle { LiquidGlassButtonStyle() }
 }
 
 struct AppTextModifier: ViewModifier {
     let style: AppTypography.Style
+    @ScaledMetric private var boldSize: CGFloat
+    @Environment(\.legibilityWeight) private var legibility
+
+    init(style: AppTypography.Style) {
+        self.style = style
+        _boldSize = ScaledMetric(wrappedValue: style.size, relativeTo: style.textStyle)
+    }
 
     func body(content: Content) -> some View {
         content
-            .font(Theme.font(size: style.size, weight: style.weight))
+            .font(legibility == .bold
+                  ? .system(size: boldSize, weight: .semibold, design: .monospaced)
+                  : Theme.font(size: style.size, relativeTo: style.textStyle))
             .tracking(style.letterSpacing)
+            .textCase(style.uppercase ? .uppercase : nil)
     }
 }
 
@@ -64,7 +68,7 @@ extension View {
     func iconStyle(
         size: CGFloat = 17,
         weight: Font.Weight = .regular,
-        color: Color = .secondary
+        color: Color = .inkSecondary
     ) -> some View {
         modifier(IconModifier(size: size, weight: weight, color: color))
     }

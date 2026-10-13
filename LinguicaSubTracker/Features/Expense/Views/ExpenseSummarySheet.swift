@@ -360,7 +360,7 @@ private struct QuickPickSheet: View {
                         .frame(width: 10, height: 10)
                 }
                 Text(option.label)
-                    .typography(.bodyLarge.weight(isSelected ? .semibold : .regular))
+                    .typography(.bodyLarge)
                     .foregroundStyle(.primary)
                 Spacer()
                 if isSelected {

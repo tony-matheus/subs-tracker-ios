@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AppearanceSelector: View {
     @Binding var selection: ThemeMode
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var ns
 
     var body: some View {
@@ -10,13 +11,13 @@ struct AppearanceSelector: View {
                 segmentContent(mode)
                     .background {
                         if selection == mode {
-                            Capsule()
+                            RoundedRectangle(cornerRadius: AppRadius.card)
                                 .fill(Color.clear)
-                                .glassEffect(.regular.interactive(), in: Capsule())
+                                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: AppRadius.card))
                                 .matchedGeometryEffect(id: "appearanceHighlight", in: ns)
                         }
                     }
-                    .contentShape(Capsule())
+                    .contentShape(Rectangle())
                     .onTapGesture {
                         guard selection != mode else { return }
                         selection = mode
@@ -24,8 +25,9 @@ struct AppearanceSelector: View {
             }
         }
         .padding(4)
-        .background(.ultraThinMaterial.opacity(0.5), in: Capsule())
-        .animation(.spring(response: 0.35, dampingFraction: 0.82), value: selection)
+        .background(Color.paperRaised, in: .rect(cornerRadius: AppRadius.card))
+        .overlay(RoundedRectangle(cornerRadius: AppRadius.card).strokeBorder(Color.rule))
+        .animation(reduceMotion ? nil : .smooth(duration: 0.25), value: selection)
         .sensoryFeedback(.selection, trigger: selection)
     }
 
@@ -38,7 +40,7 @@ struct AppearanceSelector: View {
 
             Text(mode.label)
                 .typography(.labelMedium)
-                .foregroundStyle(isSelected ? .primary : .secondary)
+                .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
@@ -51,27 +53,27 @@ struct AppearanceSelector: View {
         case .system:
             Image(systemName: "circle.lefthalf.filled")
                 .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(isSelected ? .primary : .secondary)
-                .scaleEffect(isSelected ? 1.0 : 0.9)
-                .symbolEffect(.bounce, value: selection)
-                .contentTransition(.symbolEffect(.replace))
+                .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
+
+
+
 
         case .light:
             Image(systemName: "sun.max.fill")
                 .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(isSelected ? .primary : .secondary)
-                .scaleEffect(isSelected ? 1.0 : 0.9)
-                .symbolEffect(.variableColor.iterative, isActive: isSelected)
-                .symbolEffect(.bounce, value: selection)
-                .contentTransition(.symbolEffect(.replace))
+                .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
+
+
+
+
 
         case .dark:
             Image(systemName: "moon.stars.fill")
                 .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(isSelected ? .primary : .secondary)
-                .scaleEffect(isSelected ? 1.0 : 0.9)
-                .symbolEffect(.bounce, value: selection)
-                .contentTransition(.symbolEffect(.replace))
+                .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
+
+
+
         }
     }
 }
@@ -82,5 +84,5 @@ struct AppearanceSelector: View {
     AppearanceSelector(selection: $mode)
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.appSurface)
+        .background(Color.paperRaised)
 }

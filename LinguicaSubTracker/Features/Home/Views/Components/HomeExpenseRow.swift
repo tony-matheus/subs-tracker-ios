@@ -29,7 +29,7 @@ struct HomeExpenseRow: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(expense.name)
-                        .typography(.titleMedium.weight(.semibold))
+                        .typography(.titleMedium)
                         .foregroundStyle(.primary)
                     Text(scheduleText)
                         .typography(.bodySmall)
@@ -39,7 +39,7 @@ struct HomeExpenseRow: View {
                 Spacer(minLength: 8)
 
                 Text(priceText)
-                    .typography(.titleLarge.weight(.semibold))
+                    .typography(.titleLarge)
                     .foregroundStyle(.primary)
             }
             .padding(.horizontal, 16)

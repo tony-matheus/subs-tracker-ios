@@ -24,7 +24,8 @@ struct PaymentMethodsSheet: View {
                     addBar(vm: vm)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(.ultraThinMaterial)
+                        .background(Color.paper)
+                        .overlay(alignment: .top) { Rule() }
                 }
             }
             .navigationTitle("Payment Methods")
@@ -58,16 +59,16 @@ struct PaymentMethodsSheet: View {
                         ? "checkmark.circle.fill" : "circle"
                 )
                 .foregroundStyle(
-                    vm.isSelectable(method) ? Color.appAccent : Color.secondary.opacity(0.4)
+                    vm.isSelectable(method) ? Color.ink : Color.inkSecondary.opacity(0.4)
                 )
             }
             Text(method.name)
                 .typography(.bodyLarge)
-                .foregroundStyle(.primary)
+                .foregroundStyle(Color.ink)
             Spacer()
             if vm.mode == .editing {
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSecondary)
             }
         }
         .padding(.vertical, 2)

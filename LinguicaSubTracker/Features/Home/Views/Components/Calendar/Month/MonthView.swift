@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct MonthView: View {
-    static let rippleSpace = "monthRipple"
 
     let store: AppStore
     let month: Date
@@ -17,8 +16,6 @@ struct MonthView: View {
     var onEditExpense: ((Expense) -> Void)? = nil
     var onDeleteExpense: ((Expense) -> Void)? = nil
 
-    @State private var rippleOrigin: CGPoint = .zero
-    @State private var rippleTrigger: Int = 0
 
     let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
     let weekdaysList = ["S", "M", "T", "W", "T", "F", "S"]
@@ -28,8 +25,6 @@ struct MonthView: View {
             weekdaysHeader
             monthGrid
         }
-        .coordinateSpace(.named(Self.rippleSpace))
-        .rippleEffect(origin: rippleOrigin, trigger: rippleTrigger)
     }
 
     private var weekdaysHeader: some View {
@@ -57,14 +52,6 @@ struct MonthView: View {
                     style: style,
                     height: cellHeight,
                     onTap: { date in onTap(date) },
-                    // Dot styles skip the ripple (and the per-cell geometry
-                    // tracking that feeds its origin).
-                    onRipple: style.usesDots
-                        ? nil
-                        : { center in
-                            rippleOrigin = center
-                            rippleTrigger += 1
-                        },
                     onEdit: onEditExpense,
                     onDelete: onDeleteExpense
                 )

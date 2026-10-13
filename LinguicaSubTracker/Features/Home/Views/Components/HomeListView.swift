@@ -153,7 +153,7 @@ struct HomeListView: View {
                             showBudget = true
                         }
                         Text(viewModel.formatted(spend.amount))
-                            .typography(.titleMedium.weight(.semibold))
+                            .typography(.titleMedium)
                             .foregroundStyle(spend.color)
                         Text(spend.name)
                             .typography(.bodySmall)
@@ -215,7 +215,7 @@ struct HomeListView: View {
                 ? "Today"
                 : day.formatted(.dateTime.month(.wide).day())
         )
-        .typography(.labelMedium.weight(.semibold))
+        .typography(.labelMedium)
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)

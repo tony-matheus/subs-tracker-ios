@@ -99,6 +99,9 @@
 				Features/Settings/Models/ExpenseList.swift,
 				Features/Settings/Models/PaymentMethod.swift,
 				Resources/Assets.xcassets,
+				"Resources/Fonts/FragmentMono-Italic.ttf",
+				"Resources/Fonts/FragmentMono-Regular.ttf",
+				Resources/Fonts/OFL.txt,
 			);
 			target = 18A8E78D3068321100A50CC2 /* SatoruWidgetsExtension */;
 		};

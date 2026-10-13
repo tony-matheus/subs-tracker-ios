@@ -119,7 +119,7 @@ struct VoiceCaptureOverlay: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(Color.appSurface.opacity(0.85), in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.paperRaised.opacity(0.85), in: RoundedRectangle(cornerRadius: 14))
     }
 
     // MARK: - Status & actions
@@ -222,7 +222,7 @@ struct WaveformLine: View {
                     )
                     canvas.fill(
                         Path(roundedRect: rect, cornerRadius: barWidth / 2),
-                        with: .color(Color.appPurple.opacity(0.35 + magnitude * 0.65))
+                        with: .color(Color.ink.opacity(0.35 + magnitude * 0.65))
                     )
                 }
             }

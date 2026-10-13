@@ -1,9 +1,10 @@
 import SwiftUI
 
+/// Paper card (formerly glass). Name kept for API stability.
 struct GlassSection<Content: View>: View {
     let content: Content
     var contentInsets: EdgeInsets = .init(top: 16, leading: 16, bottom: 16, trailing: 16)
-    var cornerRadius: CGFloat = 24
+    var cornerRadius: CGFloat = AppRadius.card
     var clipsContent: Bool = false
 
     init(@ViewBuilder content: () -> Content) {
@@ -14,7 +15,8 @@ struct GlassSection<Content: View>: View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius)
         let base = VStack(spacing: 0) { content }
             .padding(contentInsets)
-            .background(.ultraThinMaterial, in: shape)
+            .background(Color.paperRaised, in: shape)
+            .overlay(shape.strokeBorder(Color.rule, lineWidth: 1))
 
         // Only clip when the caller opts in. Default leaves child shadows
         // free to render past the card edge.

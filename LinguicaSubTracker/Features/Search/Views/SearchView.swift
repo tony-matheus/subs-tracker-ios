@@ -134,11 +134,11 @@ struct SearchView: View {
                         vm.selectionCount == totalCount && totalCount > 0
                             ? "Deselect All" : "Select All"
                     )
-                    .typography(.bodyMedium.weight(.semibold))
+                    .typography(.bodyMedium)
                 }
             } else {
                 Text("All Subs")
-                    .typography(.displaySmall.weight(.bold))
+                    .typography(.displaySmall)
                     .foregroundStyle(.primary)
             }
             if !vm.storeIsEmpty {
@@ -165,7 +165,7 @@ struct SearchView: View {
                         vm.isSelectionMode ? "Cancel" : "Select",
                         systemImage: "checkmark.circle"
                     )
-                    .typography(.bodyMedium.weight(.semibold))
+                    .typography(.bodyMedium)
                 }
             }
         }
@@ -267,7 +267,7 @@ struct SearchView: View {
                 .foregroundStyle(.secondary.opacity(0.5))
 
             Text("No expenses yet")
-                .typography(.titleLarge.weight(.semibold))
+                .typography(.titleLarge)
                 .foregroundStyle(.primary)
 
             Text("Track your first expense to see it here.")

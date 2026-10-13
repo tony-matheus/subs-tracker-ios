@@ -56,7 +56,7 @@ struct HomeToolbar: ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button(action: onSettings) {
                 Image(systemName: "gearshape")
-                    .foregroundStyle(Color.primary.gradient.opacity(0.8))
+                    .foregroundStyle(Color.ink)
             }
         }
 
@@ -64,7 +64,7 @@ struct HomeToolbar: ToolbarContent {
             Button(action: onStats) {
                 Image(systemName: "ring.dashed", variableValue: budgetRatio)
                     .font(.system(size: 18))
-                    .foregroundStyle(budgetTint.gradient)
+                    .foregroundStyle(Color.ink)
                     .contentTransition(.symbolEffect(.replace))
                     .animation(.easeInOut, value: budgetRatio)
             }
@@ -82,7 +82,7 @@ struct HomeToolbar: ToolbarContent {
             Button(action: onSearch) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 18))
-                    .foregroundColor(.primary)
+                    .foregroundColor(Color.ink)
             }
         }
     }
@@ -100,7 +100,7 @@ struct HomeToolbar: ToolbarContent {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 11, weight: .semibold))
             }
-            .foregroundStyle(.primary)
+            .foregroundStyle(Color.ink)
         }
         .buttonStyle(.plain)
     }
@@ -117,7 +117,7 @@ struct HomeToolbar: ToolbarContent {
             } label: {
                 Image(systemName: viewType.targetIcon)
                     .font(.system(size: 14))
-                    .foregroundStyle(Color.primary.gradient.opacity(0.8))
+                    .foregroundStyle(Color.ink)
                     .contentTransition(.symbolEffect(.replace))
             }
             .accessibilityLabel(viewType == .calendar ? "Switch to list view" : "Switch to calendar view")
@@ -166,7 +166,7 @@ struct HomeToolbar: ToolbarContent {
         } label: {
             Image(systemName: "line.3.horizontal.decrease")
                 .font(.system(size: 14))
-                .foregroundStyle(Color.primary.gradient.opacity(0.8))
+                .foregroundStyle(Color.ink)
         }
     }
 }

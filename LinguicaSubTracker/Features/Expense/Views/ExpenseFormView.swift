@@ -46,7 +46,7 @@ struct ExpenseFormView: View {
         }
         ToolbarItem(placement: .principal) {
             Text(viewModel.navigationTitle)
-                .typography(.titleMedium.weight(.semibold))
+                .typography(.titleMedium)
                 .foregroundStyle(viewModel.themeAccent)
         }
         ToolbarItem(placement: .topBarTrailing) {
@@ -146,7 +146,7 @@ struct ExpenseFormView: View {
             }
         } label: {
             Text(category.name)
-                .typography(.bodyMedium.weight(.semibold))
+                .typography(.bodyMedium)
                 .foregroundStyle(isSelected ? color.contrastingForeground : .primary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
@@ -362,7 +362,7 @@ struct ExpenseFormView: View {
                             vm.dismissNativeKeyboard()
                         } label: {
                             Text("Done")
-                                .typography(.bodyMedium.weight(.semibold))
+                                .typography(.bodyMedium)
                                 .foregroundStyle(.foreground)
                                 .padding(.horizontal, 18)
                                 .padding(.vertical, 10)

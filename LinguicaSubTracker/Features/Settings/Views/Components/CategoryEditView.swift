@@ -21,14 +21,14 @@ struct CategoryEditView: View {
                     HStack {
                         Text("Color")
                             .typography(.bodyLarge)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(Color.ink)
                         Spacer()
                         Circle()
                             .fill(Color(hex: colorHex))
                             .frame(width: 28, height: 28)
                             .overlay(
                                 Circle()
-                                    .strokeBorder(.white.opacity(0.3), lineWidth: 1.5)
+                                    .strokeBorder(Color.rule, lineWidth: 1)
                             )
                     }
                 }

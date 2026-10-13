@@ -16,26 +16,6 @@ struct RippleStyle: Equatable {
     static let `default` = RippleStyle()
 }
 
-/// Tuning values for the velocity-driven `RippleWake` shader (drag).
-struct WakeStyle: Equatable {
-    /// Max pixel displacement of the wave crest, at full drag speed.
-    var amplitude: Double = 11
-    /// Number of crests in the traveling wave train.
-    var frequency: Double = 26
-    /// Outward propagation speed of the waves, in points per second.
-    var waveSpeed: Double = 700
-    /// Effect reach for a slow drag, in points.
-    var minRadius: Double = 70
-    /// Effect reach for a fast drag, in points.
-    var maxRadius: Double = 230
-    /// Drag speed (points/second) that maps to full intensity & reach.
-    var referenceVelocity: Double = 2200
-    /// How long the disturbance keeps propagating after motion stops, seconds.
-    var fade: TimeInterval = 0.7
-
-    static let `default` = WakeStyle()
-}
-
 /// Drives the `Ripple` Metal shader from a still state to a fully decayed
 /// wave whenever `trigger` changes, emanating from `origin` (in the view's
 /// local coordinate space).
@@ -117,137 +97,6 @@ private struct TapRippleModifier: ViewModifier {
     }
 }
 
-/// Applies the velocity-driven `RippleWake` shader for a single point in time.
-private struct WakeModifier: ViewModifier {
-    var origin: CGPoint
-    var time: TimeInterval
-    var strength: Double
-    var radius: Double
-    var style: WakeStyle
-
-    func body(content: Content) -> some View {
-        let shader = ShaderLibrary.RippleWake(
-            .float2(origin),
-            .float(time),
-            .float(strength),
-            .float(radius),
-            .float(style.amplitude),
-            .float(style.frequency),
-            .float(style.waveSpeed)
-        )
-
-        content.visualEffect { view, _ in
-            view.layerEffect(
-                shader,
-                maxSampleOffset: CGSize(
-                    width: style.amplitude,
-                    height: style.amplitude
-                ),
-                isEnabled: strength > 0.001
-            )
-        }
-    }
-}
-
-/// Self-contained helper: injects a water wake from *motion*. Energy is taken
-/// from the drag velocity (so a finger held still does nothing), and both the
-/// intensity and the reach grow with speed. After the finger stops or lifts,
-/// the last-injected energy keeps propagating outward and fades over `fade`.
-private struct DragRippleModifier: ViewModifier {
-    var style: WakeStyle
-
-    @State private var origin: CGPoint = .zero
-    @State private var baseDate: Date?
-    @State private var energy: Double = 0
-    @State private var energyDate: Date = .now
-    @State private var radius: Double = 0
-    @State private var stopToken = 0
-
-    /// Movement below this (points) on release counts as a tap, not a drag.
-    private let tapSlop: Double = 8
-
-    func body(content: Content) -> some View {
-        TimelineView(.animation(paused: !isActive)) { timeline in
-            let now = timeline.date
-            content.modifier(
-                WakeModifier(
-                    origin: origin,
-                    time: time(at: now),
-                    strength: strength(at: now),
-                    radius: radius,
-                    style: style
-                )
-            )
-        }
-        .contentShape(Rectangle())
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                .onChanged { value in
-                    let now = Date.now
-                    if baseDate == nil { baseDate = now }
-                    origin = value.location
-                    inject(speed: speed(of: value.velocity), at: now)
-                }
-                .onEnded { value in
-                    let now = Date.now
-                    origin = value.location
-                    let moved = hypot(value.translation.width, value.translation.height)
-                    if moved < tapSlop {
-                        // A tap: a fresh ring expanding from the touch point.
-                        baseDate = now
-                        energy = 0.85
-                        energyDate = now
-                        radius = style.minRadius
-                    } else {
-                        inject(speed: speed(of: value.velocity), at: now)
-                    }
-                    scheduleStop()
-                }
-        )
-    }
-
-    private func speed(of velocity: CGSize) -> Double {
-        hypot(velocity.width, velocity.height)
-    }
-
-    /// Maps drag speed to intensity (0...1) and reach, refreshing the envelope.
-    private func inject(speed: Double, at now: Date) {
-        let norm = min(1, speed / style.referenceVelocity)
-        energy = norm
-        energyDate = now
-        radius = style.minRadius + (style.maxRadius - style.minRadius) * norm
-    }
-
-    /// Pauses the timeline once the waves have fully faded, unless retriggered.
-    private func scheduleStop() {
-        stopToken += 1
-        let token = stopToken
-        DispatchQueue.main.asyncAfter(deadline: .now() + style.fade * 5) {
-            if token == stopToken {
-                energy = 0
-                baseDate = nil
-            }
-        }
-    }
-
-    private var isActive: Bool {
-        guard energy > 0, baseDate != nil else { return false }
-        return Date.now.timeIntervalSince(energyDate) < style.fade * 5
-    }
-
-    private func time(at now: Date) -> TimeInterval {
-        guard let baseDate else { return 0 }
-        return now.timeIntervalSince(baseDate)
-    }
-
-    /// Exponential decay of the injected energy since it was last refreshed —
-    /// so a static finger (no new motion) fades to nothing on its own.
-    private func strength(at now: Date) -> Double {
-        guard energy > 0 else { return 0 }
-        return energy * exp(-now.timeIntervalSince(energyDate) / style.fade)
-    }
-}
-
 /// A liquid "drop reveal": content emerges from a growing circular ripple that
 /// overshoots slightly, like a droplet spreading across a surface from `anchor`.
 private struct LiquidRevealModifier: ViewModifier, Animatable {
@@ -297,17 +146,6 @@ extension AnyTransition {
 }
 
 extension View {
-    /// Sends a water-drop ripple through the view from `origin` each time
-    /// `trigger` changes. Use this when you want to drive the ripple manually
-    /// (e.g. on a value change rather than a tap).
-    func rippleEffect(
-        origin: CGPoint,
-        trigger: some Equatable,
-        style: RippleStyle = .default
-    ) -> some View {
-        modifier(RippleEffect(origin: origin, trigger: trigger, style: style))
-    }
-
     /// Adds a tap-triggered water-drop ripple that emanates from wherever the
     /// view is tapped. Pass `perform` to also run an action, or omit it when
     /// the view (e.g. a `Button`) already handles its own tap.
@@ -318,16 +156,4 @@ extension View {
         modifier(TapRippleModifier(style: style, action: action))
     }
 
-    /// Adds a velocity-driven water wake: dragging a finger across the view
-    /// disturbs the surface in proportion to the drag speed (faster = stronger
-    /// and wider), while a finger held still produces nothing. A tap injects a
-    /// single expanding ring. The disturbance keeps propagating and fades out
-    /// after motion stops.
-    ///
-    /// Uses a simultaneous gesture, so it composes with an underlying `Button`
-    /// (the tap action still fires). Avoid on views nested inside a scroll view
-    /// where the drag would compete with scrolling.
-    func rippleOnDrag(style: WakeStyle = .default) -> some View {
-        modifier(DragRippleModifier(style: style))
-    }
 }

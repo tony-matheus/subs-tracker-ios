@@ -1,8 +1,7 @@
 import SwiftUI
 
 /// Shared layout for the feature-highlight pages: a centered hero with a
-/// title + subtitle underneath. The hero is fixed-size (not scrollable) so
-/// it can safely host `rippleOnDrag`.
+/// title + subtitle underneath. Heroes retain their onboarding tap effects.
 struct OnboardingFeaturePage<Hero: View>: View {
     let title: String
     let subtitle: String

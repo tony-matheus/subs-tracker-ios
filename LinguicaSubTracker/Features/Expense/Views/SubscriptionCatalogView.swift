@@ -76,7 +76,7 @@ struct SubscriptionCatalogView: View {
 
                 VStack(spacing: 4) {
                     Text("Create \"\(searchText)\"")
-                        .typography(.titleLarge.weight(.semibold))
+                        .typography(.titleLarge)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
                     Text("Build a custom expense")

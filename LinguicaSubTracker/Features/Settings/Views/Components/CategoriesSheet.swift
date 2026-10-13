@@ -25,7 +25,7 @@ struct CategoriesSheet: View {
                             "The 'Other' category cannot be deleted as it automatically serves as a default for expenses without a specific category."
                         )
                         .typography(.bodySmall)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.inkSecondary)
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     }
@@ -36,7 +36,8 @@ struct CategoriesSheet: View {
                     addBar(vm: vm)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(.ultraThinMaterial)
+                        .background(Color.paper)
+                        .overlay(alignment: .top) { Rule() }
                 }
             }
             .navigationTitle("Categories")
@@ -75,19 +76,19 @@ struct CategoriesSheet: View {
                         ? "checkmark.circle.fill" : "circle"
                 )
                 .foregroundStyle(
-                    vm.isSelectable(cat) ? Color.appAccent : Color.secondary.opacity(0.4)
+                    vm.isSelectable(cat) ? Color.ink : Color.inkSecondary.opacity(0.4)
                 )
             }
             Text(cat.name)
                 .typography(.bodyLarge)
-                .foregroundStyle(.primary)
+                .foregroundStyle(Color.ink)
             Spacer()
             Circle()
                 .fill(Color(hex: cat.colorHex))
                 .frame(width: 22, height: 22)
             if vm.mode == .editing {
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSecondary)
             }
         }
         .padding(.vertical, 2)
@@ -117,7 +118,7 @@ struct CategoriesSheet: View {
                     .frame(width: 30, height: 30)
                     .overlay(
                         Circle()
-                            .strokeBorder(.white.opacity(0.3), lineWidth: 1.5)
+                            .strokeBorder(Color.rule, lineWidth: 1)
                     )
             }
 

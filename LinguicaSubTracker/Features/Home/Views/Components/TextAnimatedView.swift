@@ -72,8 +72,8 @@ struct TextAnimatedView: View {
 
     private func measuredWidth(at pointSize: CGFloat) -> CGFloat {
         let font =
-            UIFont(name: Self.style.weight.rawValue, size: pointSize)
-            ?? .systemFont(ofSize: pointSize, weight: .semibold)
+            UIFont(name: AppFont.mono, size: pointSize)
+            ?? .monospacedSystemFont(ofSize: pointSize, weight: .regular)
         // `monospacedDigit()` widens every digit to the widest one, so measure
         // as if all digits were zeros instead of trusting proportional widths.
         let widestDigits = String(displayedValue.map { $0.isNumber ? "0" : $0 })
@@ -125,7 +125,7 @@ private struct FluidFontSize: ViewModifier, Animatable {
 
     func body(content: Content) -> some View {
         content
-            .font(Theme.font(size: size, weight: style.weight))
+            .font(Theme.font(size: size, relativeTo: style.textStyle))
             .tracking(style.letterSpacing)
     }
 }

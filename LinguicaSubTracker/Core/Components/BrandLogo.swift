@@ -91,7 +91,7 @@ enum BrandLogoStyle {
     )
 
     static let deepGreen = LinearGradient(
-        colors: [Color.appAccent, Color.appAccentDeep],
+        colors: [Color.shu, Color.shuPressed],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )

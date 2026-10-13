@@ -140,7 +140,7 @@ struct OnboardingView: View {
                 Capsule()
                     .fill(
                         page == viewModel.page
-                            ? AnyShapeStyle(Color.appAccent.gradient)
+                            ? AnyShapeStyle(Color.shu)
                             : AnyShapeStyle(Color.primary.opacity(0.2))
                     )
                     .frame(width: page == viewModel.page ? 40 : 20, height: 20)

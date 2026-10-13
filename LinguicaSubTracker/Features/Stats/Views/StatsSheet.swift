@@ -96,10 +96,10 @@ struct StatsSheet: View {
                         segments: [
                             .init(value: .breakdown,
                                   leading: { Image(systemName: "chart.pie.fill").iconStyle(size: 14, weight: .semibold, color: .secondary) },
-                                  center: { Text("Breakdown").typography(.bodyMedium.weight(.semibold)) }),
+                                  center: { Text("Breakdown").typography(.bodyMedium) }),
                             .init(value: .trend,
                                   leading: { Image(systemName: "chart.bar.fill").iconStyle(size: 14, weight: .semibold, color: .secondary) },
-                                  center: { Text("Trend").typography(.bodyMedium.weight(.semibold)) }),
+                                  center: { Text("Trend").typography(.bodyMedium) }),
                         ]
                     )
 

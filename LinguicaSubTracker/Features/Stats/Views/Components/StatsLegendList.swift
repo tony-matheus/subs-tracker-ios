@@ -34,7 +34,7 @@ struct StatsLegendList: View {
                         .frame(width: 10, height: 10)
 
                     Text(item.label)
-                        .typography(.bodyMedium.weight(isSelected ? .semibold : .regular))
+                        .typography(.bodyMedium)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
 
@@ -45,7 +45,7 @@ struct StatsLegendList: View {
                         .foregroundStyle(.secondary)
 
                     Text(format(item.amount))
-                        .typography(.bodyMedium.weight(.semibold))
+                        .typography(.bodyMedium)
                         .foregroundStyle(.primary)
                 }
 

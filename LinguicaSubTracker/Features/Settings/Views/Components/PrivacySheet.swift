@@ -12,15 +12,15 @@ struct SettingsInfoCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 10) {
                     Image(systemName: icon)
-                        .iconStyle(size: 16, weight: .medium, color: .secondary)
+                        .iconStyle(size: 16, weight: .medium, color: Color.inkSecondary)
                         .frame(width: 24)
                     Text(title)
                         .typography(.bodyLarge)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.ink)
                 }
                 Text(text)
                     .typography(.bodyMedium)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 4)

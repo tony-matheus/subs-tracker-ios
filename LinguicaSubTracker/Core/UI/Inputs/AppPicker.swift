@@ -46,7 +46,7 @@ extension AppPicker where S == MenuPickerStyle {
         AppPicker(title: "Schedule", selection: $schedule, options: options)
     }
     .padding()
-    .background(.black)
+    .background(Color.paper)
 }
 
 #Preview("AppPicker — segmented") {
@@ -66,5 +66,5 @@ extension AppPicker where S == MenuPickerStyle {
         )
     }
     .padding()
-    .background(.black)
+    .background(Color.paper)
 }

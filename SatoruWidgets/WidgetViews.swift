@@ -5,8 +5,8 @@ import WidgetKit
 // Views for every widget family. Pure functions of a `WidgetSnapshot` +
 // family, so the DEBUG gallery in the app can render them too.
 
-private func rounded(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-    .system(size: size, weight: weight, design: .rounded)
+private func mono(_ size: CGFloat) -> Font {
+    .custom(AppFont.mono, fixedSize: size)
 }
 
 // MARK: - Shared pieces
@@ -46,8 +46,8 @@ private struct Dots: View {
             }
             if colors.count > max {
                 Text("+\(colors.count - max)")
-                    .font(rounded(size * 1.8, .semibold))
-                    .foregroundStyle(.secondary)
+                    .font(mono(size * 1.8))
+                    .foregroundStyle(Color.inkSecondary)
             }
         }
         .widgetAccentable()
@@ -79,14 +79,14 @@ private struct ExpenseLine: View {
                 LogoCircle(size: logoSize, customization: snapshot.logo(for: expense),
                            logoName: expense.logoName, name: expense.name)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(expense.name).font(rounded(13, .semibold)).lineLimit(1)
+                    Text(expense.name).font(mono(13)).lineLimit(1)
                     if showsDay {
                         Text(dayLabel(date, now: snapshot.now))
-                            .font(rounded(11)).foregroundStyle(.secondary)
+                            .font(mono(11)).foregroundStyle(Color.inkSecondary)
                     }
                 }
                 Spacer(minLength: 4)
-                Text(snapshot.money(expense.price)).font(rounded(13, .semibold)).monospacedDigit()
+                Text(snapshot.money(expense.price)).font(mono(13)).monospacedDigit()
             }
             .foregroundStyle(Color.primary)
         }
@@ -134,28 +134,28 @@ struct BudgetWidgetView: View {
     }
 
     private var noBudgetNote: some View {
-        Text("Set a budget in Satoru").font(rounded(11)).foregroundStyle(.secondary)
+        Text("Set a budget in Satoru").font(mono(11)).foregroundStyle(Color.inkSecondary)
     }
 
     private var small: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(status.title).font(rounded(13, .semibold)).foregroundStyle(.secondary)
+            Text(status.title).font(mono(13)).foregroundStyle(Color.inkSecondary)
             if status.budget != nil {
                 ZStack {
                     ring
-                    Text(percent).font(rounded(17, .bold)).monospacedDigit()
+                    Text(percent).font(mono(17)).monospacedDigit()
                 }
                 .frame(width: 64, height: 64)
                 Spacer(minLength: 0)
                 Text(remainingText)
-                    .font(rounded(15, .bold)).foregroundStyle(status.isOver ? .red : .primary)
+                    .font(mono(15)).foregroundStyle(status.isOver ? .red : .primary)
                     .minimumScaleFactor(0.7).lineLimit(1)
                 Text("of \(snapshot.money(status.budget ?? 0))")
-                    .font(rounded(11)).foregroundStyle(.secondary)
+                    .font(mono(11)).foregroundStyle(Color.inkSecondary)
             } else {
                 Spacer(minLength: 0)
-                Text("Spent").font(rounded(12)).foregroundStyle(.secondary)
-                Text(snapshot.money(status.total)).font(rounded(24, .bold)).minimumScaleFactor(0.6).lineLimit(1)
+                Text("Spent").font(mono(12)).foregroundStyle(Color.inkSecondary)
+                Text(snapshot.money(status.total)).font(mono(24)).minimumScaleFactor(0.6).lineLimit(1)
                 noBudgetNote
             }
         }
@@ -167,9 +167,9 @@ struct BudgetWidgetView: View {
             ForEach(status.topCategories, id: \.name) { category in
                 HStack(spacing: 6) {
                     Circle().fill(snapshot.categoryColor(category.name)).frame(width: 6, height: 6)
-                    Text(category.name).font(rounded(11)).lineLimit(1)
+                    Text(category.name).font(mono(11)).lineLimit(1)
                     Spacer(minLength: 4)
-                    Text(snapshot.compactMoney(category.value)).font(rounded(11, .semibold)).monospacedDigit()
+                    Text(snapshot.compactMoney(category.value)).font(mono(11)).monospacedDigit()
                 }
             }
         }
@@ -178,10 +178,10 @@ struct BudgetWidgetView: View {
 
     private var header: some View {
         HStack {
-            Text(status.title).font(rounded(14, .semibold))
+            Text(status.title).font(mono(14))
             Spacer()
             Text(status.daysLeft == 1 ? "1 day left" : "\(status.daysLeft) days left")
-                .font(rounded(12)).foregroundStyle(.secondary)
+                .font(mono(12)).foregroundStyle(Color.inkSecondary)
         }
     }
 
@@ -190,8 +190,8 @@ struct BudgetWidgetView: View {
             ZStack {
                 ring
                 VStack(spacing: 0) {
-                    Text(percent).font(rounded(22, .bold)).monospacedDigit()
-                    Text("used").font(rounded(11)).foregroundStyle(.secondary)
+                    Text(percent).font(mono(22)).monospacedDigit()
+                    Text("used").font(mono(11)).foregroundStyle(Color.inkSecondary)
                 }
             }
             .frame(width: 100, height: 100)
@@ -200,10 +200,10 @@ struct BudgetWidgetView: View {
             VStack(alignment: .leading, spacing: 4) {
                 header
                 Text(remainingText)
-                    .font(rounded(20, .bold)).foregroundStyle(status.isOver ? .red : .primary)
+                    .font(mono(20)).foregroundStyle(status.isOver ? .red : .primary)
                     .minimumScaleFactor(0.7).lineLimit(1)
                 if let budget = status.budget {
-                    Text("of \(snapshot.money(budget))").font(rounded(11)).foregroundStyle(.secondary)
+                    Text("of \(snapshot.money(budget))").font(mono(11)).foregroundStyle(Color.inkSecondary)
                 } else {
                     noBudgetNote
                 }
@@ -219,7 +219,7 @@ struct BudgetWidgetView: View {
             HStack(spacing: 16) {
                 ZStack {
                     ring
-                    Text(percent).font(rounded(22, .bold)).monospacedDigit()
+                    Text(percent).font(mono(22)).monospacedDigit()
                 }
                 .frame(width: 96, height: 96)
                 .opacity(status.budget == nil ? 0.3 : 1)
@@ -239,9 +239,9 @@ struct BudgetWidgetView: View {
                 if let biggest = status.biggest {
                     Spacer(minLength: 12)
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("Biggest").font(rounded(11)).foregroundStyle(.secondary)
-                        Text(biggest.name).font(rounded(12, .semibold)).lineLimit(1)
-                        Text(snapshot.money(biggest.value)).font(rounded(12)).monospacedDigit()
+                        Text("Biggest").font(mono(11)).foregroundStyle(Color.inkSecondary)
+                        Text(biggest.name).font(mono(12)).lineLimit(1)
+                        Text(snapshot.money(biggest.value)).font(mono(12)).monospacedDigit()
                     }
                 }
             }
@@ -250,9 +250,9 @@ struct BudgetWidgetView: View {
 
     private func stat(_ label: String, _ value: Double, tint: Color? = nil) -> some View {
         HStack {
-            Text(label).font(rounded(12)).foregroundStyle(.secondary)
+            Text(label).font(mono(12)).foregroundStyle(Color.inkSecondary)
             Spacer()
-            Text(snapshot.money(value)).font(rounded(14, .semibold)).monospacedDigit()
+            Text(snapshot.money(value)).font(mono(14)).monospacedDigit()
                 .foregroundStyle(tint ?? .primary)
         }
     }
@@ -318,13 +318,13 @@ struct BudgetWidgetView: View {
     private var rectangular: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(status.period == .week ? "Week" : "Month") · \(remainingText)")
-                .font(rounded(14, .semibold)).lineLimit(1)
+                .font(mono(14)).lineLimit(1)
             if let budget = status.budget {
                 Gauge(value: min(status.total / max(budget, 1), 1)) { EmptyView() }
                     .gaugeStyle(.accessoryLinearCapacity)
-                Text("of \(snapshot.money(budget))").font(rounded(11)).foregroundStyle(.secondary)
+                Text("of \(snapshot.money(budget))").font(mono(11)).foregroundStyle(Color.inkSecondary)
             } else {
-                Text("Spent \(periodWord)").font(rounded(11)).foregroundStyle(.secondary)
+                Text("Spent \(periodWord)").font(mono(11)).foregroundStyle(Color.inkSecondary)
             }
         }
     }
@@ -351,10 +351,10 @@ struct CalendarWidgetView: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(snapshot.now.formatted(.dateTime.month(.wide)))
-                        .font(rounded(15, .bold))
-                    Text(snapshot.money(total)).font(rounded(13, .semibold)).monospacedDigit()
+                        .font(mono(15))
+                    Text(snapshot.money(total)).font(mono(13)).monospacedDigit()
                     Text("\(days.reduce(0) { $0 + $1.expenses.count }) charges")
-                        .font(rounded(11)).foregroundStyle(.secondary)
+                        .font(mono(11)).foregroundStyle(Color.inkSecondary)
                     Spacer(minLength: 0)
                 }
                 .frame(width: 84, alignment: .leading)
@@ -364,9 +364,9 @@ struct CalendarWidgetView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text(snapshot.now.formatted(.dateTime.month(.wide).year()))
-                        .font(rounded(16, .bold))
+                        .font(mono(16))
                     Spacer()
-                    Text(snapshot.money(total)).font(rounded(14, .semibold)).monospacedDigit()
+                    Text(snapshot.money(total)).font(mono(14)).monospacedDigit()
                 }
                 monthGrid(numberSize: 13, dotMax: 3, dotSize: 5, linked: true)
             }
@@ -381,7 +381,7 @@ struct CalendarWidgetView: View {
         return VStack(spacing: 2) {
             HStack(spacing: 0) {
                 ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
-                    Text(symbol).font(rounded(numberSize - 1, .semibold)).foregroundStyle(.secondary)
+                    Text(symbol).font(mono(numberSize - 1)).foregroundStyle(Color.inkSecondary)
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -392,8 +392,8 @@ struct CalendarWidgetView: View {
                             VStack(spacing: 1) {
                                 if let date = day.date {
                                     Text(date.formatted(.dateTime.day()))
-                                        .font(rounded(numberSize, day.isToday ? .bold : .regular))
-                                        .foregroundStyle(day.isToday ? Color.appAccent : .primary)
+                                        .font(mono(numberSize))
+                                        .foregroundStyle(day.isToday ? Color.shu : Color.ink)
                                     Dots(colors: colors(day), max: dotMax, size: dotSize)
                                         .frame(height: dotSize)
                                 } else {
@@ -403,7 +403,7 @@ struct CalendarWidgetView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .background {
                                 if day.isToday {
-                                    RoundedRectangle(cornerRadius: 6).stroke(Color.appAccent, lineWidth: 1.5)
+                                    Rectangle().stroke(Color.shu, lineWidth: 1)
                                         .widgetAccentable()
                                 }
                             }
@@ -429,9 +429,9 @@ struct CalendarWidgetView: View {
         VStack(alignment: .leading, spacing: logos ? 6 : 2) {
             if logos {
                 HStack {
-                    Text("This week").font(rounded(16, .bold))
+                    Text("This week").font(mono(16))
                     Spacer()
-                    Text(snapshot.money(total)).font(rounded(14, .semibold)).monospacedDigit()
+                    Text(snapshot.money(total)).font(mono(14)).monospacedDigit()
                 }
             }
             ForEach(days) { day in
@@ -439,11 +439,11 @@ struct CalendarWidgetView: View {
                     HStack(spacing: 8) {
                         if let date = day.date {
                             Text(date.formatted(.dateTime.weekday(.abbreviated)))
-                                .font(rounded(logos ? 13 : 11, day.isToday ? .bold : .regular))
-                                .foregroundStyle(day.isToday ? Color.appAccent : .secondary)
+                                .font(mono(logos ? 13 : 11))
+                                .foregroundStyle(day.isToday ? Color.shu : .secondary)
                                 .frame(width: logos ? 36 : 28, alignment: .leading)
                             Text(date.formatted(.dateTime.day()))
-                                .font(rounded(logos ? 13 : 11, .semibold))
+                                .font(mono(logos ? 13 : 11))
                                 .frame(width: 18, alignment: .leading)
                         }
                         if logos {
@@ -454,11 +454,11 @@ struct CalendarWidgetView: View {
                                 }
                             }
                             if day.expenses.count > 3 {
-                                Text("+\(day.expenses.count - 3)").font(rounded(11)).foregroundStyle(.secondary)
+                                Text("+\(day.expenses.count - 3)").font(mono(11)).foregroundStyle(Color.inkSecondary)
                             }
                             Spacer(minLength: 4)
                             if day.total > 0 {
-                                Text(snapshot.money(day.total)).font(rounded(13, .semibold)).monospacedDigit()
+                                Text(snapshot.money(day.total)).font(mono(13)).monospacedDigit()
                             }
                         } else {
                             Dots(colors: colors(day), max: 4, size: 5)
@@ -474,9 +474,9 @@ struct CalendarWidgetView: View {
     private var weekColumns: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("This week").font(rounded(14, .bold))
+                Text("This week").font(mono(14))
                 Spacer()
-                Text(snapshot.money(total)).font(rounded(13, .semibold)).monospacedDigit()
+                Text(snapshot.money(total)).font(mono(13)).monospacedDigit()
             }
             HStack(spacing: 4) {
                 ForEach(days) { day in
@@ -484,10 +484,10 @@ struct CalendarWidgetView: View {
                         VStack(spacing: 4) {
                             if let date = day.date {
                                 Text(date.formatted(.dateTime.weekday(.narrow)))
-                                    .font(rounded(11)).foregroundStyle(.secondary)
+                                    .font(mono(11)).foregroundStyle(Color.inkSecondary)
                                 Text(date.formatted(.dateTime.day()))
-                                    .font(rounded(14, day.isToday ? .bold : .semibold))
-                                    .foregroundStyle(day.isToday ? Color.appAccent : .primary)
+                                    .font(mono(14))
+                                    .foregroundStyle(day.isToday ? Color.shu : Color.ink)
                             }
                             VStack(spacing: 3) {
                                 ForEach(Array(colors(day).prefix(3).enumerated()), id: \.offset) { _, color in
@@ -497,16 +497,11 @@ struct CalendarWidgetView: View {
                             .widgetAccentable()
                             Spacer(minLength: 0)
                             Text(day.total > 0 ? snapshot.compactMoney(day.total) : " ")
-                                .font(rounded(10, .semibold)).monospacedDigit().lineLimit(1)
+                                .font(mono(10)).monospacedDigit().lineLimit(1)
                                 .minimumScaleFactor(0.7)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding(.vertical, 4)
-                        .background {
-                            if day.isToday {
-                                RoundedRectangle(cornerRadius: 8).fill(Color.appAccent.opacity(0.15))
-                            }
-                        }
                     }
                 }
             }
@@ -541,14 +536,14 @@ struct UpcomingWidgetView: View {
 
     private var empty: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("This week").font(rounded(13, .semibold)).foregroundStyle(.secondary)
+            Text("This week").font(mono(13)).foregroundStyle(Color.inkSecondary)
             Spacer(minLength: 0)
-            Image(systemName: "checkmark.circle.fill").font(.system(size: 22)).foregroundStyle(Color.appAccent)
+            Image(systemName: "checkmark.circle.fill").font(.system(size: 22)).foregroundStyle(Color.inkSecondary)
                 .widgetAccentable()
-            Text("Nothing else due this week").font(rounded(14, .semibold))
+            Text("Nothing else due this week").font(mono(14))
             if let next = upcoming.nextAfterWeek {
                 Text("Next: \(next.expense.name), \(next.date.formatted(.dateTime.month(.abbreviated).day()))")
-                    .font(rounded(11)).foregroundStyle(.secondary).lineLimit(2)
+                    .font(mono(11)).foregroundStyle(Color.inkSecondary).lineLimit(2)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -558,17 +553,17 @@ struct UpcomingWidgetView: View {
         let first = upcoming.items[0]
         let rest = upcoming.items.count - 1
         return VStack(alignment: .leading, spacing: 4) {
-            Text("Next up").font(rounded(13, .semibold)).foregroundStyle(.secondary)
+            Text("Next up").font(mono(13)).foregroundStyle(Color.inkSecondary)
             Spacer(minLength: 0)
             LogoCircle(size: 34, customization: snapshot.logo(for: first.expense),
                        logoName: first.expense.logoName, name: first.expense.name)
-            Text(first.expense.name).font(rounded(15, .semibold)).lineLimit(1)
-            Text(snapshot.money(first.expense.price)).font(rounded(20, .bold)).monospacedDigit()
+            Text(first.expense.name).font(mono(15)).lineLimit(1)
+            Text(snapshot.money(first.expense.price)).font(mono(20)).monospacedDigit()
                 .minimumScaleFactor(0.7).lineLimit(1)
-            Text(dayLabel(first.date, now: snapshot.now)).font(rounded(12)).foregroundStyle(.secondary)
+            Text(dayLabel(first.date, now: snapshot.now)).font(mono(12)).foregroundStyle(Color.inkSecondary)
             if rest > 0 {
                 Text("+\(rest) more · \(snapshot.money(upcoming.total))")
-                    .font(rounded(11)).foregroundStyle(.secondary).lineLimit(1)
+                    .font(mono(11)).foregroundStyle(Color.inkSecondary).lineLimit(1)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -580,15 +575,15 @@ struct UpcomingWidgetView: View {
         let days = Dictionary(grouping: shown, by: { $0.date }).sorted { $0.key < $1.key }
         return VStack(alignment: .leading, spacing: grouped ? 8 : 6) {
             HStack {
-                Text("This week").font(rounded(14, .bold))
+                Text("This week").font(mono(14))
                 Spacer()
-                Text(snapshot.money(upcoming.total)).font(rounded(13, .semibold)).monospacedDigit()
+                Text(snapshot.money(upcoming.total)).font(mono(13)).monospacedDigit()
             }
             if grouped {
                 ForEach(days, id: \.key) { day, items in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(dayLabel(day, now: snapshot.now).uppercased())
-                            .font(rounded(10, .semibold)).foregroundStyle(.secondary)
+                            .font(mono(10)).foregroundStyle(Color.inkSecondary)
                         ForEach(items, id: \.expense.id) { item in
                             ExpenseLine(snapshot: snapshot, date: item.date, expense: item.expense,
                                         logoSize: 26, showsDay: false)
@@ -602,18 +597,18 @@ struct UpcomingWidgetView: View {
             }
             Spacer(minLength: 0)
             if upcoming.items.count > limit {
-                Text("+\(upcoming.items.count - limit) more").font(rounded(11)).foregroundStyle(.secondary)
+                Text("+\(upcoming.items.count - limit) more").font(mono(11)).foregroundStyle(Color.inkSecondary)
             } else if let next = upcoming.nextAfterWeek {
                 Text("Next week: \(next.expense.name), \(next.date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day()))")
-                    .font(rounded(11)).foregroundStyle(.secondary).lineLimit(1)
+                    .font(mono(11)).foregroundStyle(Color.inkSecondary).lineLimit(1)
             }
         }
     }
 }
 
-/// App-matching metal gradient behind every widget.
+/// Flat paper backdrop shared with the app.
 struct WidgetBackdrop: View {
     var body: some View {
-        LinearGradient(colors: [.appBackgroundTop, .appBackgroundBottom], startPoint: .top, endPoint: .bottom)
+        Color.paper
     }
 }
