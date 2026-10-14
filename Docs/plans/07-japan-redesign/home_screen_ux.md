@@ -57,11 +57,11 @@
 | `home_screen_ux.md` (this doc) | Home toolbar and layout, the Year grid, the filter sheet |
 | `research_results_and_future_points.md` | index, sources, every open point |
 
-## Current state
-The composition below describes the working tree after the first calendar pass. Some line-number references and “Before” measurements record the older foundation-only baseline; verify them against the code before editing.
+## Calendar handoff and baseline
+The component order below is the expected handoff after `calendar.md`. The cited `HomeView`/`HomeToolbar` line numbers, control inventory and “Before” measurements describe the earlier foundation-only checkout; verify them against the code before editing.
 
 ### Composition: calendar mode, top to bottom
-The working tree has the first calendar pass; the “Before” measurements below describe the older layout for comparison.
+`calendar.md` creates the header while preserving the existing total-above-calendar, bottom-anchored Home order.
 
 1. **Navigation bar** (`LinguicaSubTracker/Features/Home/Views/HomeView.swift` → `HomeToolbar`)
    - **Top-leading `leadingPill`** (`LinguicaSubTracker/Features/Home/Views/Components/HomeToolbar.swift:108-126`). It is one `HStack(spacing: 20)` holding two unrelated controls:
@@ -69,11 +69,11 @@ The working tree has the first calendar pass; the “Before” measurements belo
      - the view toggle `Button` (`:113-123`), which flips `viewType` with a spring
    - **Principal `monthButton` in the pre-calendar baseline** (`:90-106`): `Text(monthKey)` in `.typography(.headlineSmall)` with `.numericText`, plus `chevron.down`. The picker trigger is now in `KoyomiHeader`; verify the duplicate toolbar title is gone before this plan's toolbar rewrite.
    - **Top-trailing gear** (`HomeToolbar.swift:56-61`): opens Settings.
-2. **`KoyomiHeader`** above the scroll body, opening the existing month picker.
-3. **`CalendarView`** inside the scroll body; `calendar.md` moves it below the total.
-   - A paged `TabView` beneath the shared 28pt `WeekdayBand`. `calendar.md` replaces the current six-row padding with the 4–6 rows each month needs, divides the grid height between those rows, and places the calendar below the total.
+2. **`KoyomiHeader`** above the calendar/list body, opening the existing month picker.
+3. **`TotalView`** above the calendar; `calendar.md` keeps its existing Stats action and gives Large a smaller price range.
+4. **`CalendarView`** at the bottom of the calendar body; `calendar.md` retains its placement and adds scrolling only when the content cannot fit.
+   - A paged `TabView` beneath the shared `WeekdayBand`, which keeps the pre-redesign header's 52pt height and 8pt grid gap. `calendar.md` preserves the existing 4–6-row month calculation, 4pt grid gutters and flexible row heights, and keeps the calendar below the total.
    - The currently saved cases use 370pt for `.rounded/.contrastRounded/.straight`, 260pt for `.compact` and 460pt for `.bigger`. The calendar plan maps them to Default, Compact and Large.
-4. **`TotalView`** follows the calendar in the current scroll body. Its price fits within `48...92` today; `calendar.md` moves it above the calendar and gives Large a smaller range. The total remains a Stats button.
 5. **Bottom bar** (`HomeToolbar.swift:63-87`), one `ToolbarItemGroup`:
    - the stats ring `ring.dashed` with `variableValue: budgetRatio` (`:64-70`)
    - `Spacer`, then `HomeActionButton` (`:74-78`), then `Spacer`
@@ -85,9 +85,9 @@ The working tree has the first calendar pass; the “Before” measurements belo
   - `summaryBlock` (`LinguicaSubTracker/Features/Home/Views/Components/HomeListView.swift:70-96`): a `MoneyDisplay` at size 40 with `onTapGesture: onStats` (`:72-77`)
   - then either coin piles (`:142-174`) or the budget CTA card (`:99-138`)
   - then `listBlock` (`:178-210`), a `GlassSection` with its own `ScrollView`
-- **No month label** appears in list mode except the toolbar title.
+- `KoyomiHeader` also provides the month label and picker entry point in list mode; `calendar.md` removes the old toolbar title.
 
-### Control count (excluding day cells and rows)
+### Pre-calendar control count (excluding day cells and rows)
 
 | Mode | Controls | Mixed-purpose groups | Controls that change meaning |
 |---|---|---|---|
@@ -117,7 +117,7 @@ The working tree has the first calendar pass; the “Before” measurements belo
    - `monthlyTotal` (`:27-32`)
    - `budgetRatio` (`:34-37`)
    - `budgetTint` (`:39-41`)
-8. **Wasted height in the pre-calendar baseline.** The old `TotalView` filled about 231pt to show a price at most 92pt tall. The calendar plan reorders and anchors the grid; this plan keeps that placement.
+8. **Wasted height in the pre-calendar baseline.** The old `TotalView` filled about 231pt to show a price at most 92pt tall. The calendar plan preserves the grid's bottom placement and adds a short-screen scroll fallback; this plan keeps that placement.
 
 ### Already done by the foundation pass (verify, do not redo)
 - **Toolbar glyph colours:** every glyph is `Color.ink`, with no `.gradient` and no `budgetTint`. See `HomeToolbar.swift:59,67,85,103,120,169`. `git diff HEAD` shows the old `Color.primary.gradient.opacity(0.8)` / `budgetTint.gradient`.
