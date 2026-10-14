@@ -36,11 +36,11 @@
 | Doc | Owns |
 |---|---|
 | `general_app_ui.md` (this) | tokens, font, shapes, glass, shared motif components, ripple removal, widget base, hardcode sweep |
-| `calendar.md` | `KoyomiHeader` (mounted in `HomeView`), weekday band, day cells, `EnsoShape`/`EnsoMark` spec + draw-on, `JapaneseCalendar` (holidays, 節気, weekday kanji), widget today ensō |
+| `calendar.md` | worldwide Koyomi-inspired header, localized weekday band, five existing day-cell styles, `LogoCircle(glass:)`, `EnsoShape`/`EnsoMark`, widget today ensō |
 | `forms.md` | add/edit forms, `FormRow`, logo sheet, form CTAs, `ExpenseSummarySheet` |
 | `charts.md` | Stats, coins, widget charts + widget budget colours, budget scale options, `BudgetColor.swift`, `HankoStamp` spec |
 | `price_display.md` | `TextAnimatedView`/`TotalView` brush price, `InkReveal`, `MoneyFormatter` routing |
-| `list_view.md` | notebook rows (Home list, Search, `ExpensesInDay` rows + header + sum line), `CategoryMark`, `LogoCircle(glass:)` |
+| `list_view.md` | notebook rows (Home list, Search, `ExpensesInDay` rows + header + sum line), `CategoryMark`; reuses calendar's `LogoCircle(glass:)` |
 | `home_screen_ux.md` | Home toolbar/layout, year grid, filter sheet, deletes `HomeActionButton` |
 | `research_results_and_future_points.md` | index, sources, every open point |
 
@@ -139,7 +139,7 @@ Define the tokens in code in `AppTheme.swift` with the existing `Color(UIColor {
 | `paperRaised` | #1C1816 | #FFFFFC | cards; separated by hairline, not tone |
 | `ink` / `inkSecondary` | #F4EFE6 / #A8A096 | #1E1A17 / #6B635C | text |
 | `rule` / `ruleStrong` | #3A332E / #746B63 | #E2DCCF / #8C8378 | hairlines / visible rules |
-| `shu` / `shuPressed` | #E84A33 / #C23B26 | #C1352A / #9E2A1E | brand: torii mark, ensō, primary CTA, Sun/holiday, 赤字 stamp |
+| `shu` / `shuPressed` | #E84A33 / #C23B26 | #C1352A / #9E2A1E | brand: torii mark, ensō, primary CTA, Sunday, 赤字 stamp |
 | `kin` / `kinText` | #D4A72C / #E6B422 | #C9A13B / #8A6B1F | gold: hairlines, underlines, flecks only; `kinText` for text |
 | `beni` | #EE5A62 | #A22041 | destructive (never hue alone) |
 | `ai` | #6F93D6 | #1E50A2 | Saturday (open point: keep or go monochrome) |
@@ -188,7 +188,7 @@ Define the tokens in code in `AppTheme.swift` with the existing `Color(UIColor {
   - 70% ground (`paper`/`paperRaised`)
   - 25% ink (text, rules, icons)
   - 5% accent: about 4% shu and 1% or less gold
-- **At most one filled shu shape per screen.** That means one `.glassProminent` CTA, *or* a recording mic button, *or* one hanko fill. All other shu is text or a 1–3pt stroke (hashira, ensō, holiday numerals). System controls coloured by `AccentColor` (Toggle on-track, DatePicker selection) are exempt; see Open points.
+- **At most one filled shu shape per screen.** That means one `.glassProminent` CTA, *or* a recording mic button, *or* one hanko fill. All other shu is text or a 1–3pt stroke (hashira, ensō, Sunday numerals). System controls coloured by `AccentColor` (Toggle on-track, DatePicker selection) are exempt; see Open points.
 - **Gold is a fleck, never a field.**
 - **No gradients** (`.gradient`, `LinearGradient`, `RadialGradient`) on chrome, text or icons. **No shadows** on cards and toasts.
 - **User category and logo colours** (`LogoCustomization`, `AppCategory.colorHex`) are never rewritten.
@@ -251,7 +251,7 @@ Define the tokens in code in `AppTheme.swift` with the existing `Color(UIColor {
 | `labelMedium` | 12 semibold +0.25 | 11 | `.caption2` | UPPER | +1.2 | 1.0 · `inkSecondary` |
 
 - **Tracking:** the two display styles keep a slight negative tracking (−0.5 / −0.3), as implemented in `Typography.swift:10-11`. The plan's "tracking → ~0" is superseded by the code; price_display.md reads `displayMedium.letterSpacing` and so inherits −0.5.
-- **"Opacity · colour"** is the default foreground the caller should pass. `AppTextModifier` does **not** apply it, so callers can still colour text (shu holidays, beni destructive).
+- **"Opacity · colour"** is the default foreground the caller should pass. `AppTextModifier` does **not** apply it, so callers can still colour text (shu Sundays, beni destructive).
 - **Case:**
   - The label styles apply `.textCase(.uppercase)` inside the modifier. Do not uppercase the source strings.
   - The `smcp` OpenType feature is not used in v1.
@@ -290,7 +290,7 @@ Define the tokens in code in `AppTheme.swift` with the existing `Color(UIColor {
 **Where monospaced width will break** (each owner re-tunes its own):
 - `TotalView.swift:15,18`: `totalInset` 24 and `totalSizeRange` 48…92 (price_display.md)
 - `DayCell.swift:87`: 12pt numerals in roughly 50pt cells (calendar.md)
-- `HomeToolbar.swift:93-94`: month title `headlineSmall` in `.principal` (home_screen_ux.md)
+- `HomeToolbar.swift:93-94`: month title `headlineSmall` in `.principal` (calendar.md removes this duplicate when it mounts the content header)
 - Rows with a 44pt logo, a name and a price (list_view.md):
   - `HomeExpenseRow.swift:32,42`
   - `ExpenseRow.swift:42,52`
@@ -434,7 +434,7 @@ Each component is created by the doc that owns its detailed spec. The API below 
 | `Kasagi`, `KasagiHeader` | `Core/UI/Motifs/Torii.swift` (new) | `Kasagi(lift: 3)` is a `Shape`; `KasagiHeader()` is a full-width view | **this doc** (§5) |
 | `Hashira`, `SectionLabel` | `Torii.swift` (new) | `Hashira(height: 12)`; `SectionLabel(_ title: String, color: Color = .inkSecondary)` | **this doc** (step 11) |
 | `Rule` | `Torii.swift` (new) | `Rule(color: Color = .rule, thickness: CGFloat? = nil /* nil = 1/displayScale */, overhang: CGFloat = 0)`, horizontal | **this doc** (step 11) |
-| `EnsoShape` | `Core/UI/Motifs/EnsoShape.swift` (new) | `EnsoShape(seed: UInt64, gap: Double = 40.0/360, maxWidth: Double = 0.0875)`: a filled `Shape` in `shu`, a 320° sweep with taper; `maxWidth` × the box's shorter side = wMax (3.5pt at 40pt). Draw-on is a trimmed-circle mask (`EnsoMark`), 0.55s ease-out, static under Reduce Motion | **calendar.md** (full spec, §6; it wins on any detail). list_view.md, home_screen_ux.md and widgets depend on calendar.md for it. Keep the file free of app-only types so it can join the widget target |
+| `EnsoShape` | `Core/UI/Motifs/EnsoShape.swift` (new) | `EnsoShape(seed: UInt64, gap: Double = 40.0/360, maxWidth: Double = 0.0875)`: a filled `Shape` in `shu`, a 320° sweep with taper; `maxWidth` × the box's shorter side = wMax (3.5pt at 40pt). Draw-on is a trimmed-circle mask (`EnsoMark`), 0.55s ease-out, static under Reduce Motion | **calendar.md** (full spec, §4; it wins on any detail). list_view.md, home_screen_ux.md and widgets depend on calendar.md for it. Keep the file free of app-only types so it can join the widget target |
 | `HankoStamp` | `Core/UI/Motifs/HankoStamp.swift` (new) | `HankoStamp(text: String = "赤字", accessibilityText: String = "Over budget", size: CGFloat = 28)`: a square, 1.5pt `shu` border, `AppFont.kanjiBold` text in `shu`, rotated −3°, opacity 0.9, `.multiply` in light only. At most one per screen | **charts.md** (price_display.md consumes it). App-only |
 | `InkReveal` | private in its first consumer; moves to `Core/UI/Motifs/InkReveal.swift` (new) when a second consumer appears | `InkReveal(progress: Double, staggered: Bool)`: a `TextRenderer` + `Animatable` per-glyph opacity/blur reveal, about 0.7s. Driven by a `keyframeAnimator` on the displayed value; a `Transition` + `.id(value)` is the fallback. Uniform fade under Reduce Motion | **price_display.md** (step 5; it wins on any detail) |
 
@@ -470,7 +470,7 @@ Each component is created by the doc that owns its detailed spec. The API below 
   - Register the font in the widget target (step 5).
 - **Today marker:**
   - Numerals at `:396`, `:443` and `:490` become `Color.shu`.
-  - The month-grid stroke at `:405-408` becomes `Rectangle().stroke(Color.shu, lineWidth: 1)` with radius 0. Keep `.widgetAccentable()`. This is an interim: calendar.md step 15 swaps it for a static ensō and turns the month-grid today numeral (`:396`) to `ink` inside it. The week rows (`:443`, `:490`) keep the shu numeral.
+  - The month-grid stroke at `:405-408` becomes `Rectangle().stroke(Color.shu, lineWidth: 1)` with radius 0. Keep `.widgetAccentable()`. This is an interim: calendar.md's widget step swaps it for a static ensō and turns the month-grid today numeral (`:396`) to `ink` inside it. The week rows (`:443`, `:490`) keep the shu numeral.
   - Delete the week fill at `:506-508` (no tinted fills). The shu numeral marks today.
   - The checkmark at `:546` becomes `Color.inkSecondary`.
 - `.monospacedDigit()` calls in widgets become no-ops. Leave them.

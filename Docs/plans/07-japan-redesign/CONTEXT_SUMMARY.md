@@ -17,8 +17,8 @@ The app used a metal-grey gradient background, green (#1DB954) and purple accent
 
 ## Decisions made with the user
 - **Torii:** straight posts with one gently curved top beam, used for headers, dividers and section markers.
-- **Weekday labels:** English (Fragment Mono) plus small kanji (日 月 火 水 木 金 土, Hiragino Mincho).
-- **Calendar cells:** the lower "memo" area holds expenses. **Every expense element shown today stays.** Variations come after v1.
+- **Calendar date labels:** localized month, year and weekday text in a worldwide calendar; no Japanese holiday, era or seasonal data appears in the product.
+- **Calendar cells:** the lower "memo" area holds expenses. The five existing settings styles are restyled now; the default Koyomi cell shows up to two logos plus overflow. Additional iPad variants come after release.
 - **Today marker:** an open, imperfect brush circle (ensō) in red.
 - **Liquid Glass:** on controls and navigation only (toolbars, sheets, floating buttons, pickers, menus). Content cards become flat paper with hairline rules.
 - **Ripple shader:** removed everywhere except the onboarding heroes, which are left for later.
@@ -63,7 +63,7 @@ Colour rules:
 - **List view:** pages like a Japanese notebook:
   - 44pt ruled lines
   - a red margin line
-  - date headers such as "12 MON 月"
+  - localized date headers such as "12 MON"
   - a category dot on each row
 - **Charts:** ink bars with a red current period and a gold average line. Square ends, notebook grid, seal-stamp markers, mon-coin restyle.
 - **Home screen** (decluttered, modelled on Apple Calendar):
@@ -77,13 +77,15 @@ Colour rules:
 ## Status and order
 - **Foundation:** `general_app_ui.md` is already implemented in the working tree, uncommitted. Git HEAD 6d7c109 is the pre-redesign code.
 - **Feature docs:** describe the current working tree. Steps the foundation already did are marked "already done (verify)".
-- **Order:** general UI (done) → charts → price display → forms / calendar → list view → home screen (the final Home layout lands last).
+- **Order:** general UI (done) → calendar → charts → price display → forms / list view → home screen (the final Home layout lands last).
 
 ## Open decisions for the user
 - Price tap: keep tap-the-total → Stats, or remove the tap too?
 - Saturday colour: blue (`ai`) or monochrome?
 - Seal stamp text: 赤字, OVER, or both?
-- Japanese holidays: shown to everyone, only Japan-region users, or behind a setting?
-- Should the new `.koyomi` calendar style become the default for existing users who never picked one?
 - Remap existing users' category colours, or apply the new palette to new installs only?
-- The 2027 holiday and 二十四節気 data need checking against the Cabinet Office list.
+
+## Settled calendar decisions
+- The calendar uses localized dates worldwide and has no Japanese holiday marks or holiday data.
+- The five persisted calendar style values remain; `.rounded` is restyled and labeled Koyomi, and remains the default.
+- iPad calendar layouts and additional variants will be discussed after release.

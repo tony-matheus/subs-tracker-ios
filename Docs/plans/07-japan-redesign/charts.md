@@ -690,7 +690,7 @@ struct HankoStamp: View {
 - **Mono width:** `StatsCard` values at 24pt need about 14.8pt per character ("$12,345.67" ≈ 148pt in a ≈147pt column on 402pt), hence `minimumScaleFactor(0.6)`. Y-axis labels with `labelMedium` tracking 1.2 are wider than the system labels; `.compactName` keeps them to 4 characters.
 - **One filled shu shape per screen:** Breakdown = pointer; Trend = current bar. Do not also fill the selected legend row or make the segmented picker's selection shu.
 - **`SectionLabel` is uppercase** (`labelLarge`). "October 2026" renders "OCTOBER 2026", which is intended. `.contentTransition(.opacity)` still works on its `Text`.
-- **Shared files:** `StatsCard.swift:17-19` (price_display.md), `HomeListView.swift:155-161` labels (list_view.md), `BudgetEditor.swift:137` (price_display.md), `TotalView.swift` (price_display.md), `HomeToolbar.swift` (home_screen_ux.md), the widget calendar section and today marker (calendar.md). Edit only the lines named here.
+- **Shared files:** `StatsCard.swift:17-19` (price_display.md), `HomeListView.swift:155-161` labels (list_view.md), `BudgetEditor.swift:137` (price_display.md), `TotalView.swift` (price_display.md), `HomeToolbar.swift` (calendar.md removes its principal month title; home_screen_ux.md owns the later toolbar rewrite), the widget calendar section and today marker (calendar.md). Edit only the lines named here.
 - **general_app_ui.md vs code:** general_app_ui.md §9 lists `glowOpacity` at `BudgetColor.swift:19-24` and names 6 callers. Both still hold. Its sweep list cites `BudgetEditor.swift:136` for "Over by"; the `.red` is actually on `:137`.
 - **Gauges** are system-drawn; on the Lock Screen they render monochrome and ignore tokens. That is expected.
 

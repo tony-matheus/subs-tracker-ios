@@ -19,8 +19,8 @@
 | `charts.md` | Stats sheet (dial, trend bars, line chart, legend, cards), coins (mon coin), widget charts, budget scale options | `general_app_ui.md` | `BudgetColor.swift` (`Tier`, `tier`, `color`, `progressColor`); `HankoStamp` (`Core/UI/Motifs/HankoStamp.swift`, new); widget ring/bars/line and widget budget colours; `CoinStack`, `Coin`, `CoinProgress` deletion (step 14) |
 | `price_display.md` | Brush-ink Home total, `InkReveal`, brush underline, `BudgetMark`, single `MoneyFormatter` path ("CAD" bug) | `general_app_ui.md`, `charts.md` | `TextAnimatedView`, `MoneyDisplay`, `TotalView`, `BudgetMark` (new), `MoneyFormatter.exact` (new), every `"CAD"` → `MoneyFormatter` fix (including `ExpensesInDay.swift:219`), `BudgetDetailsSheet` amount colours, `BudgetEditor` "Over by" |
 | `forms.md` | Minimal forms: no logo-driven backgrounds, colour only on icons, square fields, error label, keypad keys, logo sheet, summary sheet, legacy-form routing | `general_app_ui.md` (optional: `list_view.md`'s `CategoryMark`) | `FormErrorLabel` (new), `FormRow` label default, `SimplifiedAddExpenseView` + sections, `ExpenseTemplateSheet`, `LogoSheet`, `NumKeyPadSheet` keys, `ExpenseSummarySheet` styling, deletion of `ExpenseFormView` |
-| `calendar.md` | Koyomi month header, sumi weekday band, hairline cells, ensō today marker, holiday and 二十四節気 data, `.koyomi` style, ink-wipe rewind, widget today ensō | `general_app_ui.md`, `price_display.md` (CAD fix, verify only), `list_view.md` step 2 (applied early) | `KoyomiHeader` (new, mounted in `HomeView`), `WeekdayBand` (new), `EnsoShape` + `EnsoMark` (`Core/UI/Motifs/EnsoShape.swift`, new), `JapaneseCalendar` (`Core/Utils/JapaneseCalendar.swift`, new: holidays, 節気, 和風月名, weekday kanji, era), `CalendarStyle.koyomi`, `DayCell`/`MonthView`/`CalendarView`/`CalendarRewindOverlay`, widget month-grid today marker, `ExpensesInDay` holiday line |
-| `list_view.md` | Notebook rows on paper: Home list, Search rows, `ExpensesInDay` rows/header/sum line | `general_app_ui.md`, `price_display.md`, `charts.md`, `calendar.md` | `Notebook`, `NotebookLine`, `NotebookDayHeader`, `CategoryMark` (`Core/UI/Containers/Notebook.swift`, new); notebook `ExpenseRow` (deletes `HomeExpenseRow`); `LogoCircle(glass:)`; `HomeListView` list body + coin-pile labels |
+| `calendar.md` | Worldwide Koyomi-inspired month header, localized weekday band, five restyled day-cell variants, ensō today marker, ink-wipe rewind, widget today ensō | `general_app_ui.md` only | `KoyomiHeader` (mounted in `HomeView` with picker callback), `WeekdayBand`, `EnsoShape` + `EnsoMark`, `LogoCircle(glass:)`, `DayCell`/`MonthView`/`CalendarView`/`CalendarRewindOverlay`, widget month-grid today marker; removes duplicate toolbar month title |
+| `list_view.md` | Notebook rows on paper: Home list, Search rows, `ExpensesInDay` rows/header/sum line | `general_app_ui.md`, `price_display.md`, `charts.md`, `calendar.md` | `Notebook`, `NotebookLine`, `NotebookDayHeader`, `CategoryMark` (`Core/UI/Containers/Notebook.swift`, new); notebook `ExpenseRow` (deletes `HomeExpenseRow`); reuses `LogoCircle(glass:)`; `HomeListView` list body + coin-pile labels |
 | `home_screen_ux.md` | Creative part: declutter Home after Apple Calendar; toolbar, Year grid, filter sheet, final `HomeView` composition | `general_app_ui.md`; step 6 needs `calendar.md`; step 9 needs `calendar.md`, `price_display.md`, `list_view.md` | `HomeToolbar` rewrite, `MonthPickerSheet` → Year grid, `HomeFilterSheet` (new), `HomeView` composition (step 9), deletion of `HomeActionButton`, toolbar stats ring, `HomeViewModel.budgetTint` |
 | `research_results_and_future_points.md` (this) | Index, execution order, research summary, all open points, sources | all | nothing in code |
 
@@ -30,25 +30,25 @@ Build and run the tests after every step. Each doc's Verification section lists 
 | # | Doc | Rationale |
 |---|---|---|
 | 0 | `general_app_ui.md` | **Already done.** Verify only: build, `ThemeFontTests`, and the grep gates in its Verification. Every other doc compiles against its tokens and motifs. |
-| 1 | `charts.md` | Owns `BudgetColor.Tier` and `HankoStamp`, which `price_display.md` consumes. Skip its step 14 (`CoinProgress` deletion); `price_display.md` step 9 triggers it. |
-| 2 | `price_display.md` | Creates the single `MoneyFormatter` path that `forms.md`, `calendar.md` and `list_view.md` rely on, and the `TotalView` that `home_screen_ux.md` step 9 composes. Ends step 9 by running `charts.md` step 14. |
-| 3 | `forms.md` | Self-contained after 1–2. It may run in parallel with 4–5. Uses the inline square-dot spec, because `CategoryMark` does not exist yet (both render the same). |
-| 4 | `calendar.md` | Runs `list_view.md` step 2 (`LogoCircle(glass:)`) first, then creates `JapaneseCalendar`, `EnsoShape`, `KoyomiHeader` and the cell redesign. Only verifies the CAD fix from step 2. |
-| 5 | `list_view.md` | Needs `EnsoShape`, `JapaneseCalendar.weekdayKanji` and the holiday table from 4, and `MoneyFormatter` from 2. Keeps `calendar.md`'s `ExpensesInDay` holiday line and its `+24` height term. |
-| 6 | `home_screen_ux.md` | Steps 1–5, 7–8 and 10–11 can land any time after 0 (in parallel with 1–5). Step 6 (Year grid ensō) needs 4. **Step 9 (final `HomeView` composition) lands last**, because it mounts 4's `KoyomiHeader`, 2's `TotalView` and 5's `HomeListView`. |
+| 1 | `calendar.md` | Runs directly after the foundation. It owns `LogoCircle(glass:)`, `EnsoShape`, `KoyomiHeader`, five restyled saved styles, and the calendar/widget today marker. It builds independently of all other feature plans. |
+| 2 | `charts.md` | Owns `BudgetColor.Tier` and `HankoStamp`, which `price_display.md` consumes. Skip its step 14 (`CoinProgress` deletion); `price_display.md` triggers it. |
+| 3 | `price_display.md` | Creates the single `MoneyFormatter` path that `forms.md` and `list_view.md` rely on; owns every `CAD` fix and the `TotalView` that `home_screen_ux.md` composes. |
+| 4 | `forms.md` | Self-contained after the foundation and price work. It may run in parallel with `list_view.md`. Uses the inline square-dot spec, because `CategoryMark` does not exist yet. |
+| 5 | `list_view.md` | Needs `EnsoShape` and `LogoCircle(glass:)` from 1, and `MoneyFormatter` from 3. It formats weekday and month labels with the device locale; no Japanese holiday data exists. |
+| 6 | `home_screen_ux.md` | Its Year grid needs 1. **Final `HomeView` composition lands last**, because it uses 1's header, 3's total and 5's list. The header already owns the month-picker trigger and the toolbar's principal month title is already gone. |
 
 **Contract handoffs to check at each boundary:**
-- After 1: `BudgetColor.tier(spent:budget:)` and `HankoStamp()` exist; the widget still builds.
-- After 2: `grep -rn '\.currency(code' LinguicaSubTracker` is empty; `CoinProgress.swift` is gone.
-- After 4: `KoyomiHeader(viewModel: vm.calendarViewModel).padding(.horizontal, 12)` is the first child of `HomeView`'s `VStack`; the toolbar still shows the month until 6.
+- After 1: `KoyomiHeader(viewModel:onMonthPicker:)`, `EnsoShape`, and `LogoCircle(glass:)` exist; the app and widget build, the header opens the wheel picker, and the toolbar has no duplicate month title.
+- After 2: `BudgetColor.tier(spent:budget:)` and `HankoStamp()` exist; the widget still builds.
+- After 3: `grep -rn '\.currency(code' LinguicaSubTracker` is empty; `CoinProgress.swift` is gone.
 - After 5: `HomeExpenseRow` is deleted; list headers show today's ensō with an `ink` numeral.
-- After 6: one filled shu shape (the `+`) on Home; the top centre is empty.
+- After 6: one filled shu shape (the `+`) on Home; the top centre remains empty and the header opens the Year grid.
 
 ## Design direction summary
 **Concept: modern Japan.** Straight lines with one subtle curve, taken from the torii gate. Notebook ruling for lists. The Japanese wall calendar for the month view. Brush, old paper and seal ink as secondary references. Liquid Glass stays, but only on controls.
 - **Torii (main reference):** straight posts, one gently curved lintel (kasagi). Double-rule headers, a shu vertical tick (hashira) as section marker, divider rules that overhang slightly (nuki).
 - **Notebooks (main reference):** Kokuyo Campus, Hobonichi, Midori MD. Hairline rules on a 44pt pitch, a vermilion margin rule, a thicker rule for dates, dots as column guides.
-- **Wall calendars (main reference):** 月めくり and 文字月表 sheets. Giant red month numeral, era year, 和風月名, black weekday band, numerals top-left, memo lines in each cell.
+- **Wall calendars (main reference):** 月めくり and 文字月表 sheets. The shipped calendar borrows their large month numeral, dark weekday band, top-left day numerals and ruled memo space, while using localized date labels worldwide.
 - **Brush (secondary):** an open ensō for today; the price writes itself in like ink; a tapering gold underline.
 - **Old paper (secondary):** washi ivory in light mode, rō-iro lacquer in dark mode. Flat in v1; texture is an open point.
 - **Ma (間) and restraint:** emptiness is deliberate space ([Japan House LA](https://japanhousela.com/articles/a-perspective-on-the-japanese-concept-of-ma)). One red symbol per screen, as in Kenya Hara's argument for a single powerful red ([Minimalissimo: White](https://minimalissimo.com/articles/white-by-kenya-hara)).
@@ -61,7 +61,7 @@ Build and run the tests after every step. Each doc's Verification section lists 
 | `paperRaised` | #1C1816 | #FFFFFC | cards; separated by hairline, not tone |
 | `ink` / `inkSecondary` | #F4EFE6 / #A8A096 | #1E1A17 / #6B635C | text |
 | `rule` / `ruleStrong` | #3A332E / #746B63 | #E2DCCF / #8C8378 | hairlines / visible rules |
-| `shu` / `shuPressed` | #E84A33 / #C23B26 | #C1352A / #9E2A1E | brand: torii mark, ensō, primary CTA, Sun/holiday, 赤字 stamp |
+| `shu` / `shuPressed` | #E84A33 / #C23B26 | #C1352A / #9E2A1E | brand: torii mark, ensō, primary CTA, Sunday, 赤字 stamp |
 | `kin` / `kinText` | #D4A72C / #E6B422 | #C9A13B / #8A6B1F | gold: hairlines, underlines, flecks only; `kinText` for text |
 | `beni` | #EE5A62 | #A22041 | destructive (never hue alone) |
 | `ai` | #6F93D6 | #1E50A2 | Saturday (open point: keep or go monochrome) |
@@ -141,15 +141,11 @@ Rules: 70/25/5 ground/ink/accent; max one filled shu shape per screen; gold neve
   - full-width solid black weekday band, white kanji, thin white separators continuing into the grid
   - heavy black numerals; tiny 六曜/干支/九星 stacked top-right; holiday name (元日) small red under the numeral; 節気 (小寒) under the numeral; special-day label tiny top-left
   - dotted memo lines in the lower half of each cell; thin vertical rules, hairlines between weeks, white paper, no rounded corners
-  - **Mapping decided in `calendar.md` §1:** minis become faint `‹ SEP` / `NOV ›` edge labels; 節気 moves to one header line; holiday names move to the day sheet and VoiceOver; memo lines become the expense slot that keeps every current expense element; 六曜/干支/九星 dropped in v1.
+  - **Shipped mapping in `calendar.md`:** mini months become localized previous/next labels; the dark band, paper, hairlines and memo space become UI structure; the memo space holds the existing expense indicators. Era, holiday, traditional month and solar-term data do not appear in the worldwide calendar.
 - **Week start:** no national rule. Sunday-first is the home norm; Monday-first grows in business ([FinancialField](https://financial-field.com/living/entry-377145)). Takahashi and Midori default to Monday. The app stays Sunday-first (hard-wired, matches `ja_JP`).
 - **Colours:** Sundays and holidays red, Saturdays blue (Saturday was a half day; blue was the remaining ink, [Berlitz](https://www.berlitz.com/blog/days-of-the-week-japanese)). Counter-trend: Midori's MD 2027 dropped red ink ([bungu.store 2027](https://bungu.store/products/md-wall-calendar-with-pencil-2027-md-product)).
 - **Neighbour days:** grey, blank, or split `23/30` cells. Split cells read poorly ([TalkPhotography](https://www.talkphotography.co.uk/threads/calendar-with-5-or-6-rows-which-do-you-think-is-best.686047/)). The app leaves them blank and fixes 6 rows. Sunday-first 2026: February needs 4 rows, May and August 6, the rest 5.
-- **Holidays 2026** ([CAO](https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html)): 16 national holidays + 2 other days off = 18, including 振替休日 5/6 and 国民の休日 9/22. **Test case:** 2026-10-12 (today) is a Monday and スポーツの日. Decision: today's numeral is `ink` inside the shu ensō; `祝` keeps the holiday visible. 2027 is derived from the rules and must be checked against CAO.
-- **和風月名** ([NDL](https://www.ndl.go.jp/koyomi/chapter3/s8.html), [bestcalendar](https://bestcalendar.jp/guides/koyomi/wafu-getsumei)): 睦月 如月 弥生 卯月 皐月 水無月 文月 葉月 長月 神無月 霜月 師走. Old lunar names now on Gregorian months, so their seasons run 1–2 months off.
-- **二十四節気 2026, JST** ([NAOJ 暦要項](https://eco.mtk.nao.ac.jp/koyomi/yoko/2026/rekiyou262.html)): exactly two per month (e.g. 寒露 10/8, 霜降 10/23), so they fit one header line.
-- **Era:** `Calendar(identifier: .japanese)` + `ja_JP` + `Gy年` → `令和8年` ([gihyo](https://gihyo.jp/dev/serial/01/swift-introduction/0050)).
-- **六曜:** `(旧暦 month + day) % 6` → 大安, 赤口, 先勝, 友引, 先負, 仏滅 ([bestcalendar 六曜](https://bestcalendar.jp/guides/kichijitsu/rokuyo)). NAOJ does not publish it; the lunar rules break down in 2033 ([NAOJ wiki](https://eco.mtk.nao.ac.jp/koyomi/wiki/C2C0B1A2C2C0CDDBCEF12F2033C7AFCCE4C2EA.html)). Swift needs `.chinese` ([NSChineseCalendar](https://developer.apple.com/documentation/foundation/nschinesecalendar)), computed for UTC+8.
+- **Excluded research:** Japanese holiday schedules, traditional month names, Japan-time solar terms, era labels and 六曜 informed the source study but are not product data or future implementation steps for the worldwide calendar.
 
 ### Notebooks and paper
 - **Kokuyo Campus:** rulings A 7mm, B 6mm, C 5mm, U 8mm, UL 10mm; a counting mark every 5 lines ([Campus Basic](https://www.kokuyo.com/en/stationery/series/campus/campus-notebook/basic)). Dot-ruled paper puts dots on the rule as column guides ([dot ruled](https://www.kokuyo.com/en/stationery/category/notebook-paper/notebook/10591), [getnavi](https://getnavi.jp/variety/500620/2/)). NO-201U has a thicker third line for title or date ([NO-201U](https://kokuyostore.com/en_FR/campus-notebook-notebook-a4-brown-wide-horizontal-ruled-40-sheets/NO-201U.html)).
@@ -168,7 +164,7 @@ Rules: 70/25/5 ground/ink/accent; max one filled shu shape per screen; gold neve
 ### Brush, ensō and hanko
 - **Ensō:** one or two unrevised strokes; the open form means movement and incompleteness ([Wikipedia Ensō](https://en.wikipedia.org/wiki/Ens%C5%8D), [Wikipedia Enso](https://www.wikipedia.com/wiki/Enso), [concepts.dsebastien](https://concepts.dsebastien.net/concept/enso/)). No canonical direction.
 - **Stroke anatomy** ([calligraphy terms](https://selftaughtjapanese.com/2020/08/25/japanese-vocabulary-list-calligraphy-terms)): 起筆 heavy entry, 送筆 steady travel, はらい lifting taper, かすれ dry-brush streaks in the last third.
-- **Spec (owned by `calendar.md` §6):** start 150° ± 8°, 320° sweep, 40° gap at lower-left; radius drift ±4%, tail +6%; `w(t) = wMax·(0.55 + 0.45·(1−t)^1.5)`, entry 1.15·wMax, taper to 0.15·wMax from t = 0.85; wMax 3.5pt at 40pt (`maxWidth` 0.0875); かすれ from t = 0.65; seed `yyyyMMdd`; draw-on 0.55s `.timingCurve(0.2, 0.7, 0.3, 1)`.
+- **Spec (owned by `calendar.md` §4):** start 150° ± 8°, 320° sweep, 40° gap at lower-left; radius drift ±4%, tail +6%; `w(t) = wMax·(0.55 + 0.45·(1−t)^1.5)`, entry 1.15·wMax, taper to 0.15·wMax from t = 0.85; wMax 3.5pt at 40pt (`maxWidth` 0.0875); かすれ from t = 0.65; seed `yyyyMMdd`; draw-on 0.55s `.timingCurve(0.2, 0.7, 0.3, 1)`.
 - **Variable width needs a filled outline** ([Swift Forums](https://forums.swift.org/t/drawing-strokes-with-a-different-width-at-each-point-of-the-lines-curves/40068)); draw it on with a trimmed-circle **mask**, never by trimming the outline ([HWS](https://www.hackingwithswift.com/quick-start/swiftui/how-to-draw-part-of-a-solid-shape-using-trim)). Cheaper alternative: 3–5 hand-drawn SVG assets with the same mask.
 - **Brush text:** per-glyph `TextRenderer` reveal ([WWDC24 10151](https://developer.apple.com/videos/play/wwdc2024/10151/)); 3-glyph overlap, opacity + blur + 2pt drift, 0.7s. Fallback is a mask wipe.
 - **Benchmark:** Zen Brush 3 (3D brush, nijimi, bokashi, 30 traditional colours, washi templates) ([App Store](https://apps.apple.com/us/app/-/id1531841731)).
@@ -242,16 +238,15 @@ Every "Open points / dig deeper" bullet from the 7 docs and every open question 
 | P3 | **OpenType features:** slashed zero (`zero`), serif one (`ss07`) for a ledger look. | general_app_ui |
 | P3 | **Mixed Latin + kanji in one string:** a `cascadeList` descriptor with `UIFontMetrics` rescaling. | general_app_ui |
 | P3 | **Compile checks:** `TextRenderer` isolation (`nonisolated` if flagged) and whether the iOS 26 SDK warns on `Text + Text`. | price_display |
-| P3 | **Audience:** English UI with kanji accents vs a full ja localisation; decides how much 和風 text appears. | general_app_ui, calendar |
+| P3 | **Other screens' localization:** decide whether decorative kanji in non-calendar features needs a full ja localization. Calendar date labels already follow the device locale. | general_app_ui |
 
 ### Calendar
 | Pri | Point | Docs |
 |---|---|---|
 | P1 | **Forced dark environment on the weekday band.** Verify on device that `.environment(\.colorScheme, .dark)` resolves the `UIColor`-backed tokens dark in light mode; fallback is hardcoded dark hexes in `WeekdayBand`. | calendar |
-| P2 | **Cell density.** Are 20pt logos legible for brand assets, or should `.koyomi` show count + first logo? | calendar |
+| P2 | **Cell density.** Verify two 20pt logos plus overflow fit and remain legible in the default `.rounded` cell on the smallest supported iPhone. | calendar |
 | P2 | **Extend the month window** (`CalendarService.swift:20`, −1…+12) to whole years, so no Year-grid cell is disabled; measure `CalendarCache.monthData` cost and widget assumptions. | home_screen_ux, calendar |
-| P3 | **Real mini months** in blank first/last-row cells when ≥ 3 are blank (文字月表 style). Placement evidence is weak: check photos of Todan, 新日本カレンダー, Kokuyo, Delfonics sheets. | calendar |
-| P3 | **Persistent selection state** (iPad, multi-select): a 1pt `kin` underline, never a second circle. | calendar |
+| P3 | **iPad calendar design after release:** discuss additional layouts, mini months, variants and persistent selection together rather than adding them to the phone plan. | calendar |
 | P3 | **Monday-first option:** a `weekStart` setting through `CalendarService.daysGrid`, `ExpenseService.weekInterval`, `WidgetData` and the weekday tables (or follow `Calendar.current.firstWeekday`). | calendar, list_view |
 
 ### Brush and motion
@@ -281,20 +276,16 @@ Every "Open points / dig deeper" bullet from the 7 docs and every open question 
 | P3 | **Snap rows to the 44pt grid at large text** so the ruling never breaks. | list_view |
 | P3 | **Notebook-ruled Notes field** behind the `TextEditor`, matching line metrics under Dynamic Type. | forms |
 
-### Data (holidays, 六曜)
+### Data and money formatting
 | Pri | Point | Docs |
 |---|---|---|
-| P1 | **Verify the 2027 holiday table** (equinoxes 3/21, 9/23 are predictions) against CAO before shipping, and plan updates past 2027: bundle CAO `syukujitsu.csv` or extend the static table yearly. | calendar, list_view |
-| P1 | **二十四節気 2027.** Add the NAOJ 暦要項 2027 table; until then the header line is empty for Jan–Oct 2027. | calendar |
-| P1 | **Who sees JP holidays:** everyone, only `Locale.current.region == .japan`, or behind a setting. The default currency is CAD; a Canadian user may read red weekdays as errors. | calendar, list_view |
 | P2 | **JPY formatting.** `formatNumber` prints `¥1,200.00`; research a per-currency `fractionLength` in `MoneyFormatter` and its effect on widgets and the keypad's cents mode. | price_display |
-| P3 | **六曜 (v2):** `(旧暦 month + day) % 6` via `.chinese`; check new moons near JST midnight against an almanac (UTC+8 offset); rules break in 2033. A wrong value is worse than none. | calendar |
 
 ### Widgets and icon
 | Pri | Point | Docs |
 |---|---|---|
 | P1 | **App icon.** `Resources/AppIcon.icon` is still green/purple (`logo-green.svg`/`logo-purple.svg`). Research a torii or hanko mark in shu on lacquer, and its tinted/clear icon modes. Decide whether the crow mascot stays. | general_app_ui |
-| P3 | **Widget weekday/holiday colours and a week-widget ensō** (`WidgetViews.swift:488-490`). Left out of v1 to keep widget changes small. | calendar |
+| P3 | **Widget weekday colours and a week-widget ensō** (`WidgetViews.swift:488-490`). Left out of v1 to keep widget changes small. | calendar |
 
 ### Onboarding (ripple heroes left for later)
 | Pri | Point | Docs |
@@ -328,8 +319,8 @@ Every "Open points / dig deeper" bullet from the 7 docs and every open question 
 | P3 | **Swap forms' inline category dot for `CategoryMark`** in `ExpenseSummarySheet` once `list_view.md` lands (same render, one source). | forms, list_view |
 
 ### Resolved during planning (kept for the record)
-- **The user's reference screenshot** was unavailable to the calendar research; the photo was later described (Research results → reference photo anatomy) and mapped in `calendar.md` §1.
-- **Today on a red date:** `ink` numeral inside the shu ensō, holiday kept by `祝` (`calendar.md`, `list_view.md`).
+- **The user's reference screenshot** was unavailable to the calendar research; the photo was later described above. `calendar.md` borrows its visual structure while omitting Japan-specific date data.
+- **Today on a Sunday:** `ink` numeral inside the shu ensō; Sunday remains clear through the weekday band and VoiceOver date (`calendar.md`, `list_view.md`).
 - **Week start:** Sunday-first kept (matches `ja_JP`); Monday-first is a P3 option above.
 - **Selected vs today:** no persistent selection in v1; a `kin` underline if ever needed.
 - **One weight:** hierarchy from size, case, tracking and colour; Bold Text → SF Mono semibold.
@@ -339,12 +330,11 @@ Every "Open points / dig deeper" bullet from the 7 docs and every open question 
 - **`CoinProgress`:** deleted (charts.md step 14, run at the end of price_display.md step 9); its view model and tests stay.
 
 ## Variations to explore after v1
-- **Calendar style variations:** the other `CalendarStyle` cases already survive as variations (rounded, contrast, bigger, straight, compact). Try a denser 文字月表 variant, a 2–3-month sheet (previous/next minis in blank cells), a 日めくり day view, and the dark-mode shu weekday band that v1 rejected.
+- **Calendar style variations:** the five existing raw values ship as restyled Koyomi, Framed, Dots, Expanded and Compact. Discuss any additional iPad layouts or variants after release.
 - **Washi texture:** a 512px seamless tile, `.multiply` ≤ 5% in light, omitted in dark; check rules and glass legibility on top of it.
 - **Glass cards:** an opt-in style that puts content cards back on glass over a textured ground, to test whether more refraction reads better than flat paper.
 - **Monday-first** week start and a locale-following default.
-- **六曜** in the cell annotation slot, plus 干支/九星 in day detail.
-- **Kanji-only mode:** weekday kanji without English, 和風月名 as the main month label, or a full ja localisation.
+- **Localization beyond calendar dates:** evaluate decorative kanji on other screens separately from the worldwide calendar.
 - **Per-month colour** (Hobonichi): a per-month tint on the Koyomi numeral or a 魚尾/gakuzuka marker only.
 - **Mon coins:** 寛永通宝-style face inscription, or coins as the Stats dial's marker.
 - **Monochrome Midori mode:** no Saturday blue, no red ink except the 赤字 stamp.

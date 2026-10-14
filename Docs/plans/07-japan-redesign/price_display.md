@@ -218,7 +218,7 @@ static func color(spent: Double, budget: Double?) -> Color   // Color.ink unless
    - `ExpenseSummarySheet.swift:185`: `Text(MoneyFormatter.format(vm.totalSpent, settings: settingsStore.settings))`.
    - `ExpenseSummaryViewModel.swift:49-51`: replace the property with `func scheduleAndPriceText(settings: AppSettings) -> String` returning `"\(expense.billingCycle.displayName) • \(MoneyFormatter.format(expense.price, settings: settings))"`. Call site `ExpenseSummarySheet.swift:136`: `vm.scheduleAndPriceText(settings: settingsStore.settings)`.
    - `ExpensesInDayViewModel.swift:45-49`: signature `rowSubtitle(for expense: Expense, settings: AppSettings)`, price `MoneyFormatter.format(expense.price, settings: settings)`. Call site `ExpensesInDay.swift:164` passes `settingsStore.settings` (property at `:9`). Skip if list_view.md already deleted `rowSubtitle`.
-   - `ExpensesInDay.swift:219`: `Text(MoneyFormatter.format(vm.total, settings: settingsStore.settings))`. This doc is the single owner of that fix; calendar.md only verifies it and list_view.md's sum-line rewrite keeps the same call.
+   - `ExpensesInDay.swift:219`: `Text(MoneyFormatter.format(vm.total, settings: settingsStore.settings))`. This doc is the single owner of that fix; the earlier calendar pass leaves this sheet unchanged and list_view.md's sum-line rewrite keeps the same call.
    - `AmountField.swift:14`: `Text(MoneyFormatter.exact(amount, currencyCode: currencyCode))`. Do not touch `:16-18` (forms.md).
    - `ExpenseFormView.swift:93`: `Text(MoneyFormatter.exact(vm.price, currencyCode: vm.currencyCode))`. Skip if forms.md step 9 deleted the file.
    - `BatchAddView.swift:166-167`, `ExpenseTemplateSheet.swift:345-346`, `OnboardingQuickAddPage.swift:160-161`: `return MoneyFormatter.exact(<draft.price | item.amount>, currencyCode: currencyCode)`. Then delete `asPeriodCurrency` (`Theme.swift:77-87`).
@@ -548,7 +548,7 @@ static func color(spent: Double, budget: Double?) -> Color   // Color.ink unless
 - **Tests:** same destination, `test -only-testing:LinguicaSubTrackerTests/MoneyFormatterTests -only-testing:LinguicaSubTrackerTests/ThemeFontTests`, then the full suite.
 - **Greps (each must return nothing):**
   - `grep -rn 'rippleOnTap\|monthRipple\|glowOpacity\|scaleBounce\|FluidFontSize' LinguicaSubTracker/Features/Home LinguicaSubTracker/Core/Utils/BudgetColor.swift`
-  - `grep -n 'numericText\|spring' LinguicaSubTracker/Features/Home/Views/Components/TextAnimatedView.swift LinguicaSubTracker/Features/Home/Views/Components/TotalView.swift LinguicaSubTracker/Core/Components/MoneyDisplay.swift` (`HomeToolbar.swift:95` keeps its own `numericText`; home_screen_ux.md owns it)
+  - `grep -n 'numericText\|spring' LinguicaSubTracker/Features/Home/Views/Components/TextAnimatedView.swift LinguicaSubTracker/Features/Home/Views/Components/TotalView.swift LinguicaSubTracker/Core/Components/MoneyDisplay.swift` (the earlier calendar pass removed the toolbar month title's `numericText`)
   - `grep -rn '\.currency(code' LinguicaSubTracker`
   - `grep -rn 'asPeriodCurrency' LinguicaSubTracker`
   - `grep -rn '"CAD"' LinguicaSubTracker` lists only `MoneyFormatter.swift:6`, `CurrencyMenu.swift`, `CurrencyPickerViewModel.swift:22`, `AppSettings.swift:22`, the two overwritten VM defaults and `@Previewable` previews.

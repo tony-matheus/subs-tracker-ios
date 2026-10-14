@@ -13,7 +13,7 @@ All three row types are merged into one notebook `ExpenseRow`.
 - `general_app_ui.md`: **already implemented in the working tree** (uncommitted). It provides the tokens (`LinguicaSubTracker/Core/Utils/AppTheme.swift:52-63`), `AppFont.mono` / `AppFont.kanji` (`:66-70`), `AppRadius.card` = 4 (`:72-75`), flat `.appBackground()` (`:77-88`), `GlassSection` as a paper card (`LinguicaSubTracker/Core/UI/Containers/GlassSection.swift:15-19`), `Rule` (`LinguicaSubTracker/Core/UI/Motifs/Torii.swift:57-69`), the `AppButton` colour mapping, the squared `SortChip`, and Fragment Mono through `.typography()` with all `.weight(…)` chains removed.
 - `price_display.md`: the single `MoneyFormatter` path, the "CAD" fix, and `MoneyDisplay`.
 - `charts.md`: `CoinStack` styling.
-- `calendar.md` (runs before this doc): `EnsoShape` (`LinguicaSubTracker/Core/UI/Motifs/EnsoShape.swift`, new there), `JapaneseCalendar.weekdayKanji` and the JP holiday table (`LinguicaSubTracker/Core/Utils/JapaneseCalendar.swift`, new there), the `ExpensesInDay` holiday line, and how the sheet is presented. calendar.md also already ran this doc's step 2 (`LogoCircle(glass:)`); verify it instead of redoing it.
+- `calendar.md` (runs immediately after the foundation): `EnsoShape`, `LogoCircle(glass:)`, the shared Home month header, and the existing day-sheet presentation. This doc reuses those interfaces; the calendar provides no holiday or Japanese date table.
 - `home_screen_ux.md`: the toolbar and how list mode is switched on.
 
 **References:**
@@ -115,7 +115,7 @@ Paths are repo-relative. App sources are in `LinguicaSubTracker/`. All line numb
 - **Colour budget:**
   - Prices are `ink`.
   - Category colour appears only as a 6pt square dot and the logo.
-  - Shu appears only as the 1pt margin rule, Sunday/holiday numerals, the TODAY label and the ensō stroke. There are no filled shu shapes in lists.
+  - Shu appears only as the 1pt margin rule, Sunday numerals, the TODAY label and the ensō stroke. There are no filled shu shapes in lists.
 
 ### Geometry (all surfaces)
 | Element | Spec |
@@ -138,9 +138,8 @@ These are the existing `AppTypography` styles (`LinguicaSubTracker/Core/Utils/Ty
 | Row name | `.typography(.bodyLarge)` (15pt), `lineLimit(1)` | `ink` |
 | Row meta (`■ Category · Cycle`) | `.typography(.bodySmall)` (11pt), `lineLimit(1)` | `inkSecondary` |
 | Row price | `.typography(.bodyLarge)`, right-aligned | `ink` |
-| Header numeral `12` | `.typography(.headlineSmall)` (20pt) | Sun / holiday `shu`, Sat `ai`, otherwise `ink` |
-| Header weekday `MON` | `.typography(.labelMedium)` (11pt; the style uppercases and tracks +1.2), `en_US_POSIX` | `inkSecondary` |
-| Header kanji `月` | separate `Text`, `.font(.custom(AppFont.kanji, size: 13, relativeTo: .caption))` (`HiraMinProN-W3`) | `inkSecondary` |
+| Header numeral `12` | `.typography(.headlineSmall)` (20pt) | Sun `shu`, Sat `ai`, otherwise `ink` |
+| Header weekday | `.typography(.labelMedium)` (11pt; the style uppercases and tracks +1.2), localized abbreviated weekday | `inkSecondary` |
 | `TODAY` label | same as the weekday | `shu` |
 | Status stamp | `.typography(AppTypography.Style(size: 10, textStyle: .caption2, letterSpacing: 0.8, uppercase: true))` | see below |
 | Sum line `TOTAL 合計` / amount | `.labelMedium` + 13pt `AppFont.kanji` / `.typography(.titleLarge)` (17pt) | `inkSecondary` / `ink` |
@@ -152,7 +151,7 @@ These are the existing `AppTypography` styles (`LinguicaSubTracker/Core/Utils/Ty
 | `ink` / `inkSecondary` | #1E1A17 / #6B635C | #F4EFE6 / #A8A096 | name, price / meta, weekday, inactive stamp |
 | `rule` | #E2DCCF | #3A332E | row hairline, logo hairline ring |
 | `ruleStrong` | #8C8378 | #746B63 | header rule, column dot, tick, stamp border |
-| `shu` | #C1352A | #E84A33 | margin rule at 60 %, Sun/holiday numeral, TODAY, ensō |
+| `shu` | #C1352A | #E84A33 | margin rule at 60 %, Sunday numeral, TODAY, ensō |
 | `ai` | #1E50A2 | #6F93D6 | Saturday numeral |
 | `beni` | #A22041 | #EE5A62 | swipe Delete tint |
 
@@ -170,7 +169,7 @@ The mocks use this notation:
 LIGHT · washi        page = paper #F8F4E6 · no card · no material
 x=0         x=56                                         x=W-16
             ┃ shu #C1352A @60% · 1pt
-   {12}     ┃ MON 月  TODAY                                 ← header 44pt
+   {12}     ┃ MON  TODAY                                   ← header 44pt (weekday localized)
 ━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  1pt ruleStrong #8C8378
     (N)     ┃ Notion                                $8.00   ink #1E1A17
             ┃ ■ Productivity · Monthly                      inkSecondary #6B635C
@@ -188,7 +187,7 @@ x=0         x=56                                         x=W-16
 
 ```
 DARK · lacquer       page = paper #0E0C0B
-   {12}     ┃ MON 月  TODAY            numeral ink #F4EFE6 · ensō + TODAY shu #E84A33
+   {12}     ┃ MON  TODAY              numeral ink #F4EFE6 · ensō + TODAY shu #E84A33
 ━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━  ruleStrong #746B63
     (N)     ┃ Notion           $8.00   ink #F4EFE6
             ┃ ■ Productivity · Monthly inkSecondary #A8A096
@@ -232,7 +231,7 @@ selection mode: the margin swaps logo → checkbox (no row shift)
 ### `ExpensesInDay` sheet
 ```
                ▬  (system drag indicator)
-   {12}     ┃ MON 月  TODAY                         OCT 2026
+   {12}     ┃ MON  TODAY                           OCT 2026
 ━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     (N)     ┃ Notion                                   $8.00
             ┃ ■ Productivity · Monthly
@@ -255,7 +254,7 @@ enum Notebook {
     static let trailing: CGFloat = 16
     static let priceColumn: CGFloat = 104          // wrap in @ScaledMetric(relativeTo: .body)
 }
-// Weekday kanji: use JapaneseCalendar.weekdayKanji[weekday - 1] (calendar.md owns the table).
+// Day headers format weekday and month/year with the device's locale.
 
 /// Ruled-paper strip behind one row/header: bottom rule, shu margin segment, optional dot/tick.
 struct NotebookLine: View {
@@ -294,11 +293,11 @@ The same file holds two more views:
 - **`NotebookDayHeader(date: Date, trailing: String? = nil)`:**
   - **Layout:** an `HStack(spacing: 0)` of three parts:
     - the numeral, framed to `Notebook.margin` and centred
-    - `MON` + kanji (+ `TODAY`) with `.padding(.leading, 8)` and `firstTextBaseline` alignment
+    - localized abbreviated weekday (+ `TODAY`) with `.padding(.leading, 8)` and `firstTextBaseline` alignment
     - `Spacer`, then the optional `trailing` text
   - **Frame:** `.padding(.trailing, 16)`, `.frame(minHeight: 44)`, `.background(NotebookLine(weight: .strong))`.
   - **Weekday:** `Calendar.current.component(.weekday, from:)`.
-  - **Today marker:** today is detected with `Calendar.current.isDateInToday`. `EnsoShape(seed: EnsoShape.seed(for: date))` (from `calendar.md`, the same seed as that date's calendar cell) is drawn at 34pt, filled `shu`, in its final state behind the numeral, with no draw-on animation in scrolling lists. Today's numeral is `ink` inside the ensō even on a Sunday or holiday (calendar.md §4 rule: a shu numeral in a shu ring blurs into one blob).
+  - **Today marker:** today is detected with `Calendar.current.isDateInToday`. `EnsoShape(seed: EnsoShape.seed(for: date))` (from `calendar.md`, the same seed as that date's calendar cell) is drawn at 34pt, filled `shu`, in its final state behind the numeral, with no draw-on animation in scrolling lists. Today's numeral is `ink` inside the ensō even on a Sunday.
   - **Accessibility:** `.accessibilityElement(children: .ignore)`, `.accessibilityLabel(date.formatted(.dateTime.weekday(.wide).month(.wide).day()))`, `.accessibilityAddTraits(.isHeader)`.
 - **`CategoryMark(name: String)`:**
   - It reads `@Environment(SettingsStore.self)` and resolves the colour as `settings.categories.first { $0.name == name }.map { Color(hex: $0.colorHex) } ?? Color.inkSecondary`.
@@ -344,19 +343,7 @@ Text(isActive ? "ACTIVE" : "INACTIVE")
 ```
 
 ### `LogoCircle(glass:)`
-Add `var glass: Bool = true` as the **last** stored property, so the memberwise argument order stays valid for all 16 call sites. When it is false, the logo has no glass and no coloured shadow (no glow), only a hairline ring so light logo backgrounds don't dissolve into the paper:
-```swift
-let disc = Circle().fill(customization.resolvedBackground).frame(width: size, height: size)
-if glass {
-    disc.glassEffect(.regular.interactive())
-        .shadow(color: customization.resolvedShadow.opacity(0.5), radius: size * 0.22, x: 0, y: size * 0.08)
-} else {
-    disc.overlay(Circle().strokeBorder(Color.rule, lineWidth: 1 / displayScale))
-}
-```
-- `displayScale` comes from `@Environment(\.displayScale) private var displayScale`.
-- `Color.rule` lives in `AppTheme.swift`, which is widget-shared, so this compiles in both targets.
-- Widgets keep the default (`true`). `general_app_ui.md` decides the widget look.
+`calendar.md` owns and implements this opt-out immediately after the foundation. Verify that `glass: false` removes glass and shadow and adds a `Color.rule` hairline ring. This doc passes `glass: false` for notebook rows; widget callers retain the default `true`.
 
 ### Long names and mono width
 Fragment Mono is ≈0.6 em per glyph, ≈9pt per glyph at 15pt. On a 375pt screen the name column is 375 − 56 − 8 − 8 − 104 − 16 ≈ 183pt, about 20 glyphs.
@@ -376,14 +363,11 @@ Fragment Mono is ≈0.6 em per glyph, ≈9pt per glyph at 15pt. On a 375pt scree
    - `GlassSection` is a paper card (`GlassSection.swift:15-19`); `SortChip` is squared glass (`SortChip.swift:40`).
    - `grep -rn "typography(.*\.weight(" LinguicaSubTracker` prints nothing.
    - If any is missing, stop and implement `general_app_ui.md` first.
-   - calendar.md has landed: `EnsoShape.swift` and `JapaneseCalendar.swift` exist. If not, implement calendar.md first.
-2. **`LogoCircle`** (`LinguicaSubTracker/Core/Components/LogoCircle.swift`). This doc owns the spec; calendar.md step 1 usually applies it early. If `glass:` already exists, verify it matches and skip:
-   - Add `var glass: Bool = true` after `preferInitials` (`:12`) and `@Environment(\.displayScale)`.
-   - Replace `:16-25` with the `if glass` branch above.
-   - Do not touch the widget call sites.
+   - `calendar.md` has landed: `EnsoShape.swift` and `LogoCircle(glass:)` exist. If either is missing, implement `calendar.md` first.
+2. **Verify `LogoCircle`** (`LinguicaSubTracker/Core/Components/LogoCircle.swift`). Confirm the calendar-owned `glass:` API matches the contract above and leaves the widget's default behavior intact; do not add a second implementation.
 3. **Create `LinguicaSubTracker/Core/UI/Containers/Notebook.swift`** (new) with `Notebook`, `NotebookLine`, `NotebookDayHeader` and `CategoryMark`, exactly as specified.
-   - Day header numeral colour (same rule as calendar.md's `DayCell.numeralColor`): today → `ink` (inside the ensō); else `JapaneseCalendar.holiday(on:) != nil` or weekday 1 → `shu`; weekday 7 → `ai`; else `ink`.
-   - Kanji: `JapaneseCalendar.weekdayKanji[weekday - 1]`. Do not add a second table.
+   - Day header numeral colour (same rule as calendar.md's `DayCell.numeralColor`): today → `ink` (inside the ensō); else weekday 1 → `shu`; weekday 7 → `ai`; else `ink`.
+   - Format weekday text using the device's locale and the same calendar as the day grid; do not introduce a weekday lookup table.
    - Do **not** add this file to the widget target.
 4. **Rewrite `LinguicaSubTracker/Core/Components/ExpenseRow.swift`** as the notebook row:
    - New API with `showsStatus` / `selected`.
@@ -421,8 +405,7 @@ Fragment Mono is ≈0.6 em per glyph, ≈9pt per glyph at 15pt. On a 375pt scree
 8. **`ExpensesInDay.swift`:**
    - **Chrome:**
      - Delete `handle` (`:87-93`) and set `.presentationDragIndicator(.visible)` (`:50`).
-     - Replace `header` (`:95-105`) with `NotebookDayHeader(date: viewModel.date, trailing: viewModel.date.formatted(Date.FormatStyle(locale: Locale(identifier: "en_US_POSIX")).month(.abbreviated).year()).uppercased())` plus `.padding(.top, 20)`.
-     - Keep calendar.md's holiday line (its step 14, `if let holiday = JapaneseCalendar.holiday(on: viewModel.date) { … }`) directly under the new header. Do not restyle it.
+     - Replace `header` (`:95-105`) with `NotebookDayHeader(date: viewModel.date, trailing: viewModel.date.formatted(.dateTime.month(.abbreviated).year()).uppercased())` plus `.padding(.top, 20)`.
      - Remove `.padding(.horizontal)` (`:44`) and set the inner `VStack` spacing to 0 (`:40`).
    - **`mainList`:**
      - Drop the `GlassSection` (`:113`, `:141`).
@@ -440,7 +423,7 @@ Fragment Mono is ≈0.6 em per glyph, ≈9pt per glyph at 15pt. On a 375pt scree
      - Amount: `MoneyFormatter.format(vm.total, settings: settingsStore.settings)`. This replaces the "CAD" at `:219`; the fix is owned by `price_display.md`, so reuse whatever that doc produced and add no second path.
 9. **`ExpensesInDayViewModel.swift`:**
    - Delete `rowSubtitle` (`:45-49`), which carries the other "CAD", now that `ExpenseRow` renders the meta.
-   - Change `compactHeight` (`:28-34`) to `min(20 + 44 + CGFloat(expenses.count + 1) * 44 + 44 + 24 + (JapaneseCalendar.holiday(on: date) == nil ? 0 : 24), 520)`: top inset, header, rows plus the add row, sum line, bottom padding, and calendar.md's holiday line. Use `Notebook.pitch` for the 44s.
+   - Change `compactHeight` (`:28-34`) to `min(20 + 44 + CGFloat(expenses.count + 1) * Notebook.pitch + 44 + 24, 520)`: top inset, header, rows plus the add row, sum line, and bottom padding.
 10. **Counting ticks (optional; ship after steps 1–9 verify).**
     - Search: pass `tick: (index + 1) % 5 == 0` to `NotebookLine`.
     - Home: compute `let offsets = days.reduce(into: [0]) { $0.append($0.last! + $1.expenses.count) }`, iterate `days.enumerated()`, and pass `tick: (offsets[g] + i + 1) % 5 == 0`.
@@ -476,7 +459,7 @@ Fragment Mono is ≈0.6 em per glyph, ≈9pt per glyph at 15pt. On a 375pt scree
   - `showAddSheet` → `SimplifiedAddExpenseView`
   - the `let _ = store.expenses` hook (`ExpensesInDay.swift:33`)
   - the `.height(compactHeight)` detent, capped at 520
-- **`LogoCircle`:** default behaviour is identical for every caller that does not pass `glass:`. That covers the calendar (`DayCell.swift:174`, where `calendar.md` passes `glass: false`), forms, onboarding and the 3 widget call sites.
+- **`LogoCircle`:** default behaviour is identical for every caller that does not pass `glass:`. The calendar and notebook rows pass `glass: false`; forms, onboarding and widget callers keep their defaults.
 - **DEBUG hooks:** `SIMCTL_CHILD_DEBUG_HOME_VIEW=list|calendar` (`HomeView.swift:85-89`), `DEBUG_MONTH_INDEX` (`:93-99`), `DEBUG_OPEN_SHEET=budget` (`HomeListView.swift:59-64`), `DEBUG_WIDGET_GALLERY` (`HomeView.swift:101`).
 - **Previews:** `HomeViewPreviewHost`, `ExpensesInDayPreviewHost`, the `SearchView` `#Preview` and the `ExpenseRow` `#Preview` must still compile.
 
@@ -490,10 +473,10 @@ Fragment Mono is ≈0.6 em per glyph, ≈9pt per glyph at 15pt. On a 375pt scree
 - **Hairline visibility.** Light `rule` #E2DCCF on #F8F4E6 is only 1.24:1 at one device pixel. That is intended to be faint, like Kokuyo's pale lines, but check it on a device. The column dot in `ruleStrong` keeps the column readable either way.
 - **Fractional heights blur hairlines.** Keep row and header heights integral (`minHeight: 44`, content < 44 at default sizes).
 - **Weights.** `.typography(x.weight(…))` no longer compiles (the foundation removed `Style.weight`). The system `.font(…weight…)` calls left in `ExpensesInDay.swift` (`:161`, `:172`, `:193`, `:198`, `:220`) disappear with this doc's rewrite of those views. Hierarchy comes from size, case, tracking and colour only.
-- **Kanji fallback.** Fragment Mono has no CJK glyphs. `月` and `合計` must be separate `Text` views with `AppFont.kanji` (`HiraMinProN-W3`); otherwise they render in the system sans.
-- **`ExpensesInDay` header ownership.** `general_app_ui.md` assigns the header fonts (`ExpensesInDay.swift:98,101`) to `calendar.md`. This doc replaces that header with `NotebookDayHeader`; `calendar.md` must not restyle it separately.
+- **Kanji fallback.** Fragment Mono has no CJK glyphs. `合計` must be a separate `Text` view with `AppFont.kanji` (`HiraMinProN-W3`); otherwise it renders in the system sans.
+- **`ExpensesInDay` header ownership.** This doc replaces the sheet header with `NotebookDayHeader`; `calendar.md` leaves the sheet untouched.
 - **`Canvas` colours.** `NotebookLine` fills with dynamic `UIColor`-backed tokens; `GraphicsContext` resolves them from the view's environment. Confirm in the dark screenshots that rules switch with the theme.
-- **Locale.** Format `MON` and `OCT 2026` with `en_US_POSIX`, so a Japanese-locale device doesn't produce `月曜`/`10月` next to the kanji.
+- **Locale.** Format day and month labels with the device's locale, matching the calendar header. Keep the decorative notebook marks independent of date localization.
 - **Shu budget.** At most one filled shu shape per screen. Checkboxes are `ink`, stamps are ink or grey, and the margin and ensō are strokes. Do not tint the selection with `Color.accentColor`, which `general_app_ui.md` makes shu.
 - **Materials and shaders.** No `layerEffect` exists in these views, and none may be added. Removing `GlassSection` from rows also removes the material-renders-black risk.
 - **`HomeListView.days` is computed.** It runs `occurrencesByDay` on every access. Bind it once per `listBlock` evaluation, especially once ticks need `offsets`.
@@ -520,7 +503,7 @@ Fragment Mono is ≈0.6 em per glyph, ≈9pt per glyph at 15pt. On a 375pt scree
    - Select → checkboxes replace the logos in the margin without a horizontal shift → Select All → bulk Delete → alert
    - the long-name fixture truncates the name, never the price
 6. **`ExpensesInDay`** (tap a day with expenses in calendar mode):
-   - the header shows the tapped day's numeral + `SUN`…`SAT` + kanji, with Sunday numerals in shu and Saturday in ai
+   - the header shows the tapped day's numeral and localized weekday, with Sunday numerals in shu and Saturday in ai
    - swipe → dialog with "Delete current" / "Delete all"
    - tapping a row dismisses the sheet, then opens the summary
    - the detent fits the rows without scrolling for ≤ 6 expenses
@@ -534,16 +517,15 @@ Fragment Mono is ≈0.6 em per glyph, ≈9pt per glyph at 15pt. On a 375pt scree
 ## Open points / dig deeper
 - **Snap rows to the grid at large text.** Research rounding row heights up to multiples of 44pt at large Dynamic Type sizes (as GoodNotes/Notes-style ruled pages do), so the ruling never breaks. Today rows simply grow.
 - **`ExpensesInDay` row clipping at AX sizes.** Measure the actual row heights (a `PreferenceKey` sum) instead of `count × pitch`, so they don't clip. Do this only if AX testing shows clipping.
-- **Day subtotal on headers.** Ledger-style "12 MON 月 … $42.98" would make the list read as a kakeibo (household ledger). Validate with the user before adding; it was skipped as unrequested.
+- **Day subtotal on headers.** Ledger-style "12 MON … $42.98" would make the list read as a kakeibo (household ledger). Validate with the user before adding; it was skipped as unrequested.
 - **Pinned day headers.** `LazyVStack(pinnedViews: [.sectionHeaders])` with a `paper` background would keep the date visible while scrolling. Check that it doesn't fight the glass top bar.
 - **Continue ruled lines to the page bottom.** Empty rules under the last row (a blank notebook page) would strengthen the metaphor. Measure the cost and whether it reads as "more rows" (false affordance).
 - **Hairline contrast on device.** Check `rule` at one pixel in light mode, with Increase Contrast on. Fall back to `ruleStrong.opacity(0.4)` if it disappears.
 - **Expense type dropped from the meta line.** Decide whether "Subscription/Expense/Installment" belongs back in the row, for example as a 1-glyph mark, or stays only in `ExpenseSummarySheet`.
-- **Bilingual stamps.** 有効 / 停止 next to ACTIVE / INACTIVE would match the `MON 月` pattern. Verify the wording with a native speaker before shipping.
+- **Bilingual stamps.** 有効 / 停止 next to ACTIVE / INACTIVE would need localization review before shipping.
 - **Scroll under the bottom bar.** Let the Home list scroll under the glass bottom bar (remove `.padding(.bottom, 8)`, extend into the bottom safe area) so glass has content to refract. This is owned by `home_screen_ux.md`'s layout work.
 - **Counting ticks.** Ticks every 5 rows may be noise on short months. Decide after a user look whether to keep them on Home only, Search only, or drop them.
 - **Genkō cell grid for prices.** Research suggested faint per-glyph cells, which are too busy for rows. Evaluate only for the hero total (`price_display.md`).
-- **Holiday numerals in list headers.** These depend on `calendar.md`'s static 2026–27 JP holiday table. Plan how the table is extended past 2027.
 - **Washi texture behind rows.** Check whether a multiply tile (a `general_app_ui.md` open point) still lets one-pixel rules read cleanly, or whether rules need `ruleStrong` on texture.
 
 **Status: proposed, not implemented.**

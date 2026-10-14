@@ -21,10 +21,10 @@
 
 **Depends on:**
 - `general_app_ui.md` (the foundation). It is already applied in the working tree: tokens, Fragment Mono, `.appBackground()` paper, `Torii.swift`, ink toolbar glyphs.
-- `calendar.md`: the Koyomi header view and the ensō draw-on contract (step 9), and `EnsoShape` (step 6's Year-grid ensō).
+- `calendar.md`: the Koyomi-inspired header, its month-picker callback and toolbar-title removal, the ensō draw-on contract (step 9), and `EnsoShape` (step 6's Year-grid ensō).
 - `price_display.md`: the `TotalView` rewrite and the `totalSizeRange` it sets (step 9 only).
 - `list_view.md`: the `HomeListView` notebook body (list mode only).
-- Steps 1–5, 7–8 and 10–11 don't depend on `calendar.md`, `price_display.md` or `list_view.md`, and can land first. Step 6 needs `EnsoShape`; step 9 lands last (see the execution order in `research_results_and_future_points.md`).
+- Follow the execution order in `research_results_and_future_points.md`: `calendar.md` has already landed, so step 4 sees the header and no principal month title; step 6 can use `EnsoShape`. Step 9 lands after `price_display.md` and `list_view.md`.
 
 **References:**
 - Apple Calendar on iOS 26:
@@ -53,7 +53,7 @@
 | `forms.md` | add and edit forms (the `+` destination `SimplifiedAddExpenseView`) |
 | `charts.md` | Stats sheet, `BudgetColor` options, `HankoStamp` |
 | `price_display.md` | `TotalView`, `MoneyDisplay`, `InkReveal`, `BudgetMark` |
-| `list_view.md` | notebook rows in `HomeListView`, `CategoryMark`, `LogoCircle(glass:)` |
+| `list_view.md` | notebook rows in `HomeListView`, `CategoryMark`; `LogoCircle(glass:)` already comes from `calendar.md` |
 | `home_screen_ux.md` (this doc) | Home toolbar and layout, the Year grid, the filter sheet |
 | `research_results_and_future_points.md` | index, sources, every open point |
 
@@ -65,7 +65,7 @@ All references describe the **current working tree**, after the foundation pass.
    - **Top-leading `leadingPill`** (`LinguicaSubTracker/Features/Home/Views/Components/HomeToolbar.swift:108-126`). It is one `HStack(spacing: 20)` holding two unrelated controls:
      - the filter `Menu` (`:128-171`): "All Expenses" (`:130-136`), a `Divider`, then three submenus with `Picker`s for Lists, Categories and Payment Methods (`:140-165`)
      - the view toggle `Button` (`:113-123`), which flips `viewType` with a spring
-   - **Principal `monthButton`** (`:90-106`): `Text(monthKey)` in `.typography(.headlineSmall)` with `.numericText`, plus `chevron.down`. It opens `MonthPickerSheet` (`LinguicaSubTracker/Features/Home/Views/HomeView.swift:127-131`).
+   - **Principal `monthButton` in the pre-calendar baseline** (`:90-106`): `Text(monthKey)` in `.typography(.headlineSmall)` with `.numericText`, plus `chevron.down`. `calendar.md` removes it and moves the picker trigger to `KoyomiHeader`; verify it is already gone before this plan's toolbar rewrite.
    - **Top-trailing gear** (`HomeToolbar.swift:56-61`): opens Settings.
 2. **`TotalView`** (`LinguicaSubTracker/Features/Home/Views/HomeView.swift:35-44`)
    - `.frame(maxWidth: .infinity, maxHeight: .infinity)` (`:44`): it absorbs all vertical space the calendar leaves.
@@ -101,7 +101,7 @@ All references describe the **current working tree**, after the foundation pass.
    - The total already opens Stats (`HomeView.swift:40-42`), and so does the list-mode total (`HomeView.swift:60`).
    - The ring is an 18pt gauge (`HomeToolbar.swift:65-66`) with no accessibility label. VoiceOver reads only "button", and sighted users get no clue what it is.
 3. **The Add ↔ Today swap hides Add off-month.** `HomeActionButton` (`LinguicaSubTracker/Features/Home/Views/Components/HomeActionButton.swift:11-41`) shows "Add expense" only when `isOnCurrentMonth` is true. On any other month the button becomes "Today", so you can't add an expense while browsing. Apple keeps Today and Add as separate controls that are always visible ([Zapier review 2026](https://zapier.com/blog/best-iphone-calendar-apps/)).
-4. **Duplicate month selector.** The principal title opens a wheel picker (`LinguicaSubTracker/Features/Home/Views/Components/MonthPickerSheet.swift:9-19`, detent `.height(260)` at `:28`), but swiping the paged `TabView` already changes month. The title also takes the top-centre slot the user called crowded.
+4. **Month picker after `calendar.md`.** The wheel picker remains, but its trigger is in `KoyomiHeader`. This plan replaces the wheel with the Year grid; the toolbar centre stays empty.
 5. **Bar glyph styling.**
    - The gradients are gone (see the foundation list below).
    - Every glyph still forces a custom `.font(.system(size:))`: `HomeToolbar.swift:66,84` (18), `:101` (11 semibold), `:119,168` (14). The HIG asks for system-rendered, monochrome bar items with no custom tints ([HIG Toolbars](https://developer.apple.com/design/human-interface-guidelines/toolbars)).
@@ -187,7 +187,7 @@ All references describe the **current working tree**, after the foundation pass.
 |---|---|---|
 | Filter + ViewMode pill, top-left | `leadingPill` (`HomeToolbar.swift:108-126`) | **Split.** View mode joins the top-trailing view menu. Filter becomes a bottom-centre button with an active-count badge and a sheet. Top-left holds only the year. |
 | Chart, bottom-left | `ring.dashed` (`HomeToolbar.swift:64-70`) | **Deleted.** Stats opens from a tap on the total (existing) or from the view menu's "Stats" item. Bottom-left becomes `Today`. |
-| Month selector, top-centre | `monthButton` → wheel `MonthPickerSheet` | **Deleted from the bar.** The month is shown by the Koyomi header in the content. You change it by swiping, by the header's faint prev/next labels (`calendar.md`), or by `2026` → Year grid. The top centre stays empty (ma). |
+| Month selector, top-centre | `calendar.md` already removed `monthButton`; the header opens the wheel `MonthPickerSheet` | Keep the bar centre empty. Replace the wheel with the Year grid; the header's month button and `2026` year button both open it. |
 
 ### Recommended layout (A): toolbar spec
 
@@ -211,18 +211,18 @@ All references describe the **current working tree**, after the foundation pass.
 ### Before → after (calendar mode, iPhone 17 Pro, light)
 
 ```
-BEFORE (working tree)                         AFTER (layout A)
+BEFORE (pre-calendar baseline)                AFTER (layout A)
 ┌──────────────────────────────────────┐      ┌──────────────────────────────────────┐
 │ (≡▾ ▤)     October 2026 ⌄       (⚙)  │      │ (2026)                      (▦▾  ⌕) │ ← year · [view menu | search]
 │                                      │      │┌────────────────────────────────────┐│
-│                                      │      ││ Koyomi header — calendar.md        ││ ← era · giant month numeral ·
-│                                      │      ││ (faint SEP ‹ … › NOV, kasagi rule) ││   和風月名 · sekki line
+│                                      │      ││ Koyomi header — calendar.md        ││ ← localized year/month · giant numeral
+│                                      │      ││ (faint prev ‹ … › next, kasagi rule) ││   center opens Year grid
 │            $1,284.50                 │      │└────────────────────────────────────┘│
 │      (≈231pt flex band, ≈139 empty)  │      │        $1,284.50                     │ ← TotalView (price_display.md)
 │                                      │      │        ▔▔▔▔▔▔▔▔▔▔▔▔▔ kin underline    │   tap → Stats
 │                                      │      │         $215.50 LEFT                 │ ← BudgetMark row (budget only)
 │  S    M    T    W    T    F    S     │      │               (ma ≈73pt)             │ ← flexible spacer
-│ ╭──╮ ╭──╮ ╭──╮ ╭──╮ ╭──╮ ╭──╮ ╭──╮   │      │ ██SUN日█MON月█TUE火█WED水█THU木█FRI金█SAT土 │ ← sumi weekday band (calendar.md)
+│ ╭──╮ ╭──╮ ╭──╮ ╭──╮ ╭──╮ ╭──╮ ╭──╮   │      │ ██SUN┃MON┃TUE┃WED┃THU┃FRI┃SAT ██ │ ← localized weekday band (calendar.md)
 │ │  │ │  │ │  │ │  │ │  │ │  │ │  │   │      │ │ 1 │ 2 │ 3 │ … hairline grid       │
 │ ╰──╯ ╰──╯ ╰──╯ ╰──╯ ╰──╯ ╰──╯ ╰──╯   │      │ │…│ ⑫ │ … ensō on today           │
 │   … rounded cells, grid 370pt        │      │   … grid 370pt                       │
@@ -246,7 +246,7 @@ BEFORE (working tree)                         AFTER (layout A)
 │└────────────────────────────────────┘│  keeps month + total fixed; only the body swaps
 │            $1,284.50                 │  HomeListView summary (size 40, price_display.md)
 │ [ coin piles — only with a budget ]  │  charts.md / list_view.md (unchanged structure)
-│   {12}  ┃ MON 月  TODAY              │  notebook list (list_view.md)
+│   {12}  ┃ MON  TODAY                │  notebook list (list_view.md)
 │ ━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━  │
 │   (N)   ┃ Notion              $8.00  │
 │ ────────╂────────────────·─────────  │
@@ -401,7 +401,7 @@ The ring and the Add/Today swap disappear in every option. Stats stays on the to
   - Not in v1.
 
 ## Implementation steps
-Do steps 1–8 and 10–11 in order. Step 6 needs `calendar.md`'s `EnsoShape`. Step 9 waits for `calendar.md` (Koyomi header), `price_display.md` (`TotalView`) and `list_view.md` (`HomeListView`).
+Do steps 1–8 and 10–11 in order. The calendar header and `EnsoShape` are already available. Step 9 waits for `price_display.md` (`TotalView`) and `list_view.md` (`HomeListView`).
 
 1. **Verify the foundation baseline.**
    - Already done by the foundation pass (verify): the items under "Already done by the foundation pass".
@@ -447,7 +447,7 @@ Do steps 1–8 and 10–11 in order. Step 6 needs `calendar.md`'s `EnsoShape`. S
 
 4. **Rewrite `LinguicaSubTracker/Features/Home/Views/Components/HomeToolbar.swift`.**
    - In `HomeViewType` (`:3-19`), replace `targetIcon` (`:9-14`) and `toggle()` (`:16-18`) with `icon` (the current mode's symbol). Keep the "Not persisted" comment.
-   - Delete `monthButton` (`:90-106`), `leadingPill` (`:108-126`), `filterMenu` (`:128-171`) and the ring (`:64-70`).
+   - Verify `monthButton`, `monthKey`, and the toolbar's `onMonthPicker` callback were removed by `calendar.md`; delete `leadingPill`, `filterMenu`, and the ring.
    - Replace the struct with:
    ```swift
    /// Which body the Home screen shows. Not persisted — resets to calendar on launch.
@@ -658,14 +658,16 @@ Do steps 1–8 and 10–11 in order. Step 6 needs `calendar.md`'s `EnsoShape`. S
    - Keep the `showMonthPicker` name and the sheet at `:127-131`. That sheet is now the Year grid.
 
 9. **`HomeView.swift`: content composition.** Do this after `calendar.md` and `price_display.md`.
-   - `calendar.md` step 13 ships `KoyomiHeader(viewModel: CalendarViewModel)` (`LinguicaSubTracker/Features/Home/Views/Components/Calendar/KoyomiHeader.swift`, new there) and mounts it as the first child of this `VStack` as `KoyomiHeader(viewModel: vm.calendarViewModel).padding(.horizontal, 12)`. Keep exactly that call in both branches below.
+   - `calendar.md` ships `KoyomiHeader(viewModel:onMonthPicker:)` and mounts it in `HomeView`. Keep the header in both modes, passing `onMonthPicker: { showMonthPicker = true }`; the same sheet now shows the Year grid.
    - Replace the `VStack` at `:33-63` with:
      ```swift
      Group {
          if viewType == .calendar {
              ScrollView {
                  VStack(spacing: 0) {
-                     KoyomiHeader(viewModel: vm.calendarViewModel).padding(.horizontal, 12)
+                     KoyomiHeader(viewModel: vm.calendarViewModel,
+                                  onMonthPicker: { showMonthPicker = true })
+                         .padding(.horizontal, 12)
                      TotalView(store: vm.store, settingsStore: vm.settingsStore,
                                coordinator: coordinator, calendarViewModel: vm.calendarViewModel,
                                action: { vm.showStats = true })
@@ -685,7 +687,9 @@ Do steps 1–8 and 10–11 in order. Step 6 needs `calendar.md`'s `EnsoShape`. S
              } action: { _, height in viewportHeight = height }
          } else {
              VStack(spacing: 0) {
-                 KoyomiHeader(viewModel: vm.calendarViewModel).padding(.horizontal, 12)
+                 KoyomiHeader(viewModel: vm.calendarViewModel,
+                              onMonthPicker: { showMonthPicker = true })
+                     .padding(.horizontal, 12)
                  HomeListView(store: vm.store, settingsStore: vm.settingsStore,
                               coordinator: coordinator, calendarViewModel: vm.calendarViewModel,
                               onStats: { vm.showStats = true })
@@ -781,7 +785,7 @@ Do steps 1–8 and 10–11 in order. Step 6 needs `calendar.md`'s `EnsoShape`. S
 - **Wrapping in a `ScrollView`:**
   - The paged `TabView` must keep a fixed height (`CalendarView.swift:69`, later `calendar.md`'s value), or it collapses to zero inside the vertical scroll.
   - Calendar-mode content now scrolls under the glass bars. Check `DayCell`'s `contextMenu` and the long-press preview still work, and that vertical scrolling doesn't steal horizontal page swipes.
-- **Koyomi header location.** `calendar.md` step 13 mounts the header in `HomeView`, not inside `CalendarView`, so list mode keeps the month label and the rewind (which hides the `TabView`, `CalendarView.swift:48`) never hides it. Step 9 must keep it outside `CalendarView` in both branches.
+- **Koyomi header location.** `calendar.md` mounts the header in `HomeView`, outside `CalendarView`, so list mode keeps the month label and rewind never hides it. Step 9 must keep it outside `CalendarView` in both branches and retain its `onMonthPicker` callback.
 - **Deleting `HomeViewModel.budgetTint`** drops one `BudgetColor.color` caller. `charts.md` and `general_app_ui.md` list "HomeViewModel" among its callers. Expect one fewer, and keep the signature for the rest.
 - **Search stays top-trailing,** which differs from the iOS 26 iPhone default (bottom-bar search). This is a deliberate trade-off. Layout B is the one with system bottom search.
 - **`Picker` in `Menu` doesn't animate on its own.** The view-mode change is animated by the `HomeView`-level `.animation(_:value:)` (step 8), not inside the toolbar.
