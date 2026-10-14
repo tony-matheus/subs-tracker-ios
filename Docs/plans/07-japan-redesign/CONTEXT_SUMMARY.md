@@ -18,8 +18,8 @@ The app used a metal-grey gradient background, green (#1DB954) and purple accent
 ## Decisions made with the user
 - **Torii:** straight posts with one gently curved top beam, used for headers, dividers and section markers.
 - **Calendar date labels:** localized month, year and weekday text in a worldwide calendar; no Japanese holiday, era or seasonal data appears in the product.
-- **Calendar cells:** the lower "memo" area holds expenses. The five existing settings styles are restyled now; the default Koyomi cell shows up to two logos plus overflow. Additional iPad variants come after release.
-- **Today marker:** an open, imperfect brush circle (ensō) in red.
+- **Calendar cells:** keep seven columns with only the 4–6 week rows the month needs, and the calendar at the bottom of Home. Default restores the original main-branch 12pt day size. Compact uses a larger centered day (14pt initial target), with overflow to the right of its dots in the same row. Default and Large use square brand-colored expense seals; adjacent indicators may overlap by at most 20%. Bring the memo rule closer to the number using visible ink bounds, leaving the rest for expenses. Large keeps the smaller Home price. Retain the new month-selector concept for later native implementation. Additional iPad variants come after release.
+- **Brush marks:** every real date gets a distinct, stable natural ink-brush mark with pressure variation, bristle texture and a depleted tail. The calendar plan includes a researched dab-based rendering approach; today alone has the red 0.55s draw-on, with static Reduce Motion and widget treatment.
 - **Liquid Glass:** on controls and navigation only (toolbars, sheets, floating buttons, pickers, menus). Content cards become flat paper with hairline rules.
 - **Ripple shader:** removed everywhere except the onboarding heroes, which are left for later.
 - **Budget red conflict:** red is now the brand colour, so the docs propose options. Recommended:
@@ -87,5 +87,5 @@ Colour rules:
 
 ## Settled calendar decisions
 - The calendar uses localized dates worldwide and has no Japanese holiday marks or holiday data.
-- The five persisted calendar style values remain; `.rounded` is restyled and labeled Koyomi, and remains the default.
+- Calendar settings have three styles: Default, Compact and Large. The five former raw values decode into these choices so saved settings remain readable.
 - iPad calendar layouts and additional variants will be discussed after release.

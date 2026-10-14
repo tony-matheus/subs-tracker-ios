@@ -422,7 +422,7 @@ static func color(spent: Double, budget: Double?) -> Color   // Color.ink unless
 
 9. **`TotalView.swift`.**
    - Replace the body (`:42-139`) with the code below.
-   - `totalInset` (`:15`) → **20**; `totalSizeRange` (`:18`) → **`44...84`**.
+   - `totalInset` (`:15`) → **20**. Preserve the calendar style sizing from `calendar.md`: Default/Compact use **`44...84`**, while Large stays smaller at **`36...68`**. Keep `totalSizeRange` as a computed range that reads `viewModel.settingsStore.calendarStyle`.
    - Delete `showBreakdown` (`:5-7`), `showCoins`/`showDate` (`:10-11`), init params `:25-26`, assignments `:29-30`, `isBreakdownVisible` + `breakdown` (`:146-199`), `MonthRippleModifier` + `monthRipple` (`:202-236`).
    - Keep `totalWidth` (`:141-144`), the struct's closing brace (`:200`) and `#Preview` (`:238-240`).
    ```swift
@@ -449,7 +449,7 @@ static func color(spent: Double, budget: Double?) -> Color   // Color.ink unless
      - "$1,234.50" = 0.55×0.618 + 8×0.618 ≈ 5.28 em → fits 362pt at ≈ 69pt.
      - "$1,234,567.89" ≈ 7.76 em → ≈ 47pt, above the 44 floor.
      - "R$1,234.50" ≈ 5.62 em → ≈ 64pt. "$0.00" at the 84 cap ≈ 236pt wide.
-     - The lower cap (84 vs 92) leaves vertical room for the underline and the 28pt `BudgetMark` above the calendar.
+     - The normal upper cap (84 vs 92) leaves vertical room for the underline and the 28pt `BudgetMark` above the calendar. Large uses the smaller 68pt cap so its taller grid remains reachable.
      - These em figures ignore tracking. The code's `displayMedium` tracking is −0.5pt per glyph (not the plan's "~0"); `measuredWidth` passes it as `.kern`, so the fit already accounts for it (≈ −4.5pt over 9 glyphs).
    - `CoinProgress` then has no production caller (only `CoinProgressPreviewHost.swift:90`). Now run charts.md step 14 (delete `CoinProgress.swift` + its preview host, keep the view model); charts.md ran before this doc and skipped it.
    - `TotalViewPreviewHost.swift:20`: `.background(.black)` → `.background(Color.paper)`.
@@ -565,7 +565,7 @@ static func color(spent: Double, budget: Double?) -> Color   // Color.ink unless
 
 ## Open points / dig deeper
 - **"All interactions … should be removed" (confirm with the user):** v1 reads the brief as the interaction *effects* (ripple, bounce, digit roll, glow) and keeps the plain tap → Stats, because `home_screen_ux.md` uses the total as the main Stats entry (the view menu also has Stats). If the user meant no tap at all, delete the `Button` in `TotalView` and the `onTapGesture: onStats` in `HomeListView`, and rely on the view menu.
-- **Width tuning on real screens:** the 0.618 em advance is measured from the bundled TTF; re-tune `44...84` and `totalInset` 20 from screenshots at the smallest supported width and with the Koyomi header (calendar.md) and Home layout (home_screen_ux.md) in place, since both change the vertical budget around the total.
+- **Width tuning on real screens:** the 0.618 em advance is measured from the bundled TTF; re-tune both `44...84` and Large's `36...68` range with `totalInset` 20 from screenshots at the smallest supported width and with the Koyomi header and bottom calendar in place.
 - **Verify on device — `keyframeAnimator` first frame:** confirm no fully inked flash on the trigger frame (Risks). Decides keyframe vs Transition driver.
 - **Verify on device — Transition fallback:** confirm `.transition(.asymmetric(insertion: InkTransition(), removal: .identity))` removes the old value immediately, without overlap.
 - **Verify on compile — isolation:** the app target uses `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`. Shapes already compile that way (`Torii.swift:4`); if Xcode flags `InkReveal`'s `TextRenderer` conformance, declare it `nonisolated private struct`.

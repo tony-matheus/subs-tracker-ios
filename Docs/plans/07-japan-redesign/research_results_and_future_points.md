@@ -19,7 +19,7 @@
 | `charts.md` | Stats sheet (dial, trend bars, line chart, legend, cards), coins (mon coin), widget charts, budget scale options | `general_app_ui.md` | `BudgetColor.swift` (`Tier`, `tier`, `color`, `progressColor`); `HankoStamp` (`Core/UI/Motifs/HankoStamp.swift`, new); widget ring/bars/line and widget budget colours; `CoinStack`, `Coin`, `CoinProgress` deletion (step 14) |
 | `price_display.md` | Brush-ink Home total, `InkReveal`, brush underline, `BudgetMark`, single `MoneyFormatter` path ("CAD" bug) | `general_app_ui.md`, `charts.md` | `TextAnimatedView`, `MoneyDisplay`, `TotalView`, `BudgetMark` (new), `MoneyFormatter.exact` (new), every `"CAD"` → `MoneyFormatter` fix (including `ExpensesInDay.swift:219`), `BudgetDetailsSheet` amount colours, `BudgetEditor` "Over by" |
 | `forms.md` | Minimal forms: no logo-driven backgrounds, colour only on icons, square fields, error label, keypad keys, logo sheet, summary sheet, legacy-form routing | `general_app_ui.md` (optional: `list_view.md`'s `CategoryMark`) | `FormErrorLabel` (new), `FormRow` label default, `SimplifiedAddExpenseView` + sections, `ExpenseTemplateSheet`, `LogoSheet`, `NumKeyPadSheet` keys, `ExpenseSummarySheet` styling, deletion of `ExpenseFormView` |
-| `calendar.md` | Worldwide Koyomi-inspired month header, localized weekday band, five restyled day-cell variants, ensō today marker, ink-wipe rewind, widget today ensō | `general_app_ui.md` only | `KoyomiHeader` (mounted in `HomeView` with picker callback), `WeekdayBand`, `EnsoShape` + `EnsoMark`, `LogoCircle(glass:)`, `DayCell`/`MonthView`/`CalendarView`/`CalendarRewindOverlay`, widget month-grid today marker; removes duplicate toolbar month title |
+| `calendar.md` | Flexible 4–6-week worldwide grid; Default, Compact and Large with legacy decoding; small dates, faint red wash, distinct brushes and Default's brand-colored square expense seals; larger memo area, bottom calendar and smaller price in Large | `general_app_ui.md` only | `CalendarStyle`, `CalendarStyleSheet`, `CalendarGridLayout`, `DayCell`, expense seal rendering, `EnsoShape`/`EnsoMark`, `HomeView` calendar order, `TotalView` style-based size range; preserves header/band and motion while updating rewind row counts |
 | `list_view.md` | Notebook rows on paper: Home list, Search rows, `ExpensesInDay` rows/header/sum line | `general_app_ui.md`, `price_display.md`, `charts.md`, `calendar.md` | `Notebook`, `NotebookLine`, `NotebookDayHeader`, `CategoryMark` (`Core/UI/Containers/Notebook.swift`, new); notebook `ExpenseRow` (deletes `HomeExpenseRow`); reuses `LogoCircle(glass:)`; `HomeListView` list body + coin-pile labels |
 | `home_screen_ux.md` | Creative part: declutter Home after Apple Calendar; toolbar, Year grid, filter sheet, final `HomeView` composition | `general_app_ui.md`; step 6 needs `calendar.md`; step 9 needs `calendar.md`, `price_display.md`, `list_view.md` | `HomeToolbar` rewrite, `MonthPickerSheet` → Year grid, `HomeFilterSheet` (new), `HomeView` composition (step 9), deletion of `HomeActionButton`, toolbar stats ring, `HomeViewModel.budgetTint` |
 | `research_results_and_future_points.md` (this) | Index, execution order, research summary, all open points, sources | all | nothing in code |
@@ -30,7 +30,7 @@ Build and run the tests after every step. Each doc's Verification section lists 
 | # | Doc | Rationale |
 |---|---|---|
 | 0 | `general_app_ui.md` | **Already done.** Verify only: build, `ThemeFontTests`, and the grep gates in its Verification. Every other doc compiles against its tokens and motifs. |
-| 1 | `calendar.md` | Runs directly after the foundation. It owns `LogoCircle(glass:)`, `EnsoShape`, `KoyomiHeader`, five restyled saved styles, and the calendar/widget today marker. It builds independently of all other feature plans. |
+| 1 | `calendar.md` | Runs directly after the foundation. It keeps seven columns and calendar motion, uses only the weeks each month needs, replaces five selectable cell styles with three while decoding old values, and adds Default's brand-colored seals in a larger expense compartment. It anchors the calendar below the total and builds independently of other feature plans. |
 | 2 | `charts.md` | Owns `BudgetColor.Tier` and `HankoStamp`, which `price_display.md` consumes. Skip its step 14 (`CoinProgress` deletion); `price_display.md` triggers it. |
 | 3 | `price_display.md` | Creates the single `MoneyFormatter` path that `forms.md` and `list_view.md` rely on; owns every `CAD` fix and the `TotalView` that `home_screen_ux.md` composes. |
 | 4 | `forms.md` | Self-contained after the foundation and price work. It may run in parallel with `list_view.md`. Uses the inline square-dot spec, because `CategoryMark` does not exist yet. |
@@ -38,7 +38,7 @@ Build and run the tests after every step. Each doc's Verification section lists 
 | 6 | `home_screen_ux.md` | Its Year grid needs 1. **Final `HomeView` composition lands last**, because it uses 1's header, 3's total and 5's list. The header already owns the month-picker trigger and the toolbar's principal month title is already gone. |
 
 **Contract handoffs to check at each boundary:**
-- After 1: `KoyomiHeader(viewModel:onMonthPicker:)`, `EnsoShape`, and `LogoCircle(glass:)` exist; the app and widget build, the header opens the wheel picker, and the toolbar has no duplicate month title.
+- After 1: the app and widget build; the existing header opens the wheel picker, the toolbar has no duplicate month title, Default/Compact/Large select live, old style values decode, date brushes vary, and the calendar stays below the total.
 - After 2: `BudgetColor.tier(spent:budget:)` and `HankoStamp()` exist; the widget still builds.
 - After 3: `grep -rn '\.currency(code' LinguicaSubTracker` is empty; `CoinProgress.swift` is gone.
 - After 5: `HomeExpenseRow` is deleted; list headers show today's ensō with an `ink` numeral.
@@ -49,7 +49,7 @@ Build and run the tests after every step. Each doc's Verification section lists 
 - **Torii (main reference):** straight posts, one gently curved lintel (kasagi). Double-rule headers, a shu vertical tick (hashira) as section marker, divider rules that overhang slightly (nuki).
 - **Notebooks (main reference):** Kokuyo Campus, Hobonichi, Midori MD. Hairline rules on a 44pt pitch, a vermilion margin rule, a thicker rule for dates, dots as column guides.
 - **Wall calendars (main reference):** 月めくり and 文字月表 sheets. The shipped calendar borrows their large month numeral, dark weekday band, top-left day numerals and ruled memo space, while using localized date labels worldwide.
-- **Brush (secondary):** an open ensō for today; the price writes itself in like ink; a tapering gold underline.
+- **Brush (secondary):** a distinct quiet open stroke for each calendar date, with today's ensō red and animated; the price writes itself in like ink; a tapering gold underline.
 - **Old paper (secondary):** washi ivory in light mode, rō-iro lacquer in dark mode. Flat in v1; texture is an open point.
 - **Ma (間) and restraint:** emptiness is deliberate space ([Japan House LA](https://japanhousela.com/articles/a-perspective-on-the-japanese-concept-of-ma)). One red symbol per screen, as in Kenya Hara's argument for a single powerful red ([Minimalissimo: White](https://minimalissimo.com/articles/white-by-kenya-hara)).
 
@@ -164,7 +164,7 @@ Rules: 70/25/5 ground/ink/accent; max one filled shu shape per screen; gold neve
 ### Brush, ensō and hanko
 - **Ensō:** one or two unrevised strokes; the open form means movement and incompleteness ([Wikipedia Ensō](https://en.wikipedia.org/wiki/Ens%C5%8D), [Wikipedia Enso](https://www.wikipedia.com/wiki/Enso), [concepts.dsebastien](https://concepts.dsebastien.net/concept/enso/)). No canonical direction.
 - **Stroke anatomy** ([calligraphy terms](https://selftaughtjapanese.com/2020/08/25/japanese-vocabulary-list-calligraphy-terms)): 起筆 heavy entry, 送筆 steady travel, はらい lifting taper, かすれ dry-brush streaks in the last third.
-- **Spec (owned by `calendar.md` §4):** start 150° ± 8°, 320° sweep, 40° gap at lower-left; radius drift ±4%, tail +6%; `w(t) = wMax·(0.55 + 0.45·(1−t)^1.5)`, entry 1.15·wMax, taper to 0.15·wMax from t = 0.85; wMax 3.5pt at 40pt (`maxWidth` 0.0875); かすれ from t = 0.65; seed `yyyyMMdd`; draw-on 0.55s `.timingCurve(0.2, 0.7, 0.3, 1)`.
+- **Original geometry study:** start 150° ± 8°, 320° sweep, 40° gap at lower-left; radius drift ±4%, tail +6%; `w(t) = wMax·(0.55 + 0.45·(1−t)^1.5)`, entry 1.15·wMax, taper to 0.15·wMax from t = 0.85; wMax 3.5pt at 40pt (`maxWidth` 0.0875); dry breakup from t = 0.65. These remain starting points for the lightweight shape. **Current rendering authority:** `calendar.md`, “A distinct, natural ink brush for each date,” adds textured dabs, pressure/bristle variation, ink depletion and caching. Preserve date-derived seeds and the 0.55s `.timingCurve(0.2, 0.7, 0.3, 1)` reveal.
 - **Variable width needs a filled outline** ([Swift Forums](https://forums.swift.org/t/drawing-strokes-with-a-different-width-at-each-point-of-the-lines-curves/40068)); draw it on with a trimmed-circle **mask**, never by trimming the outline ([HWS](https://www.hackingwithswift.com/quick-start/swiftui/how-to-draw-part-of-a-solid-shape-using-trim)). Cheaper alternative: 3–5 hand-drawn SVG assets with the same mask.
 - **Brush text:** per-glyph `TextRenderer` reveal ([WWDC24 10151](https://developer.apple.com/videos/play/wwdc2024/10151/)); 3-glyph overlap, opacity + blur + 2pt drift, 0.7s. Fallback is a mask wipe.
 - **Benchmark:** Zen Brush 3 (3D brush, nijimi, bokashi, 30 traditional colours, washi templates) ([App Store](https://apps.apple.com/us/app/-/id1531841731)).
@@ -244,7 +244,7 @@ Every "Open points / dig deeper" bullet from the 7 docs and every open question 
 | Pri | Point | Docs |
 |---|---|---|
 | P1 | **Forced dark environment on the weekday band.** Verify on device that `.environment(\.colorScheme, .dark)` resolves the `UIColor`-backed tokens dark in light mode; fallback is hardcoded dark hexes in `WeekdayBand`. | calendar |
-| P2 | **Cell density.** Verify two 20pt logos plus overflow fit and remain legible in the default `.rounded` cell on the smallest supported iPhone. | calendar |
+| P2 | **Cell density.** Verify Default's two 18pt square seals and Large's larger square seals fit with overflow in six-week months. Compact has a larger centered date and inline overflow to the right of its dots. Cap adjacent indicator overlap at 20%; place the divider close to the visible number/brush, leaving the remaining height for expenses. | calendar |
 | P2 | **Extend the month window** (`CalendarService.swift:20`, −1…+12) to whole years, so no Year-grid cell is disabled; measure `CalendarCache.monthData` cost and widget assumptions. | home_screen_ux, calendar |
 | P3 | **iPad calendar design after release:** discuss additional layouts, mini months, variants and persistent selection together rather than adding them to the phone plan. | calendar |
 | P3 | **Monday-first option:** a `weekStart` setting through `CalendarService.daysGrid`, `ExpenseService.weekInterval`, `WidgetData` and the weekday tables (or follow `Calendar.current.firstWeekday`). | calendar, list_view |
@@ -291,7 +291,7 @@ Every "Open points / dig deeper" bullet from the 7 docs and every open question 
 | Pri | Point | Docs |
 |---|---|---|
 | P2 | **Onboarding restyle.** Heroes keep the ripple (`rippleCard`, `rippleOnTap`, `liquidRipple`) for now; plan a pass to paper + brush motion, then delete the remaining `RippleEffect.swift`/`Ripple.metal`. Never add glass inside a hero (black render). | general_app_ui |
-| P3 | **Calendar hero height.** 300pt crowds a 6-row Koyomi grid; use 340–370pt or a dedicated Koyomi hero. | calendar |
+| P3 | **Calendar hero height.** 300pt crowds a 6-row Koyomi grid; consider 340–370pt or a dedicated Koyomi hero in onboarding. | general_app_ui, calendar_future |
 | P3 | **Budget hero** (`OnboardingBudgetHero`): only its colour moves to `progressColor` in v1; the rest waits for the onboarding pass. Verify mon coins inside `.liquidRipple` if they ever appear there. | charts |
 
 ### UX validation
@@ -330,7 +330,7 @@ Every "Open points / dig deeper" bullet from the 7 docs and every open question 
 - **`CoinProgress`:** deleted (charts.md step 14, run at the end of price_display.md step 9); its view model and tests stay.
 
 ## Variations to explore after v1
-- **Calendar style variations:** the five existing raw values ship as restyled Koyomi, Framed, Dots, Expanded and Compact. Discuss any additional iPad layouts or variants after release.
+- **Calendar style variations:** Default, Compact and Large ship. The five former raw values remain decode-only aliases. Discuss additional iPad layouts or variants after release.
 - **Washi texture:** a 512px seamless tile, `.multiply` ≤ 5% in light, omitted in dark; check rules and glass legibility on top of it.
 - **Glass cards:** an opt-in style that puts content cards back on glass over a textured ground, to test whether more refraction reads better than flat paper.
 - **Monday-first** week start and a locale-following default.

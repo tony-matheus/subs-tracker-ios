@@ -21,8 +21,8 @@
 
 **Depends on:**
 - `general_app_ui.md` (the foundation). It is already applied in the working tree: tokens, Fragment Mono, `.appBackground()` paper, `Torii.swift`, ink toolbar glyphs.
-- `calendar.md`: the Koyomi-inspired header, its month-picker callback and toolbar-title removal, the ensō draw-on contract (step 9), and `EnsoShape` (step 6's Year-grid ensō).
-- `price_display.md`: the `TotalView` rewrite and the `totalSizeRange` it sets (step 9 only).
+- `calendar.md`: the existing Koyomi header and month-picker callback, three cell styles, bottom calendar order, ensō draw-on contract (step 9), and `EnsoShape` (step 6's Year-grid ensō).
+- `price_display.md`: the `TotalView` rewrite and style-aware `totalSizeRange` it keeps (step 9 only).
 - `list_view.md`: the `HomeListView` notebook body (list mode only).
 - Follow the execution order in `research_results_and_future_points.md`: `calendar.md` has already landed, so step 4 sees the header and no principal month title; step 6 can use `EnsoShape`. Step 9 lands after `price_display.md` and `list_view.md`.
 
@@ -58,24 +58,23 @@
 | `research_results_and_future_points.md` | index, sources, every open point |
 
 ## Current state
-All references describe the **current working tree**, after the foundation pass.
+The composition below describes the working tree after the first calendar pass. Some line-number references and “Before” measurements record the older foundation-only baseline; verify them against the code before editing.
 
 ### Composition: calendar mode, top to bottom
-1. **Navigation bar** (`LinguicaSubTracker/Features/Home/Views/HomeView.swift:104-126` → `HomeToolbar`)
+The working tree has the first calendar pass; the “Before” measurements below describe the older layout for comparison.
+
+1. **Navigation bar** (`LinguicaSubTracker/Features/Home/Views/HomeView.swift` → `HomeToolbar`)
    - **Top-leading `leadingPill`** (`LinguicaSubTracker/Features/Home/Views/Components/HomeToolbar.swift:108-126`). It is one `HStack(spacing: 20)` holding two unrelated controls:
      - the filter `Menu` (`:128-171`): "All Expenses" (`:130-136`), a `Divider`, then three submenus with `Picker`s for Lists, Categories and Payment Methods (`:140-165`)
      - the view toggle `Button` (`:113-123`), which flips `viewType` with a spring
-   - **Principal `monthButton` in the pre-calendar baseline** (`:90-106`): `Text(monthKey)` in `.typography(.headlineSmall)` with `.numericText`, plus `chevron.down`. `calendar.md` removes it and moves the picker trigger to `KoyomiHeader`; verify it is already gone before this plan's toolbar rewrite.
+   - **Principal `monthButton` in the pre-calendar baseline** (`:90-106`): `Text(monthKey)` in `.typography(.headlineSmall)` with `.numericText`, plus `chevron.down`. The picker trigger is now in `KoyomiHeader`; verify the duplicate toolbar title is gone before this plan's toolbar rewrite.
    - **Top-trailing gear** (`HomeToolbar.swift:56-61`): opens Settings.
-2. **`TotalView`** (`LinguicaSubTracker/Features/Home/Views/HomeView.swift:35-44`)
-   - `.frame(maxWidth: .infinity, maxHeight: .infinity)` (`:44`): it absorbs all vertical space the calendar leaves.
-   - The price is fitted to `48...92` (`LinguicaSubTracker/Features/Home/Views/Components/TotalView.swift:18`). It sits centred in that void.
-   - The whole block is a `Button` whose action opens Stats (`TotalView.swift:66`, `HomeView.swift:40-42`).
-3. **`CalendarView`** (`HomeView.swift:45-53`, `.padding(.bottom, 16)` at `:53`)
-   - A paged `TabView` (`LinguicaSubTracker/Features/Home/Views/Components/Calendar/CalendarView.swift:29-47`) with frame `gridHeight + 60` (`:69`).
-   - `MonthView` stacks a 52pt weekday header (`LinguicaSubTracker/Features/Home/Views/Components/Calendar/Month/MonthView.swift:30-40`) over the grid, with `VStack(spacing: 8)` at `:24`.
-   - `gridHeight` is 370 for `.rounded/.contrastRounded/.straight` (`LinguicaSubTracker/Features/Settings/Models/CalendarStyle.swift:58`).
-4. **Bottom bar** (`HomeToolbar.swift:63-87`), one `ToolbarItemGroup`:
+2. **`KoyomiHeader`** above the scroll body, opening the existing month picker.
+3. **`CalendarView`** inside the scroll body; `calendar.md` moves it below the total.
+   - A paged `TabView` beneath the shared 28pt `WeekdayBand`. `calendar.md` replaces the current six-row padding with the 4–6 rows each month needs, divides the grid height between those rows, and places the calendar below the total.
+   - The currently saved cases use 370pt for `.rounded/.contrastRounded/.straight`, 260pt for `.compact` and 460pt for `.bigger`. The calendar plan maps them to Default, Compact and Large.
+4. **`TotalView`** follows the calendar in the current scroll body. Its price fits within `48...92` today; `calendar.md` moves it above the calendar and gives Large a smaller range. The total remains a Stats button.
+5. **Bottom bar** (`HomeToolbar.swift:63-87`), one `ToolbarItemGroup`:
    - the stats ring `ring.dashed` with `variableValue: budgetRatio` (`:64-70`)
    - `Spacer`, then `HomeActionButton` (`:74-78`), then `Spacer`
    - Search, which opens the full-screen `SearchView` (`:82-86`)
@@ -102,6 +101,7 @@ All references describe the **current working tree**, after the foundation pass.
    - The ring is an 18pt gauge (`HomeToolbar.swift:65-66`) with no accessibility label. VoiceOver reads only "button", and sighted users get no clue what it is.
 3. **The Add ↔ Today swap hides Add off-month.** `HomeActionButton` (`LinguicaSubTracker/Features/Home/Views/Components/HomeActionButton.swift:11-41`) shows "Add expense" only when `isOnCurrentMonth` is true. On any other month the button becomes "Today", so you can't add an expense while browsing. Apple keeps Today and Add as separate controls that are always visible ([Zapier review 2026](https://zapier.com/blog/best-iphone-calendar-apps/)).
 4. **Month picker after `calendar.md`.** The wheel picker remains, but its trigger is in `KoyomiHeader`. This plan replaces the wheel with the Year grid; the toolbar centre stays empty.
+   - Retain the approved month-selector concept: prominent month numeral, localized month/year, explicit picker affordance/caret and previous/next controls. Reuse the header callback and selected-month state when implementing the Year grid.
 5. **Bar glyph styling.**
    - The gradients are gone (see the foundation list below).
    - Every glyph still forces a custom `.font(.system(size:))`: `HomeToolbar.swift:66,84` (18), `:101` (11 semibold), `:119,168` (14). The HIG asks for system-rendered, monochrome bar items with no custom tints ([HIG Toolbars](https://developer.apple.com/design/human-interface-guidelines/toolbars)).
@@ -117,7 +117,7 @@ All references describe the **current working tree**, after the foundation pass.
    - `monthlyTotal` (`:27-32`)
    - `budgetRatio` (`:34-37`)
    - `budgetTint` (`:39-41`)
-8. **Wasted height.** In calendar mode `TotalView` fills about 231pt (see the budget table under Target design) to show a price at most 92pt tall. That leaves about 139pt of empty band, while the month name sits in the toolbar.
+8. **Wasted height in the pre-calendar baseline.** The old `TotalView` filled about 231pt to show a price at most 92pt tall. The calendar plan reorders and anchors the grid; this plan keeps that placement.
 
 ### Already done by the foundation pass (verify, do not redo)
 - **Toolbar glyph colours:** every glyph is `Color.ink`, with no `.gradient` and no `budgetTint`. See `HomeToolbar.swift:59,67,85,103,120,169`. `git diff HEAD` shows the old `Color.primary.gradient.opacity(0.8)` / `budgetTint.gradient`.
@@ -261,7 +261,7 @@ These are estimates, to be checked against screenshots in Verification. iPhone 1
 | Block | Before | After | Owner |
 |---|---|---|---|
 | Koyomi header | — (month is in the bar) | ≈80 | `calendar.md` |
-| Total | ≈231 flex band (≤92 digits, ≈139 empty) | ≈118 typical: digits in `44...84` + 6 + `BudgetMark` 28; ≈135 max | `price_display.md` |
+| Total | ≈231 flex band (≤92 digits, ≈139 empty) | ≈118 typical: digits in `44...84` (or `36...68` with Large) + 6 + `BudgetMark` 28; ≈135 max | `calendar.md`, `price_display.md` |
 | Spacer | VStack default 8 | `Spacer(minLength: 12)`, ≈73 on 17 Pro | this doc |
 | Weekday header / band | 52 + 8 | ≈28 | `calendar.md` |
 | Grid | 370 | 370 | `CalendarStyle.swift:58` |
@@ -269,7 +269,7 @@ These are estimates, to be checked against screenshots in Verification. iPhone 1
 | **Sum** | 685 | ≥624, so ≈61pt spare on 17 Pro | |
 
 **What this buys:**
-- **Same height, more on it.** The ≈139pt dead band and the 60pt weekday header turn into the Koyomi header (month, era, solar term). The space between the total and the band is now deliberate ma.
+- **Same height, more on it.** The earlier dead band and tall weekday header give way to the Koyomi header and compact weekday band. The header contains localized month and year only.
 - **Nothing in the top centre.** The nav bar keeps its height (the leading and trailing items need it), but its centre slot is empty.
 - **iPhone SE (3rd gen), 375×667:**
   - Content is ≈554pt (top 20, bar 44, bottom bar 49), and the stack needs ≥624. The overflow is ≈70pt.
@@ -658,7 +658,7 @@ Do steps 1–8 and 10–11 in order. The calendar header and `EnsoShape` are alr
    - Keep the `showMonthPicker` name and the sheet at `:127-131`. That sheet is now the Year grid.
 
 9. **`HomeView.swift`: content composition.** Do this after `calendar.md` and `price_display.md`.
-   - `calendar.md` ships `KoyomiHeader(viewModel:onMonthPicker:)` and mounts it in `HomeView`. Keep the header in both modes, passing `onMonthPicker: { showMonthPicker = true }`; the same sheet now shows the Year grid.
+   - `calendar.md` keeps `KoyomiHeader(viewModel:onMonthPicker:)` in `HomeView` and anchors the calendar below the total. Preserve that order and the header in both modes, passing `onMonthPicker: { showMonthPicker = true }`; the same sheet now shows the Year grid.
    - Replace the `VStack` at `:33-63` with:
      ```swift
      Group {
