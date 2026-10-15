@@ -15,7 +15,7 @@ struct CalendarRewindOverlayPreviewHost: View {
             store: store,
             source: source,
             target: target,
-            height: CalendarStyle.rounded.gridHeight,
+            height: CalendarStyle.default.gridHeight,
             onComplete: {}
         )
         .padding(.horizontal, 12)

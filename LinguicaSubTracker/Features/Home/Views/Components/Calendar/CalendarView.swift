@@ -11,7 +11,7 @@ struct CalendarView: View {
         store: AppStore,
         coordinator: AppCoordinator,
         viewModel: CalendarViewModel,
-        calendarStyle: CalendarStyle = .rounded
+        calendarStyle: CalendarStyle = .default
     ) {
         self.store = store
         self.coordinator = coordinator
@@ -38,7 +38,9 @@ struct CalendarView: View {
                         height: calendarStyle.gridHeight,
                         onTap: { date in coordinator.selectedDay = date },
                         onEditExpense: { expense in coordinator.selectedExpense = expense },
-                        onDeleteExpense: { expense in store.delete(expense) }
+                        onDeleteExpense: { expense in store.delete(expense) },
+                        ensoReplay: viewModel.ensoReplay,
+                        animatesToday: viewModel.rewindPair == nil && index == viewModel.currentMonthIndex
                     )
                     .tag(index)
                     .padding(.horizontal, 12)
@@ -46,8 +48,12 @@ struct CalendarView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .opacity(viewModel.rewindPair == nil ? 1 : 0)
+            .allowsHitTesting(viewModel.rewindPair == nil)
+            .accessibilityHidden(viewModel.rewindPair != nil)
 
             if let pair = viewModel.rewindPair {
+                VStack { WeekdayBand(); Spacer(minLength: 8) }
+                    .padding(.horizontal, 12)
                 CalendarRewindOverlay(
                     store: store,
                     source: pair.source,
@@ -55,11 +61,11 @@ struct CalendarView: View {
                     height: calendarStyle.gridHeight,
                     style: calendarStyle,
                     onComplete: {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            viewModel.rewindPair = nil
-                        }
+                        viewModel.rewindPair = nil
+                        viewModel.ensoReplay += 1
                     }
                 )
+                .id(pair.id)
                 .padding(.horizontal, 12)
                 .padding(.top, 60)
                 .transition(.opacity)

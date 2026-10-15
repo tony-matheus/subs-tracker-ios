@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// Radio-style picker for the five calendar looks, each row with a static
+/// Radio-style picker for the three calendar looks, each row with a static
 /// miniature day-cell preview. Writes straight to `SettingsStore` so the
 /// home calendar re-renders live behind the sheet.
 struct CalendarStyleSheet: View {
     let settingsStore: SettingsStore
+    @State private var previewStore = AppStore()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
 
@@ -35,6 +36,7 @@ struct CalendarStyleSheet: View {
                     } label: {
                         Image(systemName: "xmark").foregroundStyle(Color.ink)
                     }
+                    .accessibilityLabel("Close calendar styles")
                 }
             }
         }
@@ -47,7 +49,7 @@ struct CalendarStyleSheet: View {
             settingsStore.calendarStyle = style
         } label: {
             HStack(spacing: 14) {
-                CalendarStylePreviewCell(style: style)
+                CalendarStylePreviewCell(style: style, store: previewStore)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(style.displayName)
@@ -78,86 +80,27 @@ struct CalendarStyleSheet: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("calendar-style-\(style.rawValue)")
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
-/// Static miniature of a day cell in the given style — mock colors, no store.
+/// Uses the real day cell at its six-week height; it never replays today's mark.
 private struct CalendarStylePreviewCell: View {
     let style: CalendarStyle
-
-    private let mockColors: [Color] = [.blue, .green, .orange]
-
-    private var previewHeight: CGFloat {
-        switch style {
-        case .rounded, .contrastRounded, .straight: 52
-        case .bigger: 62
-        case .compact: 34
-        }
-    }
-
-    private var radius: CGFloat { style.cornerRadius * 0.7 }
-
+    let store: AppStore
+    private var date: Date { Calendar.current.date(from: DateComponents(year: 2026, month: 5, day: 17))! }
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: radius)
-                .fill(Color.gray.opacity(0.25))
-                .overlay {
-                    if style.showsGradientTint {
-                        LinearGradient(
-                            colors: [.clear, mockColors[0].opacity(0.35)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: radius))
-                    }
-                }
-
-            Text("17")
-                .font(.custom(AppFont.mono, fixedSize: 9))
-                .foregroundStyle(Color.ink)
-                .opacity(0.6)
-                .padding(4)
-
-            indicator
+        let names = ["Spotify", "Netflix", "Apple Music", "Dropbox", "iCloud"]
+        let expenses = names.prefix(style == .compact ? 5 : 4).map {
+            Expense(name: $0, price: 9, billingCycle: .monthly, startDate: date)
         }
-        .frame(width: 56, height: previewHeight)
-        .overlay {
-            if style.hasBrandBorder {
-                RoundedRectangle(cornerRadius: radius)
-                    .stroke(
-                        LinearGradient(
-                            colors: mockColors,
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1.5
-                    )
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var indicator: some View {
-        if style.usesDots {
-            HStack(spacing: 2.5) {
-                ForEach(0..<3, id: \.self) { index in
-                    Circle()
-                        .fill(mockColors[index])
-                        .frame(width: 4.5, height: 4.5)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            .padding(.bottom, 4)
-        } else {
-            Circle()
-                .fill(mockColors[0])
-                .frame(
-                    width: style == .bigger ? 18 : 14,
-                    height: style == .bigger ? 18 : 14
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                .padding(3)
-        }
+        DayCell(viewModel: DayCellViewModel(store: store, date: date, status: .current, expenses: expenses),
+                style: style, height: (style.gridHeight - 20) / 6, onTap: { _ in }, animatesToday: false)
+            .frame(width: 48)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 }
 

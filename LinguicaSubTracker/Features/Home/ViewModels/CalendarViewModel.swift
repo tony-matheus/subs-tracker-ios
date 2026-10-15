@@ -6,6 +6,7 @@ import SwiftUI
 @MainActor
 final class CalendarViewModel {
     var months: [MonthData] = []
+    var ensoReplay = 0
     var rewindPair: RewindPair? = nil
 
     // Paging state — owned here (no longer on AppStore).

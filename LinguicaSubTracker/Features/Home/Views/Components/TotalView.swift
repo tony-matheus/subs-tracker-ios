@@ -15,7 +15,7 @@ struct TotalView: View {
     private let totalInset: CGFloat = 24
     /// The total fills the row it is given: short amounts grow to the upper
     /// bound, long ones shrink towards the lower one.
-    private let totalSizeRange: ClosedRange<CGFloat> = 48...92
+    private var totalSizeRange: ClosedRange<CGFloat> { viewModel.totalSizeRange }
 
     init(
         store: AppStore,

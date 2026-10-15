@@ -45,6 +45,8 @@ final class TotalViewModel {
 
     // MARK: - Compact-style budget breakdown
 
+    var totalSizeRange: ClosedRange<CGFloat> { settingsStore.calendarStyle.totalSizeRange }
+
     var isCompactStyle: Bool { settingsStore.calendarStyle == .compact }
 
     /// 0…1 share of the monthly budget spent (nil when no budget set).

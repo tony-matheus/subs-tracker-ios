@@ -79,6 +79,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Core/Components/LogoCircle.swift,
+				Core/Components/Ink/EnsoShape.swift,
+				Core/Components/Ink/InkBrushRenderer.swift,
 				Core/Intents/IntentRouter.swift,
 				Core/Intents/QuickAddIntent.swift,
 				Core/Models/DeepLink.swift,

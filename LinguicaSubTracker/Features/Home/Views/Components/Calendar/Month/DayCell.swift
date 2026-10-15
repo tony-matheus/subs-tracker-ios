@@ -9,7 +9,7 @@ enum DayStatus {
 
 struct DayCell: View {
     let viewModel: DayCellViewModel
-    var style: CalendarStyle = .rounded
+    var style: CalendarStyle = .default
     var height: CGFloat = 68
     var onTap: (Date) -> Void
     /// Compact-style quick actions; operate on the day's primary expense.
@@ -19,13 +19,17 @@ struct DayCell: View {
     /// Set by the compact context menu's Delete; drives the confirmation alert.
     @State private var pendingDelete: Expense? = nil
 
-    private var logoSize: CGFloat { style.logoSize }
-    private var cornerRadius: CGFloat { style.cornerRadius }
-    private var expenseInset: CGFloat { style == .bigger ? 6 : 4 }
-    private var dayLabelInset: CGFloat { style == .compact ? 5 : 8 }
+    var ensoReplay = 0
+    var animatesToday = true
+    @Environment(\.locale) private var locale
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.displayScale) private var displayScale
+    @ScaledMetric(relativeTo: .caption2) private var overflowSize: CGFloat = 8
 
     var body: some View {
-        if style.hasQuickActions, let primary = viewModel.primaryExpense {
+        if !isSelectable {
+            Color.paperRaised.frame(height: height).accessibilityHidden(true)
+        } else if style.hasQuickActions, let primary = viewModel.primaryExpense {
             cellButton
                 .contextMenu {
                     Button {
@@ -68,209 +72,149 @@ struct DayCell: View {
 
     private var cellButton: some View {
         Button(action: handleTap) {
-            ZStack {
-                cellBackground
+            GeometryReader { geometry in
+                if let date = viewModel.date, viewModel.displayDay {
+                    dayContent(date: date, width: geometry.size.width)
+                } else {
+                    Color.paperRaised
+                }
             }
-            .frame(maxWidth: .infinity)
             .frame(height: height)
-            .overlay(alignment: .topLeading) {
-                if viewModel.displayDay, let dayNumber = viewModel.dayNumber {
-                    Text("\(dayNumber)")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.primary)
-                        .opacity(0.6)
-                        .padding(.top, dayLabelInset)
-                        .padding(.leading, dayLabelInset)
-                        .allowsHitTesting(false)
-                }
-            }
-            .overlay {
-                if let primary = viewModel.primaryExpense {
-                    if style.usesDots {
-                        dotsLayer
-                    } else {
-                        expenseFloatingLayer(primary: primary)
-                    }
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .overlay(borderOverlay)
-            .contentShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .contentShape(Rectangle())
+            .accessibilityHidden(true)
         }
         .buttonStyle(DayClickStyle(showsPressFeedback: isSelectable))
+        .disabled(!isSelectable)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityIdentifier(accessibilityIdentifier)
+        .accessibilityHint(viewModel.expenses.isEmpty ? Text("Add an expense", tableName: "Calendar") : Text("View expenses", tableName: "Calendar"))
+        .accessibilityHidden(!isSelectable)
     }
 
-    private var isSelectable: Bool {
-        viewModel.status != .none && viewModel.date != nil
-    }
+    private var isSelectable: Bool { viewModel.status != .none && viewModel.date != nil }
 
     private func handleTap() {
         guard let date = viewModel.date else { return }
         onTap(date)
     }
 
-    private func expenseFloatingLayer(primary: Expense) -> some View {
-        HStack(spacing: -10) {
-            if viewModel.overflowCount > 0 {
-                overflowBadge(remaining: viewModel.overflowCount)
-            }
-            if viewModel.expenses.count >= 2 {
-                logoCircle(expense: viewModel.expenses[1])
-            }
-            logoCircle(expense: primary)
-        }
-        .frame(
-            maxWidth: .infinity,
-            maxHeight: .infinity,
-            alignment: .bottomTrailing
-        )
-        .padding(expenseInset)
-        .allowsHitTesting(false)
+    private var accessibilityIdentifier: String {
+        guard let date = viewModel.date else { return "calendar-blank" }
+        let parts = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        return "calendar-day-\(parts.year ?? 0)-\(parts.month ?? 0)-\(parts.day ?? 0)"
     }
 
-    private var maxDots: Int { style == .compact ? 3 : 4 }
-
-    /// Apple-Calendar-like indicator row: one dot per expense in its brand
-    /// color, with a tiny "+n" when the day has more than fit.
-    private var dotsLayer: some View {
-        let dotSize: CGFloat = style == .compact ? 5 : 6
-        let colors = viewModel.expenses.prefix(maxDots).map {
-            $0.logoCustomization(in: viewModel.store).resolvedBackground
-        }
-        let overflow = viewModel.expenses.count - maxDots
-
-        return HStack(spacing: 3) {
-            ForEach(Array(colors.enumerated()), id: \.offset) { _, color in
-                Circle()
-                    .fill(color)
-                    .frame(width: dotSize, height: dotSize)
-            }
-            if overflow > 0 {
-                Text("+\(overflow)")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .padding(.bottom, style == .compact ? 4 : 6)
-        .allowsHitTesting(false)
+    private var accessibilityLabel: String {
+        guard let date = viewModel.date else { return "" }
+        var parts = [date.formatted(.dateTime.weekday(.wide).day().month(.wide).year().locale(locale))]
+        if viewModel.status == .current { parts.append(String(localized: "Today", table: "Calendar", locale: locale)) }
+        parts.append(String(localized: "\(viewModel.expenses.count) expenses", table: "Calendar", locale: locale))
+        parts.append(contentsOf: viewModel.expenses.map(\.name))
+        return parts.joined(separator: ", ")
     }
 
-    private func overflowBadge(remaining: Int) -> some View {
-        ZStack {
-            Circle()
-                .fill(Color.paperRaised.opacity(0.8))
-                .frame(width: logoSize, height: logoSize)
-                .overlay(
-                    Circle().stroke(Color.primary.opacity(0.2), lineWidth: 1)
-                )
-            Text("+\(remaining)")
-                .font(.system(size: 9, weight: .bold))
-                .foregroundColor(.primary)
+    private func dayContent(date: Date, width: CGFloat) -> some View {
+        let brushSize = CGSize(width: 28, height: style == .default ? 20 : 24)
+        let mask = InkBrushRenderer.mask(seed: EnsoShape.seed(for: date), size: brushSize, scale: displayScale)
+        let font = UIFont(name: AppFont.mono, size: style.dateSize) ?? .monospacedSystemFont(ofSize: style.dateSize, weight: .regular)
+        // Center the visible caps with the brush, then derive the rule from the
+        // painted lower edge. Frame padding never determines the memo boundary.
+        let numeralBottom = 2 + brushSize.height / 2 + font.capHeight / 2
+        let ruleY = max(numeralBottom + 2, 2 + mask.bounds.maxY + 1)
+        let memoHeight = max(0, height - ruleY - 4)
+        return ZStack(alignment: .top) {
+            Color.paperRaised
+            LinearGradient(stops: [.init(color: .shu.opacity(0.07), location: 0),
+                                   .init(color: .shu.opacity(0.02), location: 0.33),
+                                   .init(color: .clear, location: 0.70)], startPoint: .top, endPoint: .bottom)
+            ZStack {
+                EnsoMark(date: date, size: brushSize, isToday: viewModel.status == .current,
+                         animates: animatesToday, replay: ensoReplay)
+                Text(date.formatted(.dateTime.day().locale(locale)))
+                    .font(.custom(AppFont.mono, fixedSize: style.dateSize))
+                    .foregroundStyle(numeralColor(date: date))
+            }
+            .frame(width: brushSize.width, height: brushSize.height)
+            .offset(y: 2)
+            Rectangle().fill(Color.rule).frame(height: 0.5)
+                .padding(.horizontal, 4).offset(y: ruleY)
+            indicators(width: max(0, width - 4), height: memoHeight)
+                .frame(width: max(0, width - 4), height: memoHeight, alignment: .center)
+                .offset(y: ruleY + 2)
+        }
+        .clipped()
+    }
+
+    private func numeralColor(date: Date) -> Color {
+        if viewModel.status == .current { return .ink }
+        switch Calendar.current.component(.weekday, from: date) {
+        case 1: return .shu
+        case 7: return .ai
+        default: return .ink
         }
     }
 
-    private func logoCircle(expense: Expense) -> some View {
-        LogoCircle(
-            size: logoSize,
-            customization: expense.logoCustomization(in: viewModel.store),
-            logoName: expense.logoName,
-            name: expense.name
-        )
+    private var overflowFont: UIFont {
+        UIFont(name: AppFont.mono, size: overflowSize) ?? .monospacedSystemFont(ofSize: overflowSize, weight: .regular)
+    }
+    private func overflowWidth(_ count: Int) -> CGFloat {
+        ceil(("+\(count)" as NSString).size(withAttributes: [.font: overflowFont]).width)
+    }
+    private func overflow(_ count: Int, size: CGFloat? = nil) -> some View {
+        Text("+\(count)")
+            .font(.custom(AppFont.mono, fixedSize: size ?? overflowSize))
+            .foregroundStyle(Color.inkSecondary)
+            .fixedSize()
+    }
+
+    private func fittedOverflowSize(_ count: Int, width: CGFloat, height: CGFloat) -> CGFloat {
+        CalendarIndicatorLayout.fittedLabelSize(requested: overflowSize,
+            measuredWidth: overflowWidth(count), lineHeight: overflowFont.lineHeight,
+            width: width, height: height)
     }
 
     @ViewBuilder
-    private var cellBackground: some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(baseBackgroundColor)
-            .overlay(
-                Group {
-                    if style.showsGradientTint,
-                        let color = viewModel.primaryColor,
-                        viewModel.status != .none
-                    {
-                        LinearGradient(
-                            colors: [.clear, color.opacity(0.28)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+    private func indicators(width: CGFloat, height: CGFloat) -> some View {
+        if style.usesDots {
+            let count = min(3, viewModel.expenses.count)
+            let hidden = max(0, viewModel.expenses.count - count)
+            let minimumDotsWidth = CGFloat(count) * 5 - CGFloat(max(0, count - 1))
+            let labelSize = fittedOverflowSize(hidden, width: width - minimumDotsWidth - 4, height: height)
+            let labelWidth = overflowWidth(hidden) * labelSize / overflowSize
+            let available = width - (hidden > 0 ? labelWidth + 4 : 0)
+            HStack(spacing: 4) {
+                HStack(spacing: CalendarIndicatorLayout.spacing(count: count, size: 5, available: available)) {
+                    ForEach(Array(viewModel.expenses.prefix(count).enumerated()), id: \.offset) { _, expense in
+                        Circle().fill(CalendarSeal.brandInk(expense.logoCustomization(in: viewModel.store), scheme: colorScheme))
+                            .frame(width: 5, height: 5)
                     }
                 }
-            )
-    }
-
-    private var baseBackgroundColor: Color {
-        switch (style, viewModel.status) {
-        case (.compact, .current), (.compact, .normal): Color.gray.opacity(0.15)
-        case (.compact, .none): Color.gray.opacity(0.08)
-        case (_, .current), (_, .normal): Color.gray.opacity(0.2)
-        case (_, .none): Color.gray.opacity(0.1)
-        }
-    }
-
-    /// Brand colors of the day's expenses (up to 3) for the contrast border.
-    private var brandBorderColors: [Color] {
-        viewModel.expenses.prefix(3).map {
-            $0.logoCustomization(in: viewModel.store).resolvedBackground
-        }
-    }
-
-    @ViewBuilder
-    private var borderOverlay: some View {
-        switch viewModel.status {
-        case .current:
-            ZStack {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.primary.opacity(0.3), lineWidth: 4)
-                    .blur(radius: 6)
-
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color.primary.opacity(0.7),
-                                Color.primary.opacity(0.1),
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ),
-                        lineWidth: 1
-                    )
-
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .inset(by: 1)
-                    .stroke(Color.primary.opacity(0.6), lineWidth: 2)
+                if hidden > 0 { overflow(hidden, size: labelSize) }
             }
-            .allowsHitTesting(false)
-        case .normal:
-            if style.hasBrandBorder, !brandBorderColors.isEmpty {
-                brandBorder
+        } else {
+            let layout = CalendarIndicatorLayout.seals(count: viewModel.expenses.count, style: style,
+                width: width, height: height, textWidth: overflowWidth, textHeight: overflowFont.lineHeight)
+            // At the largest accessibility sizes, a single mark and fitted
+            // count use one row. VoiceOver still reads the full expense list.
+            let above = layout.overflowAbove && layout.visibleCount > 1
+            let markWidth = CGFloat(layout.visibleCount) * layout.size + CGFloat(max(0, layout.visibleCount - 1)) * layout.spacing
+            let labelSize = fittedOverflowSize(layout.overflowCount,
+                width: above ? width : width - markWidth - 4,
+                height: above ? height - layout.size - 2 : height)
+            VStack(spacing: 2) {
+                if above { overflow(layout.overflowCount, size: labelSize) }
+                HStack(spacing: 4) {
+                    HStack(spacing: layout.spacing) {
+                        ForEach(Array(viewModel.expenses.prefix(layout.visibleCount).enumerated()), id: \.offset) { index, expense in
+                            CalendarSeal(size: layout.size, customization: expense.logoCustomization(in: viewModel.store),
+                                         logoName: expense.logoName, name: expense.name)
+                                .zIndex(Double(2 - index))
+                        }
+                    }
+                    if layout.overflowCount > 0 && !above { overflow(layout.overflowCount, size: labelSize) }
+                }
             }
-        case .none:
-            EmptyView()
         }
-    }
-
-    /// Contrast-style stroke: a gradient built from the day's expense brand
-    /// colors (a single expense fades its own color instead).
-    private var brandBorder: some View {
-        let colors = brandBorderColors
-        let gradientColors = colors.count == 1
-            ? [colors[0].opacity(0.9), colors[0].opacity(0.3)]
-            : colors
-
-        return RoundedRectangle(cornerRadius: cornerRadius)
-            .inset(by: 0.75)
-            .stroke(
-                LinearGradient(
-                    colors: gradientColors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ),
-                lineWidth: 1.5
-            )
-            .allowsHitTesting(false)
     }
 }
 

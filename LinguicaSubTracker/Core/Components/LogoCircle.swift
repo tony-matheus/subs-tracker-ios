@@ -10,28 +10,41 @@ struct LogoCircle: View {
     /// When no explicit symbol/asset exists, show the name's initials
     /// instead of the generic credit-card placeholder.
     var preferInitials: Bool = false
+    var glass: Bool = true
 
     var body: some View {
         ZStack {
-            Circle()
-                .fill(customization.resolvedBackground)
-                .frame(width: size, height: size)
-                .glassEffect(.regular.interactive())
-                .shadow(
-                    color: customization.resolvedShadow.opacity(0.5),
-                    radius: size * 0.22,
-                    x: 0,
-                    y: size * 0.08
-                )
+            if glass {
+                Circle()
+                    .fill(customization.resolvedBackground)
+                    .frame(width: size, height: size)
+                    .glassEffect(.regular.interactive())
+                    .shadow(color: customization.resolvedShadow.opacity(0.5), radius: size * 0.22, x: 0, y: size * 0.08)
+            } else {
+                Circle().fill(customization.resolvedBackground).frame(width: size, height: size)
+            }
 
-            content
+            LogoArtwork(size: size, customization: customization, logoName: logoName,
+                        name: name, imageScale: imageScale, preferInitials: preferInitials, circularAsset: true)
                 .frame(width: size, height: size)
                 .clipShape(Circle())
         }
     }
+}
+
+/// The original logo/customization resolver, without a container shape.
+struct LogoArtwork: View {
+    let size: CGFloat
+    let customization: LogoCustomization
+    var logoName: String? = nil
+    let name: String
+    var imageScale: CGFloat = 0.6
+    var preferInitials = false
+    var circularAsset = false
+    var ink: Color? = nil
 
     @ViewBuilder
-    private var content: some View {
+    var body: some View {
         switch customization.style {
         case .symbol:
             symbolOrAssetContent
@@ -70,7 +83,7 @@ struct LogoCircle: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: size * imageScale, height: size * imageScale)
-                .clipShape(Circle())
+                .clipShape(circularAsset ? AnyShape(Circle()) : AnyShape(Rectangle()))
         } else if preferInitials {
             // Wins over generated symbols (voice rows show "SA" for Safeway);
             // real brand assets above still take precedence.
@@ -93,7 +106,7 @@ struct LogoCircle: View {
             base
                 .symbolRenderingMode(.monochrome)
                 .symbolColorRenderingMode(.flat)
-                .foregroundStyle(customization.resolvedForeground)
+                .foregroundStyle(ink ?? customization.resolvedForeground)
         case .multicolor:
             base
                 .symbolRenderingMode(.multicolor)
@@ -109,7 +122,7 @@ struct LogoCircle: View {
     private var fallbackInitials: some View {
         Text(initials(for: name))
             .font(.custom(AppFont.mono, fixedSize: size * 0.33))
-            .foregroundColor(customization.resolvedForeground)
+            .foregroundColor(ink ?? customization.resolvedForeground)
     }
 
     private func initials(for name: String) -> String {

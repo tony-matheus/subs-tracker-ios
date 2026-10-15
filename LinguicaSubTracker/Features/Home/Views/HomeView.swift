@@ -30,35 +30,25 @@ struct HomeView: View {
         @Bindable var vm = viewModel
 
         NavigationStack {
-            VStack {
+            GeometryReader { geometry in
                 if viewType == .calendar {
-                    TotalView(
-                        store: vm.store,
-                        settingsStore: vm.settingsStore,
-                        coordinator: coordinator,
-                        calendarViewModel: vm.calendarViewModel,
-                        action: {
-                            vm.showStats = true
+                    let minimumHeight = vm.settingsStore.calendarStyle.gridHeight + 60 + 64 + 112 + 32
+                    if geometry.size.height < minimumHeight {
+                        ScrollView(.vertical) {
+                            calendarContent
+                                .frame(minHeight: geometry.size.height)
                         }
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    CalendarView(
-                        store: vm.store,
-                        coordinator: coordinator,
-                        viewModel: vm.calendarViewModel,
-                        // Read here (not inside CalendarView) so observation
-                        // re-renders the calendar live when the setting changes.
-                        calendarStyle: vm.settingsStore.calendarStyle
-                    )
-                    .padding(.bottom, 16)
+                        .scrollIndicators(.hidden)
+                    } else {
+                        calendarContent
+                    }
                 } else {
-                    HomeListView(
-                        store: vm.store,
-                        settingsStore: vm.settingsStore,
-                        coordinator: coordinator,
-                        calendarViewModel: vm.calendarViewModel,
-                        onStats: { vm.showStats = true }
-                    )
+                    VStack(spacing: 8) {
+                        KoyomiHeader(viewModel: vm.calendarViewModel) { showMonthPicker = true }
+                        HomeListView(store: vm.store, settingsStore: vm.settingsStore,
+                                     coordinator: coordinator, calendarViewModel: vm.calendarViewModel,
+                                     onStats: { vm.showStats = true })
+                    }
                 }
             }
             .appBackground()
@@ -103,7 +93,6 @@ struct HomeView: View {
             }
             .toolbar {
                 HomeToolbar(
-                    monthKey: vm.calendarViewModel.monthKey,
                     isFilterActive: vm.isFilterActive,
                     lists: vm.lists,
                     categories: vm.categories,
@@ -120,7 +109,6 @@ struct HomeView: View {
                     onBackToCurrent: { vm.jumpToCurrentMonth() },
                     onSearch: { vm.showSearch = true },
                     onStats: { vm.showStats = true },
-                    onMonthPicker: { showMonthPicker = true },
                     onSettings: { vm.showSettings = true }
                 )
             }
@@ -195,6 +183,19 @@ struct HomeView: View {
             }
         }
     }
+    private var calendarContent: some View {
+        VStack(spacing: 8) {
+            TotalView(store: store, settingsStore: viewModel.settingsStore, coordinator: coordinator,
+                      calendarViewModel: viewModel.calendarViewModel,
+                      action: { viewModel.showStats = true })
+                .frame(minHeight: 112, maxHeight: .infinity)
+            KoyomiHeader(viewModel: viewModel.calendarViewModel) { showMonthPicker = true }
+            CalendarView(store: store, coordinator: coordinator, viewModel: viewModel.calendarViewModel,
+                         calendarStyle: viewModel.settingsStore.calendarStyle)
+                .padding(.bottom, 16)
+        }
+    }
+
 }
 
 

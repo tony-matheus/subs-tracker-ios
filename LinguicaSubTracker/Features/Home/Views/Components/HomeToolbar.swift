@@ -22,7 +22,6 @@ enum HomeViewType {
 /// the filter/view pill top-leading, and the bottom bar's stats ring, add
 /// button and search.
 struct HomeToolbar: ToolbarContent {
-    let monthKey: String
     let isFilterActive: Bool
     let lists: [ExpenseList]
     let categories: [AppCategory]
@@ -40,7 +39,6 @@ struct HomeToolbar: ToolbarContent {
     var onBackToCurrent: () -> Void
     var onSearch: () -> Void
     var onStats: () -> Void
-    var onMonthPicker: () -> Void
     var onSettings: () -> Void
 
     var body: some ToolbarContent {
@@ -49,15 +47,12 @@ struct HomeToolbar: ToolbarContent {
             leadingPill
         }
 
-        ToolbarItem(placement: .principal) {
-            monthButton
-        }
-
         ToolbarItem(placement: .topBarTrailing) {
             Button(action: onSettings) {
                 Image(systemName: "gearshape")
                     .foregroundStyle(Color.ink)
             }
+            .accessibilityLabel("Settings")
         }
 
         ToolbarItemGroup(placement: .bottomBar) {
@@ -85,24 +80,6 @@ struct HomeToolbar: ToolbarContent {
                     .foregroundColor(Color.ink)
             }
         }
-    }
-
-    private var monthButton: some View {
-        Button(action: onMonthPicker) {
-            HStack(spacing: 4) {
-                Text(monthKey)
-                    .typography(.headlineSmall)
-                    .contentTransition(.numericText())
-                    .animation(
-                        .spring(response: 0.35, dampingFraction: 0.8),
-                        value: monthKey
-                    )
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .semibold))
-            }
-            .foregroundStyle(Color.ink)
-        }
-        .buttonStyle(.plain)
     }
 
     /// WhatsApp-style double button: filter menu + calendar/list switch in one capsule.
@@ -183,7 +160,6 @@ struct HomeToolbar: ToolbarContent {
                 Text("Home content")
                     .toolbar {
                         HomeToolbar(
-                            monthKey: "August 2026",
                             isFilterActive: false,
                             lists: [],
                             categories: [],
@@ -200,7 +176,6 @@ struct HomeToolbar: ToolbarContent {
                             onBackToCurrent: {},
                             onSearch: {},
                             onStats: {},
-                            onMonthPicker: {},
                             onSettings: {}
                         )
                     }

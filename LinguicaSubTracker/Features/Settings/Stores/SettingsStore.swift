@@ -38,7 +38,7 @@ final class SettingsStore {
     }
 
     var calendarStyle: CalendarStyle {
-        get { settings.calendarStyle ?? .rounded }
+        get { settings.calendarStyle ?? .default }
         set { settings.calendarStyle = newValue }
     }
 

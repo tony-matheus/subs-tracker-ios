@@ -5,9 +5,10 @@ struct CalendarRewindOverlay: View {
     let source: MonthData
     let target: MonthData
     let height: CGFloat
-    var style: CalendarStyle = .rounded
+    var style: CalendarStyle = .default
     let onComplete: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var ns
     @State private var showTarget = false
 
@@ -27,20 +28,22 @@ struct CalendarRewindOverlay: View {
             if showTarget {
                 grid(for: target, isTarget: true)
                     .id("target")
+                    .transition(reduceMotion ? .opacity : .modifier(active: InkWipe(phase: 0), identity: InkWipe(phase: 1)))
             } else {
                 grid(for: source, isTarget: false)
                     .id("source")
+                    .transition(.opacity)
             }
         }
         .frame(height: height)
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.78)) {
+        .accessibilityHidden(true)
+        .task {
+            withAnimation(reduceMotion ? .easeInOut(duration: 0.25) : .timingCurve(0.2, 0.7, 0.3, 1, duration: 0.55)) {
                 showTarget = true
             }
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 750_000_000)
-                onComplete()
-            }
+            do { try await Task.sleep(for: .seconds(reduceMotion ? 0.25 : 0.6)) }
+            catch { return }
+            onComplete()
         }
     }
 
@@ -59,9 +62,10 @@ struct CalendarRewindOverlay: View {
                             ),
                             style: style,
                             height: cellHeight,
-                            onTap: { _ in }
+                            onTap: { _ in },
+                            animatesToday: false
                         )
-                        .matchedGeometryEffect(id: "day-\(day)", in: ns)
+                        .matchedGeometryEffect(id: "day-\(day)", in: ns, properties: reduceMotion ? [] : .frame)
                         .transition(.opacity)
                     } else {
                         Color.clear
@@ -84,5 +88,32 @@ struct CalendarRewindOverlay: View {
 
     private func status(for date: Date) -> DayStatus {
         Calendar.current.isDateInToday(date) ? .current : .normal
+    }
+}
+
+/// Uneven advancing ink edge; entirely replaced by opacity under Reduce Motion.
+private struct InkWipe: ViewModifier, Animatable {
+    var phase: CGFloat
+    var animatableData: CGFloat {
+        get { phase }
+        set { phase = newValue }
+    }
+    func body(content: Content) -> some View {
+        content.mask {
+            GeometryReader { geometry in
+                Path { path in
+                    let edge = (geometry.size.width + 24) * phase - 12
+                    path.move(to: .zero)
+                    path.addLine(to: CGPoint(x: edge, y: 0))
+                    for step in 0...80 {
+                        let y = geometry.size.height * CGFloat(step) / 80
+                        let drift = sin(CGFloat(step) * 1.7) * 3 + sin(CGFloat(step) * 0.4) * 5
+                        path.addLine(to: CGPoint(x: edge + drift, y: y))
+                    }
+                    path.addLine(to: CGPoint(x: 0, y: geometry.size.height))
+                    path.closeSubpath()
+                }
+            }
+        }
     }
 }

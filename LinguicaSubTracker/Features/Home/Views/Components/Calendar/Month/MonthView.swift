@@ -8,7 +8,7 @@ struct MonthView: View {
     let expenseCounts: [Int]
     let expenses: [[Expense]]
 
-    var style: CalendarStyle = .rounded
+    var style: CalendarStyle = .default
     var height: CGFloat = 370
     var spacing: CGFloat = 4
     let onTap: (Date) -> Void
@@ -18,25 +18,14 @@ struct MonthView: View {
 
 
     let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
-    let weekdaysList = ["S", "M", "T", "W", "T", "F", "S"]
+    var ensoReplay = 0
+    var animatesToday = true
 
     var body: some View {
         VStack(spacing: 8) {
-            weekdaysHeader
+            WeekdayBand()
             monthGrid
         }
-    }
-
-    private var weekdaysHeader: some View {
-        HStack {
-            ForEach(Array(weekdaysList.enumerated()), id: \.offset) { _, day in
-                Text(day)
-                    .font(.caption)
-                    .frame(maxWidth: .infinity)
-                    .foregroundColor(.gray)
-            }
-        }
-        .frame(height: 52)
     }
 
     private var monthGrid: some View {
@@ -53,7 +42,9 @@ struct MonthView: View {
                     height: cellHeight,
                     onTap: { date in onTap(date) },
                     onEdit: onEditExpense,
-                    onDelete: onDeleteExpense
+                    onDelete: onDeleteExpense,
+                    ensoReplay: ensoReplay,
+                    animatesToday: animatesToday
                 )
             }
         }

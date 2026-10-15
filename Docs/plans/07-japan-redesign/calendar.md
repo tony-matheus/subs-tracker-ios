@@ -1,5 +1,14 @@
 # Calendar — restyle day cells in the existing month grid
 
+## Implementation clarifications — 2026-10-14
+
+The implementation follows these later user instructions where they supersede the details below:
+
+- Large adds memo height, but must not force a separate overflow line just to keep larger seals. Use a 24pt seal target; fall back to Default's 18pt seals when the row cannot fit. If a pair plus the count still cannot fit, show one seal and include every hidden expense in the inline count.
+- Keep the total prominent while allowing it to shrink for the screen. Large uses 40–72pt, including the lower bound for long amounts.
+- Prefer multiples of 4 for spacing and sizes where practical. Retain the explicit 12pt Default, 14pt Compact and 13pt Large dates, the 18pt Default seals and the existing grid dimensions.
+- Deliver screenshots in dark mode.
+
 ## Goal and order
 
 Implement this plan immediately after `general_app_ui.md`. The Home calendar remains the bottom element in calendar mode. Preserve the existing seven-column grid and its four-, five- or six-week month height behavior; this pass focuses on day cells and their settings choices. Japanese wall calendars inspire its paper, rules, numerals and brushwork; the dates are localized for worldwide use. Do not add Japanese holidays, era years or seasonal date markers.

@@ -393,7 +393,14 @@ struct CalendarWidgetView: View {
                                 if let date = day.date {
                                     Text(date.formatted(.dateTime.day()))
                                         .font(mono(numberSize))
-                                        .foregroundStyle(day.isToday ? Color.shu : Color.ink)
+                                        .foregroundStyle(Color.ink)
+                                        .background {
+                                            if day.isToday {
+                                                InkBrush(seed: EnsoShape.seed(for: date),
+                                                         size: CGSize(width: numberSize * 2.2, height: numberSize * 1.7))
+                                                    .widgetAccentable()
+                                            }
+                                        }
                                     Dots(colors: colors(day), max: dotMax, size: dotSize)
                                         .frame(height: dotSize)
                                 } else {
@@ -401,12 +408,6 @@ struct CalendarWidgetView: View {
                                 }
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background {
-                                if day.isToday {
-                                    Rectangle().stroke(Color.shu, lineWidth: 1)
-                                        .widgetAccentable()
-                                }
-                            }
                         }
                     }
                 }
@@ -487,7 +488,14 @@ struct CalendarWidgetView: View {
                                     .font(mono(11)).foregroundStyle(Color.inkSecondary)
                                 Text(date.formatted(.dateTime.day()))
                                     .font(mono(14))
-                                    .foregroundStyle(day.isToday ? Color.shu : Color.ink)
+                                    .foregroundStyle(Color.ink)
+                                        .background {
+                                            if day.isToday {
+                                                InkBrush(seed: EnsoShape.seed(for: date),
+                                                         size: CGSize(width: 28, height: 24))
+                                                    .widgetAccentable()
+                                            }
+                                        }
                             }
                             VStack(spacing: 3) {
                                 ForEach(Array(colors(day).prefix(3).enumerated()), id: \.offset) { _, color in

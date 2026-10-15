@@ -10,7 +10,7 @@ struct AppSettings: Codable {
     var lists: [ExpenseList]
     // Optional so previously persisted settings decode unchanged (nil → .system).
     var themeMode: ThemeMode? = nil
-    // Optional so previously persisted settings decode unchanged (nil → .rounded).
+    // Optional so previously persisted settings decode unchanged (nil → .default).
     var calendarStyle: CalendarStyle? = nil
     // Per-category slice of `monthlyBudget`, keyed by category name (same key
     // expenses use). Optional so previously persisted settings decode unchanged.
